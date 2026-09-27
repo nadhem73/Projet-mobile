@@ -1,0 +1,34 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
+# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
+# invoked from the command line by running `flutter analyze`.
+
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - lib/core/state/app_store.g.dart
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  # The lint rules applied to this project can be customized in the
+  # section below to disable rules recommended by `package:flutter_lints`,
+  # while still including some rules recommended by `package:lints`.
+  # If you want to completely disable a specific rule, uncomment the
+  # `rules` section below and list the rule there.
+  #
+  # For a list of supported lints, see https://dart.dev/lints
+  #
+  # To completely customize the rules, uncomment and edit the following:
+  # rules:
+  #   avoid_print: false
+  #   prefer_single_quotes: true
+  #
+  # Additional information about this file can be found at
+  # https://dart.dev/tools/analysis-options
