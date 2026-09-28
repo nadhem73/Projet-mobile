@@ -1,4 +1,5 @@
 ﻿import 'package:go_router/go_router.dart';
+import 'router_observer.dart';
 import 'package:medilab_prokit/features/auth/presentation/screens/login_screen.dart';
 import 'package:medilab_prokit/features/auth/presentation/screens/registration_screen.dart';
 import 'package:medilab_prokit/features/auth/presentation/screens/forget_password_screen.dart';
@@ -37,6 +38,7 @@ import 'package:medilab_prokit/core/widgets/purchase_more_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
+  observers: [ScreenObserver()],
   routes: [
     GoRoute(
       path: '/splash',

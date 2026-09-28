@@ -208,7 +208,7 @@ List<MLInboxData> mlBotChatDataList() {
 
 List<MLNotificationData> mlNotificationDataList() {
   List<MLNotificationData> list = [];
-  list.add(MLNotificationData(image: mlIcDoctorImage, title: 'an appointment has been scheduled�?� in context from reliable sources', time: '3m ago', status: 'Completed', detail: 'Completed'));
+  list.add(MLNotificationData(image: mlIcDoctorImage, title: 'an appointment has been scheduled??? in context from reliable sources', time: '3m ago', status: 'Completed', detail: 'Completed'));
   list.add(MLNotificationData(image: mlIcDoctorImage, title: 'Dr. sent you a message', time: '3m ago', status: ''));
   list.add(MLNotificationData(image: mlIcDoctorImage, title: 'Vitamins are essential to human health. Here, l', time: 'Today at 2.20 AM', status: 'Canceled'));
   list.add(MLNotificationData(
@@ -271,7 +271,7 @@ List<MLOrderTrackData> mlOrderTrackDataList() {
 List<MLProfileCardData> mlProfileDataList() {
   List<MLProfileCardData> list = [];
   list.add(MLProfileCardData(img: mlPrescription3, name: 'Rendez-vous', color: medicalTealPrimary, screen: MLRendezVousScreen()));
-  list.add(MLProfileCardData(img: mlPrescription2, name: 'Dossier médical', color: careCoralPrimary, screen: MLMedicalRecordScreen()));
+  list.add(MLProfileCardData(img: mlPrescription2, name: 'Dossier m�dical', color: careCoralPrimary, screen: MLMedicalRecordScreen()));
   list.add(MLProfileCardData(img: mlPrescription1, name: 'Scanner un bilan', color: vitalityGreenPrimary, screen: MLLabScanScreen()));
   list.add(MLProfileCardData(icon: Icons.auto_awesome, name: 'Assistant IA', color: cyanAccentDark, screen: MLAiAssistantScreen()));
   list.add(MLProfileCardData(img: mlPrescription4, name: 'Ordonnances', color: duckBlueMedium, screen: MLPrescriptionScreen()));
@@ -280,10 +280,10 @@ List<MLProfileCardData> mlProfileDataList() {
 
 List<MLLabScanData> mlLabScanDataList() {
   List<MLLabScanData> list = [];
-  list.add(MLLabScanData(title: 'Bilan sanguin complet', date: '21 Sep 2026', status: 'Analisé'));
-  list.add(MLLabScanData(title: 'Glycémie à jeun', date: '14 Sep 2026', status: 'Analisé'));
+  list.add(MLLabScanData(title: 'Bilan sanguin complet', date: '21 Sep 2026', status: 'Analis�'));
+  list.add(MLLabScanData(title: 'Glyc�mie � jeun', date: '14 Sep 2026', status: 'Analis�'));
   list.add(MLLabScanData(title: 'Bilan lipidique', date: '02 Sep 2026', status: 'En attente'));
-  list.add(MLLabScanData(title: 'NFS - Numération formule', date: '25 Aug 2026', status: 'Analisé'));
+  list.add(MLLabScanData(title: 'NFS - Num�ration formule', date: '25 Aug 2026', status: 'Analis�'));
   return list;
 }
 
@@ -291,7 +291,7 @@ List<MLPrescriptionData> mlPrescriptionDataList() {
   List<MLPrescriptionData> list = [];
   list.add(MLPrescriptionData(
     doctor: 'Dr. Stephen Chew',
-    specialty: 'Médecine générale',
+    specialty: 'M�decine g�n�rale',
     date: '21 Sep 2026',
     status: 'Active',
     medicines: ['Metformine 500 mg - 2x/jour', 'Vitamine B12 - 1x/jour'],
@@ -301,13 +301,13 @@ List<MLPrescriptionData> mlPrescriptionDataList() {
     specialty: 'Endocrinologie',
     date: '10 Sep 2026',
     status: 'Active',
-    medicines: ['Oméprazole 20 mg - matin', 'Paracétamol 1 g - si douleur'],
+    medicines: ['Om�prazole 20 mg - matin', 'Parac�tamol 1 g - si douleur'],
   ));
   list.add(MLPrescriptionData(
     doctor: 'Dr. Miranda Kerr',
-    specialty: 'Pédiatrie',
+    specialty: 'P�diatrie',
     date: '12 Aug 2026',
-    status: 'Terminée',
+    status: 'Termin�e',
     medicines: ['Amoxicilline 500 mg - 3x/jour pendant 7 jours'],
   ));
   return list;
@@ -315,9 +315,9 @@ List<MLPrescriptionData> mlPrescriptionDataList() {
 
 List<LanguageDataModel> languageList() {
   return [
-    LanguageDataModel(id: 1, name: 'English', languageCode: 'en', fullLanguageCode: 'en-US', flag: 'images/flag/ic_us.png'),
-    LanguageDataModel(id: 2, name: 'Hindi', languageCode: 'hi', fullLanguageCode: 'hi-IN', flag: 'images/flag/ic_hi.png'),
-    LanguageDataModel(id: 3, name: 'Arabic', languageCode: 'ar', fullLanguageCode: 'ar-AR', flag: 'images/flag/ic_ar.png'),
-    LanguageDataModel(id: 4, name: 'French', languageCode: 'fr', fullLanguageCode: 'fr-FR', flag: 'images/flag/ic_fr.png'),
+    LanguageDataModel(id: 1, name: 'English', languageCode: 'en', fullLanguageCode: 'en-US', flag: 'assets/images/flag/ic_us.png'),
+    LanguageDataModel(id: 2, name: 'Hindi', languageCode: 'hi', fullLanguageCode: 'hi-IN', flag: 'assets/images/flag/ic_hi.png'),
+    LanguageDataModel(id: 3, name: 'Arabic', languageCode: 'ar', fullLanguageCode: 'ar-AR', flag: 'assets/images/flag/ic_ar.png'),
+    LanguageDataModel(id: 4, name: 'French', languageCode: 'fr', fullLanguageCode: 'fr-FR', flag: 'assets/images/flag/ic_fr.png'),
   ];
 }

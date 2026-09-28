@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:medilab_prokit/core/theme/colors.dart';
 import 'package:medilab_prokit/core/utils/mock_data.dart';
 import 'package:medilab_prokit/main.dart';
@@ -68,7 +68,7 @@ class MLMedicalRecordScreenState extends State<MLMedicalRecordScreen> {
                             CircleAvatar(
                               radius: 30,
                               backgroundColor: mlColorCyan,
-                              child: Image.asset('images/ml_profile_Image.png', fit: BoxFit.cover),
+                              child: Image.asset('assets/images/ml_profile_Image.png', fit: BoxFit.cover),
                             ),
                             12.width,
                             Column(

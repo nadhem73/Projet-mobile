@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:medilab_prokit/main.dart';
 import 'package:medilab_prokit/core/theme/colors.dart';
 import 'package:nb_utils/nb_utils.dart';
@@ -51,7 +51,7 @@ class MLProfileBottomComponentState extends State<MLProfileBottomComponent> {
               children: [
                 Row(
                   children: [
-                    Image.asset('images/ic_theme.png', height: 24, width: 24, color: medicalTealPrimary).paddingOnly(left: 4),
+                    Image.asset('assets/images/ic_theme.png', height: 24, width: 24, color: medicalTealPrimary).paddingOnly(left: 4),
                     8.width,
                     Text('DarkMode', style: primaryTextStyle()),
                   ],
