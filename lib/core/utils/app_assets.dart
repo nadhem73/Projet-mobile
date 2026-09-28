@@ -1,6 +1,6 @@
 ﻿import 'package:medilab_prokit/core/utils/app_strings.dart';
 
-const String mlIcMedilabLogo = 'assets/images/ml_medilabLogo.png';
+const String mlIcMedilabLogo = 'assets/images/medilink logo.png';
 
 const String mlIcRegisterIndicator = '$baseUrl/images/mediLab/ml_loginindicator.png';
 
