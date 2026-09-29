@@ -13,6 +13,14 @@ import 'package:medilab_prokit/features/patient/presentation/screens/add_depende
 import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_detail_screen.dart';
 import 'package:medilab_prokit/features/doctor/presentation/screens/specialist_screen.dart';
 import 'package:medilab_prokit/features/doctor/presentation/screens/video_consult_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_dashboard_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_agenda_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_consultation_list_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_consultation_detail_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_patient_list_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_patient_medical_record_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_lab_results_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_prescription_screen.dart';
 import 'package:medilab_prokit/features/appointment/presentation/screens/book_appointment_screen.dart';
 import 'package:medilab_prokit/features/appointment/presentation/screens/appointment_detail_screen.dart';
 import 'package:medilab_prokit/features/pharmacy/presentation/screens/online_pharmacy_screen.dart';
@@ -103,6 +111,48 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/video-consult',
       builder: (context, state) => const MLVideoConsultScreen(),
+    ),
+    GoRoute(
+      path: '/doctor/dashboard',
+      builder: (context, state) => const MLDoctorDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/doctor/agenda',
+      builder: (context, state) => const MLDoctorAgendaScreen(),
+    ),
+    GoRoute(
+      path: '/doctor/consultations',
+      builder: (context, state) => const MLDoctorConsultationListScreen(),
+    ),
+    GoRoute(
+      path: '/doctor/consultation/:id',
+      builder: (context, state) => MLDoctorConsultationDetailScreen(consultationId: state.pathParameters['id']),
+    ),
+    GoRoute(
+      path: '/doctor/patients',
+      builder: (context, state) => const MLDoctorPatientListScreen(),
+    ),
+    GoRoute(
+      path: '/doctor/patient/:id/record',
+      builder: (context, state) => MLDoctorPatientMedicalRecordScreen(patientId: state.pathParameters['id']),
+    ),
+    GoRoute(
+      path: '/doctor/patient/:id/labs',
+      builder: (context, state) => MLDoctorLabResultsScreen(patientId: state.pathParameters['id']),
+    ),
+    GoRoute(
+      path: '/doctor/prescription/new',
+      builder: (context, state) => MLDoctorPrescriptionScreen(
+        consultationId: state.uri.queryParameters['consultationId'],
+        patientId: state.uri.queryParameters['patientId'],
+      ),
+    ),
+    GoRoute(
+      path: '/doctor/prescription/template',
+      builder: (context, state) => MLDoctorPrescriptionScreen(
+        isTemplate: true,
+        patientId: state.uri.queryParameters['patientId'],
+      ),
     ),
     GoRoute(
       path: '/book-appointment',

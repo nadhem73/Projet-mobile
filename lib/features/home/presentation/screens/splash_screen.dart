@@ -1,6 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/features/home/presentation/screens/dashboard_screen.dart';
+import 'package:medilab_prokit/features/auth/presentation/screens/login_screen.dart';
 import 'package:medilab_prokit/core/utils/app_assets.dart';
 import 'package:nb_utils/nb_utils.dart';
 
@@ -57,7 +57,7 @@ class MLSplashScreenState extends State<MLSplashScreen>
     await 3.seconds.delay;
     if (!mounted) return;
     finish(context);
-    MLDashboardScreen().launch(context);
+    MLLoginScreen().launch(context);
   }
 
   @override

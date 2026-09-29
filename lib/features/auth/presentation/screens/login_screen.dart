@@ -4,6 +4,7 @@ import 'package:nb_utils/nb_utils.dart';
 import 'package:medilab_prokit/features/auth/presentation/components/country_picker.dart';
 import 'package:medilab_prokit/features/auth/presentation/components/social_account_button.dart';
 import 'package:medilab_prokit/features/home/presentation/screens/dashboard_screen.dart';
+import 'package:medilab_prokit/features/doctor/presentation/screens/doctor_dashboard_screen.dart';
 import 'package:medilab_prokit/features/auth/presentation/screens/forget_password_screen.dart';
 import 'package:medilab_prokit/features/auth/presentation/screens/registration_screen.dart';
 import 'package:medilab_prokit/core/theme/colors.dart';
@@ -21,7 +22,7 @@ class MLLoginScreen extends StatefulWidget {
 }
 
 class MLLoginScreenState extends State<MLLoginScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late AnimationController _floatController;
   late Animation<double> _cardSlideAnimation;
@@ -65,6 +66,39 @@ class MLLoginScreenState extends State<MLLoginScreen>
 
   Future<void> init() async {
     changeStatusColor(mlPrimaryColor);
+  }
+
+  void _showRoleSelectionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: radius(16)),
+        title: Text('Choisir le rôle', style: boldTextStyle(size: 20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.person, color: medicalBluePrimary, size: 28),
+              title: Text('Patient', style: boldTextStyle(size: 16)),
+              subtitle: Text('Accès aux rendez-vous, dossier médical, ordonnances', style: secondaryTextStyle(size: 12)),
+              onTap: () {
+                finish(context);
+                MLDashboardScreen().launch(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.medical_services, color: medicalTealPrimary, size: 28),
+              title: Text('Médecin', style: boldTextStyle(size: 16)),
+              subtitle: Text('Agenda, consultations, dossiers patients, ordonnances', style: secondaryTextStyle(size: 12)),
+              onTap: () {
+                finish(context);
+                MLDoctorDashboardScreen().launch(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -183,8 +217,7 @@ class MLLoginScreenState extends State<MLLoginScreen>
                     color: mlPrimaryColor,
                     width: double.infinity,
                     onTap: () {
-                      finish(context);
-                      MLDashboardScreen().launch(context);
+                      _showRoleSelectionDialog(context);
                     },
                     child: Text(mlLogin, style: boldTextStyle(color: white)),
                   ),

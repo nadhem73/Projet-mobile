@@ -39,12 +39,14 @@ des ordonnances, de la pharmacie et d'un assistant médical IA.*
 | **Application** | Medilink Tunisia (`medilab_prokit`) |
 | **Type** | Application mobile de santé — **interface complète, données fictives** |
 | **Cibles** | Android (primaire), iOS, Web, Windows |
-| **Écrans** | 35 écrans • 40 composants réutilisables • 35 routes nommées |
+| **Écrans** | 43 écrans • 46 composants réutilisables • 44 routes nommées |
 | **Langue UI** | Français / Anglais (chaînes centralisées dans `app_strings.dart`) |
 
-Medilink couvre le parcours patient complet : authentification, tableau de bord,
+Medilink couvre le parcours **patient** complet : authentification, tableau de bord,
 rendez-vous, dossier médical, résultats de bilans, ordonnances, pharmacie en ligne,
 consultation vidéo et assistant médical IA.
+
+Et le parcours **médecin** : agenda, consultations, dossiers patients, bilans, ordonnances.
 
 ---
 
@@ -106,8 +108,9 @@ consultation vidéo et assistant médical IA.
 ### 🔐 Authentification
 Écran de connexion (téléphone + mot de passe), inscription, récupération de mot de passe,
 vérification OTP et choix du pays — avec animations d'entrée et dégradé de marque.
+**Choix du rôle à la connexion** : Patient ou Médecin (sans authentification requise).
 
-### 🏠 Tableau de bord
+### 🏠 Tableau de bord Patient
 - Bandeau profil, recherche et panier
 - Carte de stats : fréquence cardiaque, poids, tension (données fictives)
 - Carrousel des spécialités médicales
@@ -115,14 +118,21 @@ vérification OTP et choix du pays — avec animations d'entrée et dégradé de
 - **Barre de navigation à 5 onglets** avec bouton *Accueil* central surélevé en gradient
 - **FAB assistant IA** toujours accessible
 
-### 📅 Rendez-vous
+### 👨‍⚕️ Tableau de bord Médecin
+- Stats du jour : RDV, consultations en cours, patients, ordonnances
+- Agenda du jour avec créneaux (confirmés, en attente, annulés)
+- Consultations à venir avec actions rapides
+- **Barre de navigation à 5 onglets** (Dashboard, Agenda, Consultations, Patients, Ordonnances)
+- Actions rapides : nouvelle consultation, gérer agenda, mes patients, nouvelle ordonnance
+
+### 📅 Rendez-vous (Patient)
 Prise de rendez-vous guidée (service → médecin → patient → confirmation),
 sélection de créneaux horaires, détail et historique des rendez-vous.
 
-### 🩺 Dossier médical
+### 🩺 Dossier médical (Patient)
 Carte patient, constantes vitales, sections de suivi et historique des consultations.
 
-### 🧪 Bilans & Ordonnances
+### 🧪 Bilans & Ordonnances (Patient)
 Liste des bilans (sanguins, glycémie, lipidique…) avec statuts, scan de bilan,
 et gestion des ordonnances par médecin/spécialité.
 
@@ -133,6 +143,17 @@ suivi de commande et rappels de médicaments.
 ### 🤖 Assistant IA & Communication
 Chat médical IA avec suggestions, messagerie patient-médecin, bot de support,
 appels vidéo et notifications.
+
+### 🏥 Espace Médecin (Nouveau)
+| Fonctionnalité | Description |
+|---|---|
+| **Agenda** | Vue semaine/jour, créneaux 30min, gestion statuts (confirmé/en attente/annulé) |
+| **Consultations** | Liste filtrable (aujourd'hui, cette semaine, en cours, terminés, annulés), recherche patient/motif |
+| **Détail consultation** | Saisie constantes vitales (TA, FC, poids, T°, SpO2, glycémie), motif, diagnostic, notes, fin → ordonnance |
+| **Patients** | Liste patients assignés, pathologies chroniques, RDV à venir, médicaments actifs |
+| **Dossier patient** | Vue onglets : Aperçu (vitals, antécédents, allergies, traitements, documents), Historique, Bilans, Ordonnances |
+| **Bilans/Labo** | Résultats avec statuts, visualisation PDF, téléchargement, partage patient |
+| **Ordonnances** | Constructeur multi-médicaments (posologie, fréquence, durée, voie, moment), modèles par pathologie, signature numérique |
 
 ---
 
@@ -190,7 +211,7 @@ le socle transversal étant isolé dans `core/`.
 lib/
 ├── main.dart                     # bootstrap : MobX, get_it, thème, police
 ├── core/
-│   ├── navigation/app_router.dart# 35 routes GoRouter (initial : /splash)
+│   ├── navigation/app_router.dart# 44 routes GoRouter (initial : /splash)
 │   ├── state/                    # AppStore MobX + service_locator (get_it)
 │   ├── theme/                    # colors.dart • app_theme.dart • medical_theme.dart
 │   ├── utils/                    # mock_data • app_strings • app_assets • ui_helpers
@@ -199,7 +220,11 @@ lib/
     ├── auth/        # connexion, inscription, OTP, mot de passe
     ├── home/        # dashboard, fragments, navbar, splash, walkthrough, bot
     ├── appointment/ # prise de RDV, créneaux, détail
-    ├── doctor/      # spécialités, profil médecin, consultation vidéo
+    ├── doctor/      # dashboard, agenda, consultations, patients, dossier, bilans, ordonnances
+    │   ├── data/                    # modèles : agenda, consultation, patient, dossier, modèles ordonnance
+    │   └── presentation/
+    │       ├── screens/             # 8 écrans (dashboard, agenda, liste/detail consultation, patients, dossier, bilans, ordonnance)
+    │       └── components/          # 6 composants (créneaux agenda, carte consultation, carte patient, saisie vitaux, ligne ordonnance, section dossier)
     ├── patient/     # dossier médical, bilans, ordonnances, IA, chat, profils
     └── pharmacy/    # catalogue, panier, paiement, commandes, rappels
         ├── data/            # modèles de données
@@ -217,7 +242,7 @@ lib/
 
 ## 🧭 Navigation
 
-Route initiale : `/splash` → `/walkthrough` → `/login` → `/dashboard`
+Route initiale : `/splash` → `/walkthrough` → `/login` → **choix rôle** → `/dashboard` (patient) **ou** `/doctor/dashboard` (médecin)
 
 <details>
 <summary>Table complète des routes</summary>
@@ -231,7 +256,7 @@ Route initiale : `/splash` → `/walkthrough` → `/login` → `/dashboard`
 | `/forgot-password` | `MLForgetPasswordScreen` |
 | `/confirm-phone` | `MLConfirmPhoneNumberScreen` |
 | `/auth` | `MLAuthenticationScreen` |
-| `/dashboard` | `MLDashboardScreen` |
+| `/dashboard` | `MLDashboardScreen` (patient) |
 | `/rendez-vous` | `MLRendezVousScreen` |
 | `/book-appointment` | `MLBookAppointmentScreen` |
 | `/appointment-detail` | `MLAppointmentDetailScreen` |
@@ -245,6 +270,15 @@ Route initiale : `/splash` → `/walkthrough` → `/login` → `/dashboard`
 | `/profile` | `MLUpdateProfileScreen` |
 | `/add-dependent` | `MLAddDependentScreen` |
 | `/order-detail` | `MLOrderDetailScreen` |
+| `/doctor/dashboard` | `MLDoctorDashboardScreen` |
+| `/doctor/agenda` | `MLDoctorAgendaScreen` |
+| `/doctor/consultations` | `MLDoctorConsultationListScreen` |
+| `/doctor/consultation/:id` | `MLDoctorConsultationDetailScreen` |
+| `/doctor/patients` | `MLDoctorPatientListScreen` |
+| `/doctor/patient/:id/record` | `MLDoctorPatientMedicalRecordScreen` |
+| `/doctor/patient/:id/labs` | `MLDoctorLabResultsScreen` |
+| `/doctor/prescription/new` | `MLDoctorPrescriptionScreen` |
+| `/doctor/prescription/template` | `MLDoctorPrescriptionScreen` (mode modèle) |
 | `/doctor-detail` | `MLDoctorDetailScreen` |
 | `/specialist` | `MLSpecialistScreen` |
 | `/video-consult` | `MLVideoConsultScreen` |
@@ -298,9 +332,11 @@ flutter clean          # réinitialiser le build
 
 | | |
 |---|---|
-| ✅ | Interface complète (35 écrans) et navigation nommée |
+| ✅ | Interface complète (43 écrans : 26 patient + 8 médecin + 9 auth/autres) et navigation nommée |
 | ✅ | Design system centralisé, clair + sombre |
 | ✅ | Données fictives alimentant l'ensemble des écrans (`mock_data.dart`) |
+| ✅ | **Parcours Patient complet** : auth, dashboard, RDV, dossier, bilans, ordonnances, pharmacie, IA |
+| ✅ | **Parcours Médecin complet** : dashboard, agenda, consultations, patients, dossier, bilans, ordonnances |
 | ⚠️ | **UI-only** : aucun backend, aucune persistance réseau |
 | ⚠️ | `test/widget_test.dart` est encore le template par défaut — à remplacer par de vrais tests |
 

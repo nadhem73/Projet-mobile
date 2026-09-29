@@ -34,21 +34,25 @@ class MLCountryPickerComponentState extends State<MLCountryPickerComponent> {
       children: [
         6.height,
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            CountryCodePicker(
-              onChanged: log,
-              initialSelection: 'IT',
-              favorite: ['+1', 'US'],
-              showFlag: false,
-              alignLeft: false,
-              padding: EdgeInsets.all(0),
+            SizedBox(
+              width: 80,
+              child: CountryCodePicker(
+                onChanged: log,
+                initialSelection: 'IT',
+                favorite: ['+1', 'US'],
+                showFlag: false,
+                alignLeft: false,
+                padding: EdgeInsets.all(0),
+              ),
             ),
             2.width,
             Icon(Icons.arrow_drop_down, size: 16).paddingRight(0.0),
           ],
         ),
         8.height,
-        Container(width: 75, height: 1, color: mlColorLightGrey.withValues(alpha: 0.2))
+        Container(width: 80, height: 1, color: mlColorLightGrey.withValues(alpha: 0.2))
       ],
     );
   }
