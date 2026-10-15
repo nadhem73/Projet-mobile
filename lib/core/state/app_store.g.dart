@@ -84,8 +84,7 @@ mixin _$AppStore on AppStoreBase, Store {
     });
   }
 
-  final _$scaffoldBackgroundAtom =
-      Atom(name: 'AppStoreBase.scaffoldBackground');
+  final _$scaffoldBackgroundAtom = Atom(name: 'AppStoreBase.scaffoldBackground');
 
   @override
   Color? get scaffoldBackground {
@@ -100,8 +99,7 @@ mixin _$AppStore on AppStoreBase, Store {
     });
   }
 
-  final _$backgroundSecondaryColorAtom =
-      Atom(name: 'AppStoreBase.backgroundSecondaryColor');
+  final _$backgroundSecondaryColorAtom = Atom(name: 'AppStoreBase.backgroundSecondaryColor');
 
   @override
   Color? get backgroundSecondaryColor {
@@ -111,14 +109,12 @@ mixin _$AppStore on AppStoreBase, Store {
 
   @override
   set backgroundSecondaryColor(Color? value) {
-    _$backgroundSecondaryColorAtom
-        .reportWrite(value, super.backgroundSecondaryColor, () {
+    _$backgroundSecondaryColorAtom.reportWrite(value, super.backgroundSecondaryColor, () {
       super.backgroundSecondaryColor = value;
     });
   }
 
-  final _$appColorPrimaryLightColorAtom =
-      Atom(name: 'AppStoreBase.appColorPrimaryLightColor');
+  final _$appColorPrimaryLightColorAtom = Atom(name: 'AppStoreBase.appColorPrimaryLightColor');
 
   @override
   Color? get appColorPrimaryLightColor {
@@ -128,14 +124,12 @@ mixin _$AppStore on AppStoreBase, Store {
 
   @override
   set appColorPrimaryLightColor(Color? value) {
-    _$appColorPrimaryLightColorAtom
-        .reportWrite(value, super.appColorPrimaryLightColor, () {
+    _$appColorPrimaryLightColorAtom.reportWrite(value, super.appColorPrimaryLightColor, () {
       super.appColorPrimaryLightColor = value;
     });
   }
 
-  final _$iconSecondaryColorAtom =
-      Atom(name: 'AppStoreBase.iconSecondaryColor');
+  final _$iconSecondaryColorAtom = Atom(name: 'AppStoreBase.iconSecondaryColor');
 
   @override
   Color? get iconSecondaryColor {
@@ -165,8 +159,7 @@ mixin _$AppStore on AppStoreBase, Store {
     });
   }
 
-  final _$textSecondaryColorAtom =
-      Atom(name: 'AppStoreBase.textSecondaryColor');
+  final _$textSecondaryColorAtom = Atom(name: 'AppStoreBase.textSecondaryColor');
 
   @override
   Color? get textSecondaryColor {
@@ -181,21 +174,18 @@ mixin _$AppStore on AppStoreBase, Store {
     });
   }
 
-  final _$toggleDarkModeAsyncAction =
-      AsyncAction('AppStoreBase.toggleDarkMode');
+  final _$toggleDarkModeAsyncAction = AsyncAction('AppStoreBase.toggleDarkMode');
 
   @override
   Future<void> toggleDarkMode({bool? value}) {
-    return _$toggleDarkModeAsyncAction
-        .run(() => super.toggleDarkMode(value: value));
+    return _$toggleDarkModeAsyncAction.run(() => super.toggleDarkMode(value: value));
   }
 
   final _$AppStoreBaseActionController = ActionController(name: 'AppStoreBase');
 
   @override
   void toggleHover({bool value = false}) {
-    final _$actionInfo = _$AppStoreBaseActionController.startAction(
-        name: 'AppStoreBase.toggleHover');
+    final _$actionInfo = _$AppStoreBaseActionController.startAction(name: 'AppStoreBase.toggleHover');
     try {
       return super.toggleHover(value: value);
     } finally {

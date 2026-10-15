@@ -1,8 +1,8 @@
-﻿import 'package:flutter/material.dart';
-import 'package:medilab_prokit/main.dart';
-import 'package:medilab_prokit/core/widgets/purchase_more_screen.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/core/utils/ui_helpers.dart';
+import 'package:flutter/material.dart';
+import 'package:medilink/main.dart';
+import 'package:medilink/core/widgets/feedback_views.dart';
+import 'package:medilink/core/theme/colors.dart';
+import 'package:medilink/core/utils/ui_helpers.dart';
 import 'package:nb_utils/nb_utils.dart';
 
 class MLAppointmentDetailScreen extends StatefulWidget {
@@ -49,7 +49,7 @@ class MLAppointmentDetailScreenState extends State<MLAppointmentDetailScreen> {
                   Text('Appointment Details', style: boldTextStyle(size: 22)),
                 ],
               ).paddingAll(16),
-              Flexible(child: PurchaseMoreScreen()),
+              Flexible(child: ComingSoonView()),
             ],
           ),
         ),

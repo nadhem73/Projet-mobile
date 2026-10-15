@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:medilab_prokit/main.dart';
-import 'package:medilab_prokit/core/widgets/purchase_more_screen.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
+import 'package:medilink/main.dart';
+import 'package:medilink/core/widgets/feedback_views.dart';
+import 'package:medilink/core/theme/colors.dart';
 import 'package:nb_utils/nb_utils.dart';
 
-import 'package:medilab_prokit/features/pharmacy/presentation/screens/confirm_order_screen.dart';
+import 'package:medilink/features/pharmacy/presentation/screens/confirm_order_screen.dart';
 
 class MLAddToCartScreen extends StatefulWidget {
   static String tag = '/MLShoppingCartScreen';
@@ -87,7 +87,7 @@ class MLAddToCartScreenState extends State<MLAddToCartScreen> {
                       ],
                     ).paddingAll(16.0),
                     8.height,
-                    PurchaseMoreScreen().withHeight(context.height() * 0.8),
+                    ComingSoonView().withHeight(context.height() * 0.8),
                   ],
                 ),
               ),

@@ -1,4 +1,4 @@
-﻿const String mlGetStarted = 'Get Started';
+const String mlGetStarted = 'Get Started';
 const String mlSkip = 'Skip';
 
 const String mlSlideOne = 'Easy Appointment';
@@ -45,12 +45,15 @@ const String mlVoucherSubtitle = 'Extra Voucher received from Medilink';
 
 const String mlBookingFailMessage = 'Something went wrong please turn back and check your booking';
 
-const String mlPillDescription = 'If you take a multivitamin, '
+const String mlPillDescription =
+    'If you take a multivitamin, '
     'it\'s probably because you want to do everything you can to protect your health. '
     'Most studies find no benefit from multivitamins in protecting the brain or heart.';
-const String mlPillDesc = 'If you take a multivitamin, '
+const String mlPillDesc =
+    'If you take a multivitamin, '
     'it\'s probably because you want to do everything you can to protect your health. ';
-const String mlCovidDesc1 = 'The spread of the new '
+const String mlCovidDesc1 =
+    'The spread of the new '
     'coronavirus COVID-19, has led to unparalleled global measures such as lockdown and '
     'suspension of all retail, recreation and religious activities during the first months of 2020.';
 

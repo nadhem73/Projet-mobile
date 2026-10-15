@@ -1,8 +1,8 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:medilab_prokit/main.dart';
+import 'package:medilink/main.dart';
 import 'package:nb_utils/nb_utils.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
+import 'package:medilink/core/theme/colors.dart';
 
 Widget mlBackToPrevious(BuildContext context, Color color) {
   return Align(
@@ -28,7 +28,11 @@ Widget mlRoundedIconContainer(IconData iconData, Color color) {
 Widget mlIconWithRoundedContainer(IconData iconData, Color color) {
   return Container(
     padding: EdgeInsets.all(8.0),
-    decoration: boxDecorationWithRoundedCorners(backgroundColor: white, border: Border.all(color: Colors.grey.shade100), borderRadius: radius(24)),
+    decoration: boxDecorationWithRoundedCorners(
+      backgroundColor: white,
+      border: Border.all(color: Colors.grey.shade100),
+      borderRadius: radius(24),
+    ),
     child: Icon(iconData, size: 16, color: color),
   );
 }
@@ -36,7 +40,10 @@ Widget mlIconWithRoundedContainer(IconData iconData, Color color) {
 Widget mlSelectedNavigationbarIcon(IconData iconData) {
   return Container(
     padding: EdgeInsets.all(10.0),
-    decoration: boxDecorationWithRoundedCorners(backgroundColor: medicalTealPrimary.withValues(alpha: 0.1), borderRadius: radius(24)),
+    decoration: boxDecorationWithRoundedCorners(
+      backgroundColor: medicalTealPrimary.withValues(alpha: 0.1),
+      borderRadius: radius(24),
+    ),
     child: Icon(iconData, size: 22, color: mlColorDarkBlue),
   );
 }
@@ -54,12 +61,11 @@ Widget mlBackToPreviousWidget(BuildContext context, Color color) {
 }
 
 Widget mlBackToPreviousIcon(BuildContext context, Color color) {
-  return Align(
-    alignment: Alignment.topLeft,
-    child: Icon(Icons.arrow_back_ios_outlined, color: color, size: 18),
-  ).onTap(() {
-    finish(context);
-  });
+  return Align(alignment: Alignment.topLeft, child: Icon(Icons.arrow_back_ios_outlined, color: color, size: 18)).onTap(
+    () {
+      finish(context);
+    },
+  );
 }
 
 Widget commonCachedNetworkImage(
@@ -91,12 +97,24 @@ Widget commonCachedNetworkImage(
       },
     );
   } else {
-    return Image.asset(url, height: height, width: width, fit: fit, alignment: alignment ?? Alignment.center).cornerRadiusWithClipRRect(radius ?? defaultRadius);
+    return Image.asset(
+      url,
+      height: height,
+      width: width,
+      fit: fit,
+      alignment: alignment ?? Alignment.center,
+    ).cornerRadiusWithClipRRect(radius ?? defaultRadius);
   }
 }
 
 Widget placeHolderWidget({double? height, double? width, BoxFit? fit, AlignmentGeometry? alignment, double? radius}) {
-  return Image.asset('assets/images/placeholder.jpg', height: height, width: width, fit: fit ?? BoxFit.cover, alignment: alignment ?? Alignment.center).cornerRadiusWithClipRRect(radius ?? defaultRadius);
+  return Image.asset(
+    'assets/images/placeholder.jpg',
+    height: height,
+    width: width,
+    fit: fit ?? BoxFit.cover,
+    alignment: alignment ?? Alignment.center,
+  ).cornerRadiusWithClipRRect(radius ?? defaultRadius);
 }
 
 void changeStatusColor(Color color) async {

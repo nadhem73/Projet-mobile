@@ -1,9 +1,9 @@
-﻿import 'package:flutter/material.dart';
-import 'package:medilab_prokit/features/appointment/presentation/components/booked_dialog.dart';
-import 'package:medilab_prokit/main.dart';
-import 'package:medilab_prokit/core/widgets/purchase_more_screen.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/core/utils/ui_helpers.dart';
+import 'package:flutter/material.dart';
+import 'package:medilink/features/appointment/presentation/widgets/booked_dialog.dart';
+import 'package:medilink/main.dart';
+import 'package:medilink/core/widgets/feedback_views.dart';
+import 'package:medilink/core/theme/colors.dart';
+import 'package:medilink/core/utils/ui_helpers.dart';
 import 'package:nb_utils/nb_utils.dart';
 
 class MLAddPaymentScreen extends StatefulWidget {
@@ -39,7 +39,7 @@ class MLAddPaymentScreenState extends State<MLAddPaymentScreen> {
         body: Stack(
           alignment: Alignment.center,
           children: <Widget>[
-            PurchaseMoreScreen().withHeight(context.height() * 0.6),
+            ComingSoonView().withHeight(context.height() * 0.6),
             Positioned(
               top: 32.0,
               left: 24.0,

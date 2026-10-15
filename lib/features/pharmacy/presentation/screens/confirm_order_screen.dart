@@ -1,8 +1,8 @@
-﻿import 'package:flutter/material.dart';
-import 'package:medilab_prokit/features/home/presentation/screens/dashboard_screen.dart';
-import 'package:medilab_prokit/core/widgets/purchase_more_screen.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/core/utils/app_assets.dart';
+import 'package:flutter/material.dart';
+import 'package:medilink/features/shell/presentation/screens/dashboard_screen.dart';
+import 'package:medilink/core/widgets/feedback_views.dart';
+import 'package:medilink/core/theme/colors.dart';
+import 'package:medilink/core/utils/app_assets.dart';
 import 'package:nb_utils/nb_utils.dart';
 
 class MLConfirmOrderScreen extends StatefulWidget {
@@ -71,7 +71,7 @@ class MLConfirmOrderScreenState extends State<MLConfirmOrderScreen> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       if (index == 0) {
-                        return PurchaseMoreScreen().withHeight(context.height() * 0.5);
+                        return ComingSoonView().withHeight(context.height() * 0.5);
                       }
                       return null;
                     },

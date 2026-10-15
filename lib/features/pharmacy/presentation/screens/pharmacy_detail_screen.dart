@@ -1,9 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
-import 'package:medilab_prokit/features/pharmacy/presentation/components/category_chip.dart';
-import 'package:medilab_prokit/features/pharmacy/presentation/components/category_product.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/core/utils/ui_helpers.dart';
+import 'package:medilink/features/pharmacy/presentation/widgets/category_chip.dart';
+import 'package:medilink/features/pharmacy/presentation/widgets/category_product.dart';
+import 'package:medilink/core/theme/colors.dart';
+import 'package:medilink/core/utils/ui_helpers.dart';
 
 class MLOnlinePharmacyDetailScreen extends StatefulWidget {
   static String tag = '/MLOnlinePharmacyDetailScreen';

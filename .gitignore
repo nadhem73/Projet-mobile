@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Gradle build outputs
+android/build/
+**/android/.gradle/
+
+# Bases SQLite locales
+*.db
+*.db-journal

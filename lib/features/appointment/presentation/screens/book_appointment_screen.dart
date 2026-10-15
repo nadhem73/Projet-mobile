@@ -1,11 +1,11 @@
-﻿import 'package:flutter/material.dart';
-import 'package:medilab_prokit/core/utils/ui_helpers.dart';
+import 'package:flutter/material.dart';
+import 'package:medilink/core/utils/ui_helpers.dart';
 import 'package:nb_utils/nb_utils.dart';
-import 'package:medilab_prokit/features/appointment/data/book_appointment_model.dart';
-import 'package:medilab_prokit/features/pharmacy/presentation/screens/add_payment_screen.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/core/utils/mock_data.dart';
-import 'package:medilab_prokit/main.dart';
+import 'package:medilink/features/appointment/data/models/book_appointment_model.dart';
+import 'package:medilink/features/pharmacy/presentation/screens/add_payment_screen.dart';
+import 'package:medilink/core/theme/colors.dart';
+import 'package:medilink/core/utils/mock_data.dart';
+import 'package:medilink/main.dart';
 
 class MLBookAppointmentScreen extends StatefulWidget {
   static String tag = '/MLBookAppointmentScreen';

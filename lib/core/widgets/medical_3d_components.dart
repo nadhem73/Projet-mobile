@@ -1,6 +1,6 @@
-﻿import 'package:flutter/material.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/core/theme/medical_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:medilink/core/theme/colors.dart';
+import 'package:medilink/core/theme/medical_theme.dart';
 
 /// 3D Animated Card Component
 /// Features:
@@ -52,21 +52,18 @@ class Medical3DCard extends StatefulWidget {
   State<Medical3DCard> createState() => _Medical3DCardState();
 }
 
-class _Medical3DCardState extends State<Medical3DCard>
-    with SingleTickerProviderStateMixin {
+class _Medical3DCardState extends State<Medical3DCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.animationDuration,
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
-      CurvedAnimation(parent: _controller, curve: widget.animationCurve),
-    );
+    _controller = AnimationController(duration: widget.animationDuration, vsync: this);
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.98,
+    ).animate(CurvedAnimation(parent: _controller, curve: widget.animationCurve));
   }
 
   @override
@@ -109,10 +106,7 @@ class _Medical3DCardState extends State<Medical3DCard>
     Widget cardContent = AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        );
+        return Transform.scale(scale: _scaleAnimation.value, child: child);
       },
       child: Container(
         margin: widget.margin,
@@ -126,28 +120,19 @@ class _Medical3DCardState extends State<Medical3DCard>
             onTapCancel: _onTapCancel,
             onHover: _onHover,
             borderRadius: BorderRadius.circular(widget.borderRadius),
-            splashColor: isDark
-                ? medicalTealDarkPrimary.withValues(alpha: 0.1)
-                : medicalTealPrimary.withValues(alpha: 0.1),
-            highlightColor: isDark
-                ? medicalTealDarkPrimary.withValues(alpha: 0.05)
-                : medicalTealPrimary.withValues(alpha: 0.05),
+            splashColor:
+                isDark ? medicalTealDarkPrimary.withValues(alpha: 0.1) : medicalTealPrimary.withValues(alpha: 0.1),
+            highlightColor:
+                isDark ? medicalTealDarkPrimary.withValues(alpha: 0.05) : medicalTealPrimary.withValues(alpha: 0.05),
             child: Padding(
-              padding: widget.padding ??
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 crossAxisAlignment: widget.crossAxisAlignment,
                 mainAxisAlignment: widget.mainAxisAlignment,
                 children: [
-                  if (widget.leading != null) ...[
-                    widget.leading!,
-                    const SizedBox(width: 12),
-                  ],
+                  if (widget.leading != null) ...[widget.leading!, const SizedBox(width: 12)],
                   Expanded(child: widget.child),
-                  if (widget.trailing != null) ...[
-                    const SizedBox(width: 12),
-                    widget.trailing!,
-                  ],
+                  if (widget.trailing != null) ...[const SizedBox(width: 12), widget.trailing!],
                 ],
               ),
             ),
@@ -157,11 +142,7 @@ class _Medical3DCardState extends State<Medical3DCard>
     );
 
     if (widget.onTap != null) {
-      return MouseRegion(
-        onEnter: (_) => _onHover(true),
-        onExit: (_) => _onHover(false),
-        child: cardContent,
-      );
+      return MouseRegion(onEnter: (_) => _onHover(true), onExit: (_) => _onHover(false), child: cardContent);
     }
 
     return cardContent;
@@ -170,37 +151,19 @@ class _Medical3DCardState extends State<Medical3DCard>
   BoxDecoration _buildDecoration(bool isDark) {
     if (widget.glassmorphism) {
       return isDark
-          ? MedicalThemeData.glassmorphismDark(
-              borderRadius: widget.borderRadius,
-            )
-          : MedicalThemeData.glassmorphismLight(
-              borderRadius: widget.borderRadius,
-            );
+          ? MedicalThemeData.glassmorphismDark(borderRadius: widget.borderRadius)
+          : MedicalThemeData.glassmorphismLight(borderRadius: widget.borderRadius);
     }
 
     if (widget.gradient != null) {
       return isDark
-          ? MedicalThemeData.card3DDark(
-              borderRadius: widget.borderRadius,
-              gradient: widget.gradient,
-            )
-          : MedicalThemeData.card3DLight(
-              borderRadius: widget.borderRadius,
-              gradient: widget.gradient,
-            );
+          ? MedicalThemeData.card3DDark(borderRadius: widget.borderRadius, gradient: widget.gradient)
+          : MedicalThemeData.card3DLight(borderRadius: widget.borderRadius, gradient: widget.gradient);
     }
 
     return isDark
-        ? MedicalThemeData.card3DDark(
-            borderRadius: widget.borderRadius,
-            color: widget.color,
-            elevation: 2,
-          )
-        : MedicalThemeData.card3DLight(
-            borderRadius: widget.borderRadius,
-            color: widget.color,
-            elevation: 2,
-          );
+        ? MedicalThemeData.card3DDark(borderRadius: widget.borderRadius, color: widget.color, elevation: 2)
+        : MedicalThemeData.card3DLight(borderRadius: widget.borderRadius, color: widget.color, elevation: 2);
   }
 }
 
@@ -253,8 +216,7 @@ class Medical3DButton extends StatefulWidget {
   State<Medical3DButton> createState() => _Medical3DButtonState();
 }
 
-class _Medical3DButtonState extends State<Medical3DButton>
-    with SingleTickerProviderStateMixin {
+class _Medical3DButtonState extends State<Medical3DButton> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _elevationAnimation;
@@ -262,16 +224,15 @@ class _Medical3DButtonState extends State<Medical3DButton>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.animationDuration,
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: widget.animationCurve),
-    );
-    _elevationAnimation = Tween<double>(begin: 0.0, end: 6.0).animate(
-      CurvedAnimation(parent: _controller, curve: widget.animationCurve),
-    );
+    _controller = AnimationController(duration: widget.animationDuration, vsync: this);
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _controller, curve: widget.animationCurve));
+    _elevationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 6.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: widget.animationCurve));
   }
 
   @override
@@ -317,10 +278,7 @@ class _Medical3DButtonState extends State<Medical3DButton>
     Widget buttonContent = AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        );
+        return Transform.scale(scale: _scaleAnimation.value, child: child);
       },
       child: Container(
         width: widget.width,
@@ -335,12 +293,10 @@ class _Medical3DButtonState extends State<Medical3DButton>
             onTapCancel: _onTapCancel,
             onHover: _onHover,
             borderRadius: BorderRadius.circular(widget.borderRadius),
-            splashColor: isDark
-                ? medicalTealDarkPrimary.withValues(alpha: 0.1)
-                : medicalTealPrimary.withValues(alpha: 0.1),
-            highlightColor: isDark
-                ? medicalTealDarkPrimary.withValues(alpha: 0.05)
-                : medicalTealPrimary.withValues(alpha: 0.05),
+            splashColor:
+                isDark ? medicalTealDarkPrimary.withValues(alpha: 0.1) : medicalTealPrimary.withValues(alpha: 0.1),
+            highlightColor:
+                isDark ? medicalTealDarkPrimary.withValues(alpha: 0.05) : medicalTealPrimary.withValues(alpha: 0.05),
             child: Container(
               padding: widget.padding,
               child: Row(
@@ -350,16 +306,14 @@ class _Medical3DButtonState extends State<Medical3DButton>
                   if (widget.leadingIcon != null) ...[
                     Icon(
                       widget.leadingIcon,
-                      color: widget.foregroundColor ??
-                          (isDark ? medicalWhite : medicalWhite),
+                      color: widget.foregroundColor ?? (isDark ? medicalWhite : medicalWhite),
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                   ],
                   DefaultTextStyle.merge(
                     style: TextStyle(
-                      color: widget.foregroundColor ??
-                          (isDark ? medicalWhite : medicalWhite),
+                      color: widget.foregroundColor ?? (isDark ? medicalWhite : medicalWhite),
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -369,8 +323,7 @@ class _Medical3DButtonState extends State<Medical3DButton>
                     const SizedBox(width: 8),
                     Icon(
                       widget.trailingIcon,
-                      color: widget.foregroundColor ??
-                          (isDark ? medicalWhite : medicalWhite),
+                      color: widget.foregroundColor ?? (isDark ? medicalWhite : medicalWhite),
                       size: 20,
                     ),
                   ],
@@ -383,8 +336,7 @@ class _Medical3DButtonState extends State<Medical3DButton>
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              widget.foregroundColor ??
-                                  (isDark ? medicalWhite : medicalWhite),
+                              widget.foregroundColor ?? (isDark ? medicalWhite : medicalWhite),
                             ),
                           ),
                         ),
@@ -398,61 +350,38 @@ class _Medical3DButtonState extends State<Medical3DButton>
     );
 
     if (!isEnabled) {
-      return Opacity(
-        opacity: 0.6,
-        child: MouseRegion(
-          cursor: SystemMouseCursors.basic,
-          child: buttonContent,
-        ),
-      );
+      return Opacity(opacity: 0.6, child: MouseRegion(cursor: SystemMouseCursors.basic, child: buttonContent));
     }
 
-    return MouseRegion(
-      onEnter: (_) => _onHover(true),
-      onExit: (_) => _onHover(false),
-      child: buttonContent,
-    );
+    return MouseRegion(onEnter: (_) => _onHover(true), onExit: (_) => _onHover(false), child: buttonContent);
   }
 
   BoxDecoration _buildDecoration(bool isDark, double elevation) {
     if (widget.glassmorphism) {
       return isDark
-          ? MedicalThemeData.glassmorphismDark(
-              borderRadius: widget.borderRadius,
-            )
-          : MedicalThemeData.glassmorphismLight(
-              borderRadius: widget.borderRadius,
-            );
+          ? MedicalThemeData.glassmorphismDark(borderRadius: widget.borderRadius)
+          : MedicalThemeData.glassmorphismLight(borderRadius: widget.borderRadius);
     }
 
     if (widget.gradient != null) {
       return isDark
           ? MedicalThemeData.card3DDark(
-              borderRadius: widget.borderRadius,
-              gradient: widget.gradient,
-              elevation: elevation,
-            )
-          : MedicalThemeData.card3DLight(
-              borderRadius: widget.borderRadius,
-              gradient: widget.gradient,
-              elevation: elevation,
-            );
-    }
-
-    final bgColor = widget.backgroundColor ??
-        (isDark ? medicalTealDarkPrimary : medicalTealPrimary);
-
-    return isDark
-        ? MedicalThemeData.card3DDark(
             borderRadius: widget.borderRadius,
-            color: bgColor,
+            gradient: widget.gradient,
             elevation: elevation,
           )
-        : MedicalThemeData.card3DLight(
+          : MedicalThemeData.card3DLight(
             borderRadius: widget.borderRadius,
-            color: bgColor,
+            gradient: widget.gradient,
             elevation: elevation,
           );
+    }
+
+    final bgColor = widget.backgroundColor ?? (isDark ? medicalTealDarkPrimary : medicalTealPrimary);
+
+    return isDark
+        ? MedicalThemeData.card3DDark(borderRadius: widget.borderRadius, color: bgColor, elevation: elevation)
+        : MedicalThemeData.card3DLight(borderRadius: widget.borderRadius, color: bgColor, elevation: elevation);
   }
 }
 
@@ -479,17 +408,13 @@ class MedicalBreathingWidget extends StatefulWidget {
   State<MedicalBreathingWidget> createState() => _MedicalBreathingWidgetState();
 }
 
-class _MedicalBreathingWidgetState extends State<MedicalBreathingWidget>
-    with SingleTickerProviderStateMixin {
+class _MedicalBreathingWidgetState extends State<MedicalBreathingWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
     if (widget.repeat) {
       _controller.repeat(reverse: true);
@@ -514,15 +439,10 @@ class _MedicalBreathingWidgetState extends State<MedicalBreathingWidget>
         return AnimatedContainer(
           duration: widget.duration,
           curve: MedicalThemeData.breathingCurve,
-          decoration: isDark
-              ? MedicalThemeData.breathingDark(
-                  borderRadius: widget.borderRadius,
-                  animation: _controller,
-                )
-              : MedicalThemeData.breathingLight(
-                  borderRadius: widget.borderRadius,
-                  animation: _controller,
-                ),
+          decoration:
+              isDark
+                  ? MedicalThemeData.breathingDark(borderRadius: widget.borderRadius, animation: _controller)
+                  : MedicalThemeData.breathingLight(borderRadius: widget.borderRadius, animation: _controller),
           child: widget.child,
         );
       },
@@ -549,17 +469,13 @@ class MedicalPulseWidget extends StatefulWidget {
   State<MedicalPulseWidget> createState() => _MedicalPulseWidgetState();
 }
 
-class _MedicalPulseWidgetState extends State<MedicalPulseWidget>
-    with SingleTickerProviderStateMixin {
+class _MedicalPulseWidgetState extends State<MedicalPulseWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
     if (widget.repeat) {
       _controller.repeat(reverse: true);
@@ -582,15 +498,10 @@ class _MedicalPulseWidgetState extends State<MedicalPulseWidget>
       animation: _controller,
       builder: (context, child) {
         return Container(
-          decoration: isDark
-              ? MedicalThemeData.pulseDark(
-                  animation: _controller,
-                  baseColor: widget.color,
-                )
-              : MedicalThemeData.pulseLight(
-                  animation: _controller,
-                  baseColor: widget.color,
-                ),
+          decoration:
+              isDark
+                  ? MedicalThemeData.pulseDark(animation: _controller, baseColor: widget.color)
+                  : MedicalThemeData.pulseLight(animation: _controller, baseColor: widget.color),
           child: widget.child,
         );
       },
@@ -619,24 +530,18 @@ class MedicalShimmerWidget extends StatefulWidget {
   State<MedicalShimmerWidget> createState() => _MedicalShimmerWidgetState();
 }
 
-class _MedicalShimmerWidgetState extends State<MedicalShimmerWidget>
-    with SingleTickerProviderStateMixin {
+class _MedicalShimmerWidgetState extends State<MedicalShimmerWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOutSine,
-      ),
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
+    _animation = Tween<double>(
+      begin: -1.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine));
     _controller.repeat();
   }
 
@@ -659,17 +564,10 @@ class _MedicalShimmerWidgetState extends State<MedicalShimmerWidget>
             gradient: LinearGradient(
               begin: Alignment(-1.0, -0.3),
               end: Alignment(1.0, 0.3),
-              colors: widget.isDark
-                  ? [
-                      Color(0xFF383838),
-                      Color(0xFF424242),
-                      Color(0xFF383838),
-                    ]
-                  : [
-                      Color(0xFFE0E0E0),
-                      Color(0xFFF5F5F5),
-                      Color(0xFFE0E0E0),
-                    ],
+              colors:
+                  widget.isDark
+                      ? [Color(0xFF383838), Color(0xFF424242), Color(0xFF383838)]
+                      : [Color(0xFFE0E0E0), Color(0xFFF5F5F5), Color(0xFFE0E0E0)],
               stops: [
                 (_animation.value - 0.3).clamp(0.0, 1.0),
                 _animation.value.clamp(0.0, 1.0),
@@ -700,22 +598,18 @@ class Medical3DPageTransitionBuilder extends PageTransitionsBuilder {
       end: Offset.zero,
     ).chain(CurveTween(curve: MedicalThemeData.medicalCurve));
 
-    final scaleTween = Tween<double>(begin: 0.95, end: 1.0).chain(
-      CurveTween(curve: MedicalThemeData.emphasizedCurve),
-    );
+    final scaleTween = Tween<double>(begin: 0.95, end: 1.0).chain(CurveTween(curve: MedicalThemeData.emphasizedCurve));
 
-    final rotationTween = Tween<double>(begin: 0.02, end: 0.0).chain(
-      CurveTween(curve: MedicalThemeData.deceleratedCurve),
-    );
+    final rotationTween = Tween<double>(
+      begin: 0.02,
+      end: 0.0,
+    ).chain(CurveTween(curve: MedicalThemeData.deceleratedCurve));
 
     return SlideTransition(
       position: animation.drive(tween),
       child: ScaleTransition(
         scale: animation.drive(scaleTween),
-        child: RotationTransition(
-          turns: animation.drive(rotationTween),
-          child: child,
-        ),
+        child: RotationTransition(turns: animation.drive(rotationTween), child: child),
       ),
     );
   }
@@ -739,9 +633,10 @@ class Medical3DFlipTransition extends PageTransitionsBuilder {
         final angle = animation.value * 3.14159 / 2;
         return Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001)
-            ..rotateY(angle),
+          transform:
+              Matrix4.identity()
+                ..setEntry(3, 2, 0.001)
+                ..rotateY(angle),
           child: child,
         );
       },
@@ -767,17 +662,13 @@ class MedicalMorphingTransition extends PageTransitionsBuilder {
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
-        final borderRadius = BorderRadius.circular(
-          30 * (1 - animation.value),
-        );
+        final borderRadius = BorderRadius.circular(30 * (1 - animation.value));
 
         return ClipRRect(
           borderRadius: borderRadius,
           child: Container(
             decoration: BoxDecoration(
-              gradient: isDark
-                  ? medicalPrimaryDarkGradient
-                  : medicalPrimaryGradient,
+              gradient: isDark ? medicalPrimaryDarkGradient : medicalPrimaryGradient,
               borderRadius: borderRadius,
             ),
             child: child,
@@ -853,8 +744,7 @@ class MedicalStaggeredItem extends StatefulWidget {
   State<MedicalStaggeredItem> createState() => _MedicalStaggeredItemState();
 }
 
-class _MedicalStaggeredItemState extends State<MedicalStaggeredItem>
-    with SingleTickerProviderStateMixin {
+class _MedicalStaggeredItemState extends State<MedicalStaggeredItem> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -862,46 +752,33 @@ class _MedicalStaggeredItemState extends State<MedicalStaggeredItem>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.itemDuration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.itemDuration, vsync: this);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: Interval(
-          (widget.index * widget.staggerDuration.inMilliseconds /
-                  widget.itemDuration.inMilliseconds)
-              .clamp(0.0, 1.0),
+          (widget.index * widget.staggerDuration.inMilliseconds / widget.itemDuration.inMilliseconds).clamp(0.0, 1.0),
           1.0,
           curve: widget.curve,
         ),
       ),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
       CurvedAnimation(
         parent: _controller,
         curve: Interval(
-          (widget.index * widget.staggerDuration.inMilliseconds /
-                  widget.itemDuration.inMilliseconds)
-              .clamp(0.0, 1.0),
+          (widget.index * widget.staggerDuration.inMilliseconds / widget.itemDuration.inMilliseconds).clamp(0.0, 1.0),
           1.0,
           curve: widget.curve,
         ),
       ),
     );
 
-    Future.delayed(
-      Duration(milliseconds: widget.index * widget.staggerDuration.inMilliseconds),
-      () {
-        if (mounted) _controller.forward();
-      },
-    );
+    Future.delayed(Duration(milliseconds: widget.index * widget.staggerDuration.inMilliseconds), () {
+      if (mounted) _controller.forward();
+    });
   }
 
   @override
@@ -917,10 +794,7 @@ class _MedicalStaggeredItemState extends State<MedicalStaggeredItem>
       builder: (context, child) {
         return FadeTransition(
           opacity: _fadeAnimation,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: widget.child,
-          ),
+          child: SlideTransition(position: _slideAnimation, child: widget.child),
         );
       },
     );
@@ -954,8 +828,7 @@ class Medical3DFAB extends StatefulWidget {
   State<Medical3DFAB> createState() => _Medical3DFABState();
 }
 
-class _Medical3DFABState extends State<Medical3DFAB>
-    with SingleTickerProviderStateMixin {
+class _Medical3DFABState extends State<Medical3DFAB> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   bool _isHovered = false;
@@ -963,13 +836,11 @@ class _Medical3DFABState extends State<Medical3DFAB>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: MedicalThemeData.shortDuration,
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.9).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
-    );
+    _controller = AnimationController(duration: MedicalThemeData.shortDuration, vsync: this);
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.9,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic));
   }
 
   @override
@@ -983,10 +854,7 @@ class _Medical3DFABState extends State<Medical3DFAB>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        );
+        return Transform.scale(scale: _scaleAnimation.value, child: child);
       },
       child: MouseRegion(
         onEnter: (_) {
@@ -1005,9 +873,7 @@ class _Medical3DFABState extends State<Medical3DFAB>
           focusElevation: 12,
           hoverElevation: 12,
           highlightElevation: 16,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           child: widget.child,
         ),
       ),

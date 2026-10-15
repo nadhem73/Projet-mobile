@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/core/utils/mock_data.dart';
+import 'package:medilink/core/theme/colors.dart';
+import 'package:medilink/core/utils/mock_data.dart';
 
-import 'package:medilab_prokit/main.dart';
+import 'package:medilink/main.dart';
 import 'package:nb_utils/nb_utils.dart';
 
 class MLDoctorPatientListScreen extends StatefulWidget {

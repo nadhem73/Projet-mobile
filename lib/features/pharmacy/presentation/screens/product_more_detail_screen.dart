@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:nb_utils/nb_utils.dart';
-import 'package:medilab_prokit/features/pharmacy/presentation/components/pill_how_to_use.dart';
-import 'package:medilab_prokit/features/pharmacy/presentation/components/pill_detail.dart';
-import 'package:medilab_prokit/features/pharmacy/presentation/components/pill_review.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
-import 'package:medilab_prokit/main.dart';
+import 'package:medilink/features/pharmacy/presentation/widgets/pill_how_to_use.dart';
+import 'package:medilink/features/pharmacy/presentation/widgets/pill_detail.dart';
+import 'package:medilink/features/pharmacy/presentation/widgets/pill_review.dart';
+import 'package:medilink/core/theme/colors.dart';
+import 'package:medilink/main.dart';
 
 class MLProductMoreDetailScreen extends StatefulWidget {
   static String tag = '/MLProductMoreDetailScreen';

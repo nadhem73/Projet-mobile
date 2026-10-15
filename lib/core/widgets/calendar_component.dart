@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:medilab_prokit/main.dart';
+import 'package:medilink/main.dart';
 import 'package:nb_utils/nb_utils.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
+import 'package:medilink/core/theme/colors.dart';
 
 class MLCalenderComponent extends StatefulWidget {
   static String tag = '/MLCalenderComponent';
@@ -53,9 +53,10 @@ class MLCalenderComponentState extends State<MLCalenderComponent> {
             width: 60,
             alignment: Alignment.center,
             decoration: boxDecorationWithRoundedCorners(
-              backgroundColor: currentDateSelectedIndex == index
-                  ? mlColorBlue
-                  : appStore.isDarkModeOn
+              backgroundColor:
+                  currentDateSelectedIndex == index
+                      ? mlColorBlue
+                      : appStore.isDarkModeOn
                       ? scaffoldDarkColor
                       : white,
               border: Border.all(color: Colors.grey.shade100),
@@ -71,26 +72,24 @@ class MLCalenderComponentState extends State<MLCalenderComponent> {
                 Text(
                   DateTime.now().add(Duration(days: index)).day.toString(),
                   style: boldTextStyle(
-                      size: 22,
-                      color: currentDateSelectedIndex == index
-                          ? white
-                          : appStore.isDarkModeOn
-                              ? white
-                              : black),
+                    size: 22,
+                    color:
+                        currentDateSelectedIndex == index
+                            ? white
+                            : appStore.isDarkModeOn
+                            ? white
+                            : black,
+                  ),
                 ),
                 4.height,
               ],
             ),
-          ).paddingLeft(8.0).onTap(
-            () {
-              setState(
-                () {
-                  currentDateSelectedIndex = index;
-                  selectedDate = DateTime.now().add(Duration(days: index));
-                },
-              );
-            },
-          );
+          ).paddingLeft(8.0).onTap(() {
+            setState(() {
+              currentDateSelectedIndex = index;
+              selectedDate = DateTime.now().add(Duration(days: index));
+            });
+          });
         },
       ),
     );

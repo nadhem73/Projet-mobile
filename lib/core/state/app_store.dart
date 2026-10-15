@@ -1,5 +1,5 @@
-﻿import 'package:flutter/material.dart';
-import 'package:medilab_prokit/core/theme/colors.dart';
+import 'package:flutter/material.dart';
+import 'package:medilink/core/theme/colors.dart';
 import 'package:mobx/mobx.dart';
 import 'package:nb_utils/nb_utils.dart';
 

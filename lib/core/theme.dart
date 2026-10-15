@@ -1,4 +1,5 @@
-// Core Theme
-export 'package:medilab_prokit/core/theme/app_theme.dart';
-export 'package:medilab_prokit/core/theme/colors.dart';
-export 'package:medilab_prokit/core/theme/medical_theme.dart';
+// Design system MediLink
+export 'package:medilink/core/theme/app_colors.dart';
+export 'package:medilink/core/theme/app_dimens.dart';
+export 'package:medilink/core/theme/app_theme.dart';
+export 'package:medilink/core/theme/app_typography.dart';

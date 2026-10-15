@@ -1,4 +1,4 @@
-﻿import 'package:medilab_prokit/core/utils/app_strings.dart';
+import 'package:medilink/core/utils/app_strings.dart';
 
 const String mlIcMedilabLogo = 'assets/images/medilink logo.png';
 
@@ -44,7 +44,6 @@ const String mlIcPharmacySlide2 = 'assets/images/ml_pharmacySlideTwo.jpeg';
 const String mlIcPharmacySlide3 = 'assets/images/ml_pharmacySlideThree.jpg';
 const String mlIcPharmacySlide4 = 'assets/images/ml_pharmacySlideFour.jpeg';
 
-
 const String mlIcEyeSpecialist = 'assets/images/ml_eyeSpecialist.png';
 const String mlIcBoneSpecialist = 'assets/images/ml_bonesSpecialist.png';
 const String mlIcCovidSpecialist = 'assets/images/ml_covidSpecialist.png';
@@ -52,7 +51,6 @@ const String mlIcHeartSpecialist = 'assets/images/ml_heartSpecialist.png';
 const String mlIcKidneySpecialist = 'assets/images/ml_kidneySpecialist.png';
 const String mlIcLungsSpecialist = 'assets/images/ml_lungsSpecialist.png';
 const String mlIcToothSpecialist = 'assets/images/ml_toothSpecialist.png';
-
 
 const String mlIcMediTwo = 'assets/images/ml_mediTwo.jpg';
 const String mlIcMediThree = 'assets/images/ml_mediThree.jpg';
