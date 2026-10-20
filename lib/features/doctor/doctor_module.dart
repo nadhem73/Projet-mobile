@@ -45,47 +45,46 @@ class DoctorModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(path: DoctorRoutes.dashboard, builder: (_, _) => const MLDoctorDashboardScreen()),
-        GoRoute(path: DoctorRoutes.agenda, builder: (_, _) => const MLDoctorAgendaScreen()),
-        GoRoute(path: DoctorRoutes.consultations, builder: (_, _) => const MLDoctorConsultationListScreen()),
-        GoRoute(
-          path: '/doctor/consultation/:id',
-          builder: (_, state) => MLDoctorConsultationDetailScreen(consultationId: state.pathParameters['id']),
-        ),
-        GoRoute(path: DoctorRoutes.patients, builder: (_, _) => const MLDoctorPatientListScreen()),
-        GoRoute(
-          path: '/doctor/patient/:id/record',
-          builder: (_, state) => MLDoctorPatientMedicalRecordScreen(patientId: state.pathParameters['id']),
-        ),
-        GoRoute(
-          path: '/doctor/patient/:id/labs',
-          builder: (_, state) => MLDoctorLabResultsScreen(patientId: state.pathParameters['id']),
-        ),
-        GoRoute(
-          path: DoctorRoutes.newPrescription,
-          builder: (_, state) => MLDoctorPrescriptionScreen(
+    GoRoute(path: DoctorRoutes.dashboard, builder: (_, _) => const MLDoctorDashboardScreen()),
+    GoRoute(path: DoctorRoutes.agenda, builder: (_, _) => const MLDoctorAgendaScreen()),
+    GoRoute(path: DoctorRoutes.consultations, builder: (_, _) => const MLDoctorConsultationListScreen()),
+    GoRoute(
+      path: '/doctor/consultation/:id',
+      builder: (_, state) => MLDoctorConsultationDetailScreen(consultationId: state.pathParameters['id']),
+    ),
+    GoRoute(path: DoctorRoutes.patients, builder: (_, _) => const MLDoctorPatientListScreen()),
+    GoRoute(
+      path: '/doctor/patient/:id/record',
+      builder: (_, state) => MLDoctorPatientMedicalRecordScreen(patientId: state.pathParameters['id']),
+    ),
+    GoRoute(
+      path: '/doctor/patient/:id/labs',
+      builder: (_, state) => MLDoctorLabResultsScreen(patientId: state.pathParameters['id']),
+    ),
+    GoRoute(
+      path: DoctorRoutes.newPrescription,
+      builder:
+          (_, state) => MLDoctorPrescriptionScreen(
             consultationId: state.uri.queryParameters['consultationId'],
             patientId: state.uri.queryParameters['patientId'],
           ),
-        ),
-        GoRoute(
-          path: DoctorRoutes.prescriptionTemplate,
-          builder: (_, state) => MLDoctorPrescriptionScreen(
-            isTemplate: true,
-            patientId: state.uri.queryParameters['patientId'],
-          ),
-        ),
-        GoRoute(path: DoctorRoutes.patientPrescriptions, builder: (_, _) => const MLPrescriptionScreen()),
-      ];
+    ),
+    GoRoute(
+      path: DoctorRoutes.prescriptionTemplate,
+      builder:
+          (_, state) => MLDoctorPrescriptionScreen(isTemplate: true, patientId: state.uri.queryParameters['patientId']),
+    ),
+    GoRoute(path: DoctorRoutes.patientPrescriptions, builder: (_, _) => const MLPrescriptionScreen()),
+  ];
 
   @override
   List<ModuleShortcut> get patientShortcuts => const [
-        ModuleShortcut(
-          label: 'Ordonnances',
-          icon: Icons.receipt_long_rounded,
-          route: DoctorRoutes.patientPrescriptions,
-          color: AppColors.moduleDoctor,
-          order: 30,
-        ),
-      ];
+    ModuleShortcut(
+      label: 'Ordonnances',
+      icon: Icons.receipt_long_rounded,
+      route: DoctorRoutes.patientPrescriptions,
+      color: AppColors.moduleDoctor,
+      order: 30,
+    ),
+  ];
 }

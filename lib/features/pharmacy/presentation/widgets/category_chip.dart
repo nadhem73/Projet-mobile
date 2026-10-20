@@ -63,18 +63,20 @@ class MLCategoryComponentState extends State<MLCategoryComponent> {
                       child: Image.asset((listOne[index].image).validate(), height: 75, width: 75, fit: BoxFit.cover),
                     ),
                     16.height,
-                    Text((listOne[index].title).validate(), style: boldTextStyle(size: 14), textAlign: TextAlign.center),
+                    Text(
+                      (listOne[index].title).validate(),
+                      style: boldTextStyle(size: 14),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
-                ).paddingOnly(right: 4.0, left: 4.0).onTap(
-                  () {
-                    MLOnlinePharmacyDetailScreen(index: 1).launch(context);
-                  },
-                );
+                ).paddingOnly(right: 4.0, left: 4.0).onTap(() {
+                  MLOnlinePharmacyDetailScreen(index: 1).launch(context);
+                });
               },
             ),
             8.height,
             Divider(thickness: 0.5),
-            MLPharmacyProductComponent()
+            MLPharmacyProductComponent(),
           ],
         ),
       ).paddingTop(32.0),

@@ -73,17 +73,15 @@ class MLDoctorListComponentState extends State<MLDoctorListComponent> {
             'Schedule appointment time',
             style: boldTextStyle(color: mlColorDarkBlue, decoration: TextDecoration.underline),
           ),
-        ).paddingOnly(right: 16, bottom: 72).onTap(
-          () {
-            showModalBottomSheet(
-              isScrollControlled: true,
-              context: context,
-              builder: (builder) {
-                return const MLScheduleApoointmentSheet();
-              },
-            );
-          },
-        ),
+        ).paddingOnly(right: 16, bottom: 72).onTap(() {
+          showModalBottomSheet(
+            isScrollControlled: true,
+            context: context,
+            builder: (builder) {
+              return const MLScheduleApoointmentSheet();
+            },
+          );
+        }),
       ],
     );
   }

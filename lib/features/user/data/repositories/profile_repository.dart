@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:medilink/core/database/app_database.dart';
 import 'package:medilink/core/database/schema/user_schema.dart';
 import 'package:medilink/core/error/app_exception.dart';
@@ -30,6 +32,7 @@ class ProfileRepository {
             'FROM users u LEFT JOIN pharmacists ph ON ph.user_id = u.id WHERE u.id = ?',
       UserRole.insurer =>
         'SELECT u.*, i.company, i.agent_code FROM users u LEFT JOIN insurers i ON i.user_id = u.id WHERE u.id = ?',
+      UserRole.admin => 'SELECT u.* FROM users u WHERE u.id = ?',
     };
     final rows = await _db.rawQuery(sql, [user.userId]);
     if (rows.isEmpty) throw const AppException('Profil introuvable', code: 'not_found');
@@ -41,7 +44,7 @@ class ProfileRepository {
       prenom: r['prenom'] as String,
       email: r['email'] as String,
       phone: r['phone'] as String?,
-      createdAt: DateTime.tryParse('${r['created_at']}Z')?.toLocal(),
+      createdAt: parseSqlDateTime(r['created_at'] as String?),
       cin: r['cin'] as String?,
       dateNaissance: DateTime.tryParse(r['date_naissance'] as String? ?? ''),
       address: r['address'] as String?,
@@ -132,9 +135,27 @@ class ProfileRepository {
           );
         case UserRole.insurer:
           await txn.update(UserTables.insurers, {'company': profile.company}, where: userWhere, whereArgs: userArgs);
+        case UserRole.admin:
+          break;
       }
     });
     return _auth.loadCurrentUser(profile.userId);
+  }
+
+  // ---- Photo de profil ----
+
+  /// Taille maximale de la photo (déjà redimensionnée à la sélection).
+  static const int maxAvatarBytes = 1024 * 1024;
+
+  Future<Uint8List?> avatar(int userId) async {
+    final rows = await _db.query(UserTables.users, columns: ['avatar'], where: 'id = ?', whereArgs: [userId]);
+    return rows.isEmpty ? null : rows.first['avatar'] as Uint8List?;
+  }
+
+  /// Enregistre la photo, ou la supprime si [bytes] est null.
+  Future<void> setAvatar(int userId, Uint8List? bytes) async {
+    if (bytes != null && bytes.length > maxAvatarBytes) throw const AppException('Photo trop lourde (1 Mo maximum)');
+    await _db.update(UserTables.users, {'avatar': bytes, 'updated_at': sqlNow()}, where: 'id = ?', whereArgs: [userId]);
   }
 
   static String? _clean(String? value) {

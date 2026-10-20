@@ -58,11 +58,9 @@ class MLMedicineScreenState extends State<MLMedicineScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
                       Text(title[widget.index!], style: boldTextStyle(size: 24)).expand(),
-                      Icon(Icons.close, color: mlColorBlue).onTap(
-                        () {
-                          finish(context);
-                        },
-                      ),
+                      Icon(Icons.close, color: mlColorBlue).onTap(() {
+                        finish(context);
+                      }),
                       8.width,
                     ],
                   ),

@@ -125,7 +125,10 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
         children: [
           Icon(Icons.arrow_back, color: white, size: 24).onTap(() => finish(context)),
           8.width,
-          Text(widget.isTemplate ? 'Modèle d\'ordonnance' : 'Nouvelle ordonnance', style: boldTextStyle(size: 22, color: white)).expand(),
+          Text(
+            widget.isTemplate ? 'Modèle d\'ordonnance' : 'Nouvelle ordonnance',
+            style: boldTextStyle(size: 22, color: white),
+          ).expand(),
           if (!widget.isTemplate)
             TextButton.icon(
               onPressed: () {
@@ -140,9 +143,13 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
   }
 
   Widget _buildPatientInfo(BuildContext context, bool isDark) {
-    final patient = widget.patientId != null
-        ? mlDoctorPatientSummaryDataList().firstWhere((p) => p.id == widget.patientId, orElse: () => mlDoctorPatientSummaryDataList().first)
-        : mlDoctorPatientSummaryDataList().first;
+    final patient =
+        widget.patientId != null
+            ? mlDoctorPatientSummaryDataList().firstWhere(
+              (p) => p.id == widget.patientId,
+              orElse: () => mlDoctorPatientSummaryDataList().first,
+            )
+            : mlDoctorPatientSummaryDataList().first;
 
     return Container(
       padding: EdgeInsets.all(16),
@@ -163,17 +170,28 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
             children: [
               Text(patient.name.validate(), style: boldTextStyle(size: 16)),
               2.height,
-              Text('${patient.age} ans  •  ${patient.gender == 'F' ? 'Femme' : 'Homme'}  •  Né le ${patient.dob}', style: secondaryTextStyle(size: 12)),
+              Text(
+                '${patient.age} ans  •  ${patient.gender == 'F' ? 'Femme' : 'Homme'}  •  Né le ${patient.dob}',
+                style: secondaryTextStyle(size: 12),
+              ),
             ],
           ).expand(),
           if (patient.conditions!.isNotEmpty)
             Wrap(
               spacing: 4,
-              children: patient.conditions!.map((c) => Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: medicalTealPrimary.withValues(alpha: 0.1), borderRadius: radius(8)),
-                child: Text(c, style: boldTextStyle(size: 10, color: medicalTealPrimary)),
-              )).toList(),
+              children:
+                  patient.conditions!
+                      .map(
+                        (c) => Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: medicalTealPrimary.withValues(alpha: 0.1),
+                            borderRadius: radius(8),
+                          ),
+                          child: Text(c, style: boldTextStyle(size: 10, color: medicalTealPrimary)),
+                        ),
+                      )
+                      .toList(),
             ),
         ],
       ),
@@ -193,22 +211,41 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: templates.map((t) => Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: boxDecorationWithRoundedCorners(
-              backgroundColor: _selectedTemplate == t.name ? mlColorDarkBlue : (isDark ? scaffoldDarkColor : Colors.grey.shade100),
-              borderRadius: radius(20),
-              border: Border.all(color: _selectedTemplate == t.name ? mlColorDarkBlue : (isDark ? Colors.grey.shade700 : Colors.grey.shade300)),
-            ),
-            child: Text(t.name.validate(), style: boldTextStyle(size: 12, color: _selectedTemplate == t.name ? white : (isDark ? white : mlColorDarkBlue))),
-          ).onTap(() {
-            setState(() {
-              _selectedTemplate = _selectedTemplate == t.name ? '' : t.name!;
-              if (_selectedTemplate.isNotEmpty) {
-                _applyTemplate(t);
-              }
-            });
-          })).toList(),
+          children:
+              templates
+                  .map(
+                    (t) => Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: boxDecorationWithRoundedCorners(
+                        backgroundColor:
+                            _selectedTemplate == t.name
+                                ? mlColorDarkBlue
+                                : (isDark ? scaffoldDarkColor : Colors.grey.shade100),
+                        borderRadius: radius(20),
+                        border: Border.all(
+                          color:
+                              _selectedTemplate == t.name
+                                  ? mlColorDarkBlue
+                                  : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+                        ),
+                      ),
+                      child: Text(
+                        t.name.validate(),
+                        style: boldTextStyle(
+                          size: 12,
+                          color: _selectedTemplate == t.name ? white : (isDark ? white : mlColorDarkBlue),
+                        ),
+                      ),
+                    ).onTap(() {
+                      setState(() {
+                        _selectedTemplate = _selectedTemplate == t.name ? '' : t.name!;
+                        if (_selectedTemplate.isNotEmpty) {
+                          _applyTemplate(t);
+                        }
+                      });
+                    }),
+                  )
+                  .toList(),
         ),
       ],
     );
@@ -231,8 +268,7 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Médicaments', style: boldTextStyle(size: 16)),
-            if (_items.isNotEmpty)
-              Text('${_items.length} médicament(s)', style: secondaryTextStyle(size: 12)),
+            if (_items.isNotEmpty) Text('${_items.length} médicament(s)', style: secondaryTextStyle(size: 12)),
           ],
         ),
         12.height,
@@ -289,19 +325,35 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
           12.height,
           Row(
             children: [
-              Expanded(child: _buildMedField(context, 'Posologie', item.dosageController, 'ex: 1 cp', Icons.medication)),
+              Expanded(
+                child: _buildMedField(context, 'Posologie', item.dosageController, 'ex: 1 cp', Icons.medication),
+              ),
               12.width,
-              Expanded(child: _buildMedField(context, 'Fréquence', item.frequencyController, 'ex: 3x/jour', Icons.schedule)),
+              Expanded(
+                child: _buildMedField(context, 'Fréquence', item.frequencyController, 'ex: 3x/jour', Icons.schedule),
+              ),
               12.width,
-              Expanded(child: _buildMedField(context, 'Durée', item.durationController, 'ex: 7 jours', Icons.calendar_today)),
+              Expanded(
+                child: _buildMedField(context, 'Durée', item.durationController, 'ex: 7 jours', Icons.calendar_today),
+              ),
             ],
           ),
           12.height,
           Row(
             children: [
-              Expanded(child: _buildMedField(context, 'Moment', item.timingController, 'ex: Matin/Midi/Soir', Icons.access_time)),
+              Expanded(
+                child: _buildMedField(
+                  context,
+                  'Moment',
+                  item.timingController,
+                  'ex: Matin/Midi/Soir',
+                  Icons.access_time,
+                ),
+              ),
               12.width,
-              Expanded(child: _buildMedField(context, 'Voie', item.routeController, 'ex: Orale', Icons.medical_information)),
+              Expanded(
+                child: _buildMedField(context, 'Voie', item.routeController, 'ex: Orale', Icons.medical_information),
+              ),
             ],
           ),
           8.height,
@@ -312,7 +364,10 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
               hintStyle: secondaryTextStyle(size: 12),
               filled: true,
               fillColor: isDark ? black : white,
-              border: OutlineInputBorder(borderRadius: radius(8), borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300)),
+              border: OutlineInputBorder(
+                borderRadius: radius(8),
+                borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+              ),
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               isDense: true,
             ),
@@ -323,7 +378,13 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
     );
   }
 
-  Widget _buildMedField(BuildContext context, String label, TextEditingController controller, String hint, IconData icon) {
+  Widget _buildMedField(
+    BuildContext context,
+    String label,
+    TextEditingController controller,
+    String hint,
+    IconData icon,
+  ) {
     final bool isDark = appStore.isDarkModeOn;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,7 +404,10 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
             hintStyle: secondaryTextStyle(size: 12),
             filled: true,
             fillColor: isDark ? black : white,
-            border: OutlineInputBorder(borderRadius: radius(8), borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300)),
+            border: OutlineInputBorder(
+              borderRadius: radius(8),
+              borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+            ),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             isDense: true,
           ),
@@ -419,9 +483,7 @@ class MLDoctorPrescriptionScreenState extends State<MLDoctorPrescriptionScreen> 
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? black : white,
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: Offset(0, -2)),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: Offset(0, -2))],
       ),
       child: Row(
         children: [
@@ -481,13 +543,13 @@ class PrescriptionItem {
   final TextEditingController instructionsController;
 
   PrescriptionItem({String? medicine})
-      : medicineController = TextEditingController(text: medicine ?? ''),
-        dosageController = TextEditingController(),
-        frequencyController = TextEditingController(),
-        durationController = TextEditingController(),
-        timingController = TextEditingController(),
-        routeController = TextEditingController(),
-        instructionsController = TextEditingController();
+    : medicineController = TextEditingController(text: medicine ?? ''),
+      dosageController = TextEditingController(),
+      frequencyController = TextEditingController(),
+      durationController = TextEditingController(),
+      timingController = TextEditingController(),
+      routeController = TextEditingController(),
+      instructionsController = TextEditingController();
 
   void dispose() {
     medicineController.dispose();

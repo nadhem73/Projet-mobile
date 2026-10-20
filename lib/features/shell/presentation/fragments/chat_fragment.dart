@@ -39,7 +39,7 @@ class MLChatFragmentState extends State<MLChatFragment> with SingleTickerProvide
     if (mounted) super.setState(fn);
   }
 
-@override
+  @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
@@ -68,11 +68,12 @@ class MLChatFragmentState extends State<MLChatFragment> with SingleTickerProvide
               decoration: InputDecoration(
                 hintText: "Search",
                 prefixIcon: Icon(Icons.search, color: appStore.isDarkModeOn ? white : blackColor, size: 20),
-                suffixIcon: _searchController.text.isEmpty
-                    ? null
-                    : Icon(Icons.clear).onTap(() {
-                        _searchController.clear();
-                      }),
+                suffixIcon:
+                    _searchController.text.isEmpty
+                        ? null
+                        : Icon(Icons.clear).onTap(() {
+                          _searchController.clear();
+                        }),
               ),
             ).paddingOnly(right: 16.0, left: 16.0),
             16.height,
@@ -82,18 +83,9 @@ class MLChatFragmentState extends State<MLChatFragment> with SingleTickerProvide
               indicatorColor: mlColorBlue,
               indicatorSize: TabBarIndicatorSize.label,
               unselectedLabelColor: Colors.grey,
-              tabs: [
-                Tab(text: '$mlDoctors ($notificationCounter)'),
-                Tab(text: mlBotSupport),
-              ],
+              tabs: [Tab(text: '$mlDoctors ($notificationCounter)'), Tab(text: mlBotSupport)],
             ),
-            TabBarView(
-              controller: _tabController,
-              children: [
-                MLDoctorChatComponent(),
-                ComingSoonView(),
-              ],
-            ).expand(),
+            TabBarView(controller: _tabController, children: [MLDoctorChatComponent(), ComingSoonView()]).expand(),
           ],
         ),
       ),

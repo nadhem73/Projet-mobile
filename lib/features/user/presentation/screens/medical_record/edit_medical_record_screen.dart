@@ -28,6 +28,8 @@ class _EditMedicalRecordScreenState extends State<EditMedicalRecordScreen> {
   final _allergies = TextEditingController();
   final _chronic = TextEditingController();
   final _treatment = TextEditingController();
+  final _surgical = TextEditingController();
+  final _family = TextEditingController();
   final _contactName = TextEditingController();
   final _contactPhone = TextEditingController();
   final _insuranceNumber = TextEditingController();
@@ -56,6 +58,8 @@ class _EditMedicalRecordScreenState extends State<EditMedicalRecordScreen> {
       _allergies.text = r.allergies ?? '';
       _chronic.text = r.chronicDiseases ?? '';
       _treatment.text = r.currentTreatment ?? '';
+      _surgical.text = r.surgicalHistory ?? '';
+      _family.text = r.familyHistory ?? '';
       _contactName.text = r.emergencyContactName ?? '';
       _contactPhone.text = r.emergencyContactPhone ?? '';
       _insuranceNumber.text = r.insuranceNumber ?? '';
@@ -71,6 +75,8 @@ class _EditMedicalRecordScreenState extends State<EditMedicalRecordScreen> {
       _allergies,
       _chronic,
       _treatment,
+      _surgical,
+      _family,
       _contactName,
       _contactPhone,
       _insuranceNumber,
@@ -96,6 +102,8 @@ class _EditMedicalRecordScreenState extends State<EditMedicalRecordScreen> {
         allergies: _allergies.text,
         chronicDiseases: _chronic.text,
         currentTreatment: _treatment.text,
+        surgicalHistory: _surgical.text,
+        familyHistory: _family.text,
         emergencyContactName: _contactName.text,
         emergencyContactPhone: _contactPhone.text,
         insuranceCompany: _insuranceCompany,
@@ -178,6 +186,8 @@ class _EditMedicalRecordScreenState extends State<EditMedicalRecordScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 const SectionHeader(title: 'Antécédents et traitements'),
+                Text('Laissez vide si non concerné.', style: theme.textTheme.bodySmall),
+                const SizedBox(height: AppSpacing.md),
                 MediTextField(
                   label: 'Allergies',
                   hint: 'Pénicilline, arachides...',
@@ -202,6 +212,24 @@ class _EditMedicalRecordScreenState extends State<EditMedicalRecordScreen> {
                   controller: _treatment,
                   prefixIcon: Icons.medication_outlined,
                   maxLines: 3,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                MediTextField(
+                  label: 'Antécédents chirurgicaux',
+                  hint: 'Opérations et années (ex. appendicectomie 2012)',
+                  controller: _surgical,
+                  prefixIcon: Icons.healing_outlined,
+                  maxLines: 2,
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                MediTextField(
+                  label: 'Antécédents familiaux',
+                  hint: 'Maladies dans la famille (diabète, hypertension...)',
+                  controller: _family,
+                  prefixIcon: Icons.family_restroom_outlined,
+                  maxLines: 2,
                   textCapitalization: TextCapitalization.sentences,
                 ),
                 const SizedBox(height: AppSpacing.xl),

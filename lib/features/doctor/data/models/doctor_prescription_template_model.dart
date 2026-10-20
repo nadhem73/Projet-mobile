@@ -5,11 +5,5 @@ class MLDoctorPrescriptionTemplateData {
   List<String>? medicines;
   String? dosageInstructions;
 
-  MLDoctorPrescriptionTemplateData({
-    this.id,
-    this.name,
-    this.category,
-    this.medicines,
-    this.dosageInstructions,
-  });
+  MLDoctorPrescriptionTemplateData({this.id, this.name, this.category, this.medicines, this.dosageInstructions});
 }

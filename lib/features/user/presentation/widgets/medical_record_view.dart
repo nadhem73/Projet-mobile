@@ -103,6 +103,18 @@ class MedicalRecordView extends StatelessWidget {
           child: _Text(record.currentTreatment, empty: 'Aucun traitement en cours'),
         ),
         _Section(
+          icon: Icons.healing_rounded,
+          title: 'Antécédents chirurgicaux',
+          color: AppColors.moduleInsurance,
+          child: _Text(record.surgicalHistory, empty: 'Aucun antécédent chirurgical'),
+        ),
+        _Section(
+          icon: Icons.family_restroom_rounded,
+          title: 'Antécédents familiaux',
+          color: AppColors.moduleAppointment,
+          child: _Text(record.familyHistory, empty: 'Aucun antécédent familial connu'),
+        ),
+        _Section(
           icon: Icons.contact_phone_rounded,
           title: 'Contact d\'urgence',
           color: AppColors.info,
@@ -192,7 +204,7 @@ class _Section extends StatelessWidget {
               children: [
                 Icon(icon, size: 18, color: color),
                 const SizedBox(width: AppSpacing.sm),
-                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                Expanded(child: Text(title, style: Theme.of(context).textTheme.titleSmall)),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),

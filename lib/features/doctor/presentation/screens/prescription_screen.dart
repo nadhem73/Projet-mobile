@@ -49,11 +49,7 @@ class MLPrescriptionScreenState extends State<MLPrescriptionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               8.height,
-              Row(
-                children: [
-                  Text('Mes ordonnances', style: boldTextStyle(size: 22)),
-                ],
-              ).paddingAll(16),
+              Row(children: [Text('Mes ordonnances', style: boldTextStyle(size: 22))]).paddingAll(16),
               Flexible(
                 child: ListView.builder(
                   padding: EdgeInsets.symmetric(horizontal: 16),
@@ -76,10 +72,7 @@ class MLPrescriptionScreenState extends State<MLPrescriptionScreen> {
                             children: [
                               Container(
                                 padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: medicalTealUltraLight,
-                                  borderRadius: radius(10),
-                                ),
+                                decoration: BoxDecoration(color: medicalTealUltraLight, borderRadius: radius(10)),
                                 child: Icon(Icons.receipt_long_outlined, color: medicalTealDark, size: 22),
                               ),
                               12.width,
@@ -128,7 +121,10 @@ class MLPrescriptionScreenState extends State<MLPrescriptionScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Voir l\'ordonnance complète', style: boldTextStyle(size: 13, color: medicalTealDark)),
+                              Text(
+                                'Voir l\'ordonnance complète',
+                                style: boldTextStyle(size: 13, color: medicalTealDark),
+                              ),
                               Icon(Icons.arrow_forward_ios, size: 12, color: medicalTealPrimary),
                             ],
                           ).onTap(() {

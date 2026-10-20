@@ -38,7 +38,7 @@ void main() {
     );
 
     final users = await database.db.query('users');
-    expect(users, hasLength(6));
+    expect(users, hasLength(8));
     expect(users.every((u) => !(u['password_hash'] as String).contains('Medilink123')), isTrue);
   });
 

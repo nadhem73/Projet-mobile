@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:medilink/core/di/injection.dart';
+import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/session/user_role.dart';
 import 'package:medilink/core/session/user_role_style.dart';
 import 'package:medilink/core/state/app_store.dart';
@@ -12,6 +14,8 @@ import 'package:medilink/core/utils/validators.dart';
 import 'package:medilink/core/widgets/widgets.dart';
 import 'package:medilink/features/user/data/models/user_profile.dart';
 import 'package:medilink/features/user/presentation/controllers/profile_controller.dart';
+import 'package:medilink/features/user/presentation/widgets/image_picking.dart';
+import 'package:medilink/features/user/presentation/widgets/user_avatar.dart';
 import 'package:medilink/features/user/user_module.dart';
 
 /// Profil de l'utilisateur connecté, quel que soit son rôle.
@@ -39,14 +43,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _changePhoto() async {
+    final choice = await pickImage(context, maxWidth: 512, quality: 80, allowRemove: true, title: 'Photo de profil');
+    if (choice == null || !mounted) return;
+    final error = await _controller.setAvatar(choice is PickedImage ? choice.bytes : null);
+    if (!mounted) return;
+    error == null ? context.showSuccess('Photo de profil mise à jour') : context.showError(error);
+  }
+
   Future<void> _changePassword() async {
     final changed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (_) => _ChangePasswordSheet(controller: _controller),
+      builder:
+          (_) => _PasswordSheet(
+            title: 'Changer le mot de passe',
+            withNewPassword: true,
+            onSubmit: (current, newPassword) => _controller.changePassword(current, newPassword!),
+          ),
     );
     if (changed == true && mounted) context.showSuccess('Mot de passe modifié');
+  }
+
+  Future<void> _exportData() async {
+    final json = await _controller.exportData();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Mes données'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: SelectableText(json, style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fermer')),
+              FilledButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: json));
+                  Navigator.pop(context);
+                  this.context.showSuccess('Données copiées dans le presse-papiers');
+                },
+                icon: const Icon(Icons.copy_rounded, size: 18),
+                label: const Text('Copier'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder:
+          (_) => _PasswordSheet(
+            title: 'Supprimer mon compte',
+            warning:
+                'Cette action est définitive : votre compte et toutes vos données (dossier médical, '
+                'documents, proches) seront effacés.',
+            submitLabel: 'Supprimer définitivement',
+            destructive: true,
+            // La garde du routeur renvoie vers la connexion dès la fermeture de la session.
+            onSubmit: (password, _) => _controller.deleteAccount(password),
+          ),
+    );
   }
 
   Future<void> _logout() async {
@@ -69,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mon profil')),
+      appBar: AppBar(title: const Text('Mon profil'), actions: const [NotificationBell()]),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
@@ -78,13 +144,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (profile == null) {
             return EmptyState.error(_controller.error ?? 'Profil indisponible', onRetry: _controller.load);
           }
+          final isPatient = profile.role == UserRole.patient;
           return RefreshIndicator(
             onRefresh: _controller.load,
             child: ListView(
               padding: const EdgeInsets.all(AppSpacing.lg),
               children: [
-                _ProfileHeader(profile: profile),
+                _ProfileHeader(profile: profile, onChangePhoto: _changePhoto),
                 const SizedBox(height: AppSpacing.lg),
+                if (isPatient) ...[
+                  const SectionHeader(title: 'Mon espace santé'),
+                  _ActionsCard(
+                    actions: [
+                      _Action(Icons.family_restroom_rounded, 'Mes proches', () => context.push(UserRoutes.dependents)),
+                      _Action(
+                        Icons.qr_code_2_rounded,
+                        'Carte d\'urgence',
+                        () => context.push(UserRoutes.emergencyCard),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
                 const SectionHeader(title: 'Informations'),
                 MediCard(child: Column(children: _infoRows(profile))),
                 const SizedBox(height: AppSpacing.lg),
@@ -93,18 +174,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      ListTile(
-                        leading: const Icon(Icons.edit_outlined),
-                        title: const Text('Modifier mon profil'),
-                        trailing: const Icon(Icons.chevron_right_rounded),
-                        onTap: _edit,
-                      ),
+                      _tile(Icons.edit_outlined, 'Modifier mon profil', _edit),
                       const Divider(height: 1),
-                      ListTile(
-                        leading: const Icon(Icons.lock_outline_rounded),
-                        title: const Text('Changer le mot de passe'),
-                        trailing: const Icon(Icons.chevron_right_rounded),
-                        onTap: _changePassword,
+                      _tile(Icons.lock_outline_rounded, 'Changer le mot de passe', _changePassword),
+                      const Divider(height: 1),
+                      _tile(
+                        Icons.notifications_none_rounded,
+                        'Notifications',
+                        () => context.push(AppRoutes.notifications),
                       ),
                       const Divider(height: 1),
                       Observer(
@@ -122,6 +199,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
+                const SectionHeader(title: 'Mes données personnelles'),
+                MediCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      _tile(Icons.download_outlined, 'Exporter mes données', _exportData),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.delete_forever_outlined, color: AppColors.error),
+                        title: const Text('Supprimer mon compte', style: TextStyle(color: AppColors.error)),
+                        onTap: _deleteAccount,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
                 MediButton.outlined(label: 'Se déconnecter', icon: Icons.logout_rounded, onPressed: _logout),
               ],
             ),
@@ -130,6 +223,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
+  Widget _tile(IconData icon, String title, VoidCallback onTap) => ListTile(
+    leading: Icon(icon),
+    title: Text(title),
+    trailing: const Icon(Icons.chevron_right_rounded),
+    onTap: onTap,
+  );
 
   List<Widget> _infoRows(UserProfile p) {
     final date = DateFormat('d MMMM yyyy', 'fr');
@@ -168,6 +268,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           InfoRow(icon: Icons.business_rounded, label: 'Organisme', value: p.company),
           InfoRow(icon: Icons.badge_outlined, label: 'Matricule agent', value: p.agentCode),
         ],
+        UserRole.admin => const <Widget>[],
       },
       if (p.createdAt != null)
         InfoRow(icon: Icons.event_available_rounded, label: 'Membre depuis', value: date.format(p.createdAt!)),
@@ -176,9 +277,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.profile});
+  const _ProfileHeader({required this.profile, required this.onChangePhoto});
 
   final UserProfile profile;
+  final VoidCallback onChangePhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +290,31 @@ class _ProfileHeader extends StatelessWidget {
     return MediCard(
       child: Row(
         children: [
-          MediAvatar(initials: initials.toUpperCase(), size: 64, color: role.color),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              UserAvatar(userId: profile.userId, initials: initials.toUpperCase(), size: 72, color: role.color),
+              Positioned(
+                right: -4,
+                bottom: -4,
+                child: Material(
+                  color: theme.colorScheme.primary,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onChangePhoto,
+                    child: Tooltip(
+                      message: 'Changer la photo',
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(Icons.photo_camera_rounded, size: 16, color: theme.colorScheme.onPrimary),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
@@ -209,16 +335,61 @@ class _ProfileHeader extends StatelessWidget {
   }
 }
 
-class _ChangePasswordSheet extends StatefulWidget {
-  const _ChangePasswordSheet({required this.controller});
+class _Action {
+  const _Action(this.icon, this.label, this.onTap);
 
-  final ProfileController controller;
-
-  @override
-  State<_ChangePasswordSheet> createState() => _ChangePasswordSheetState();
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 }
 
-class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
+class _ActionsCard extends StatelessWidget {
+  const _ActionsCard({required this.actions});
+
+  final List<_Action> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final (i, a) in actions.indexed) ...[
+          if (i > 0) const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: SizedBox(
+              height: ShortcutTile.compactHeight,
+              child: ShortcutTile(icon: a.icon, label: a.label, color: AppColors.primary, onTap: a.onTap),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Feuille de confirmation par mot de passe (changement de mot de passe,
+/// suppression du compte). [onSubmit] renvoie null si réussi, sinon l'erreur.
+class _PasswordSheet extends StatefulWidget {
+  const _PasswordSheet({
+    required this.title,
+    required this.onSubmit,
+    this.withNewPassword = false,
+    this.warning,
+    this.submitLabel = 'Enregistrer',
+    this.destructive = false,
+  });
+
+  final String title;
+  final Future<String?> Function(String password, String? newPassword) onSubmit;
+  final bool withNewPassword;
+  final String? warning;
+  final String submitLabel;
+  final bool destructive;
+
+  @override
+  State<_PasswordSheet> createState() => _PasswordSheetState();
+}
+
+class _PasswordSheetState extends State<_PasswordSheet> {
   final _formKey = GlobalKey<FormState>();
   final _current = TextEditingController();
   final _password = TextEditingController();
@@ -240,7 +411,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
       _saving = true;
       _error = null;
     });
-    final error = await widget.controller.changePassword(_current.text, _password.text);
+    final error = await widget.onSubmit(_current.text, widget.withNewPassword ? _password.text : null);
     if (!mounted) return;
     if (error == null) {
       Navigator.pop(context, true);
@@ -254,6 +425,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -267,35 +439,65 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Changer le mot de passe', style: Theme.of(context).textTheme.titleLarge),
+            Text(widget.title, style: theme.textTheme.titleLarge),
+            if (widget.warning != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.08), borderRadius: AppRadius.card),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: AppColors.error),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(child: Text(widget.warning!, style: theme.textTheme.bodySmall)),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             MediTextField(
-              label: 'Mot de passe actuel',
+              label: widget.withNewPassword ? 'Mot de passe actuel' : 'Votre mot de passe',
               controller: _current,
               isPassword: true,
-              validator: Validators.required('Le mot de passe actuel'),
+              validator: Validators.required('Le mot de passe'),
             ),
-            const SizedBox(height: AppSpacing.md),
-            MediTextField(
-              label: 'Nouveau mot de passe',
-              controller: _password,
-              isPassword: true,
-              validator: Validators.password,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            MediTextField(
-              label: 'Confirmer le nouveau mot de passe',
-              controller: _confirm,
-              isPassword: true,
-              textInputAction: TextInputAction.done,
-              validator: Validators.confirmPassword(() => _password.text),
-            ),
+            if (widget.withNewPassword) ...[
+              const SizedBox(height: AppSpacing.md),
+              MediTextField(
+                label: 'Nouveau mot de passe',
+                controller: _password,
+                isPassword: true,
+                validator: Validators.password,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              MediTextField(
+                label: 'Confirmer le nouveau mot de passe',
+                controller: _confirm,
+                isPassword: true,
+                textInputAction: TextInputAction.done,
+                validator: Validators.confirmPassword(() => _password.text),
+              ),
+            ],
             if (_error != null) ...[
               const SizedBox(height: AppSpacing.md),
               Text(_error!, style: const TextStyle(color: AppColors.error)),
             ],
             const SizedBox(height: AppSpacing.lg),
-            MediButton(label: 'Enregistrer', isLoading: _saving, onPressed: _submit),
+            widget.destructive
+                ? FilledButton.icon(
+                  style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                  onPressed: _saving ? null : _submit,
+                  icon:
+                      _saving
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                          : const Icon(Icons.delete_forever_rounded),
+                  label: Text(widget.submitLabel),
+                )
+                : MediButton(label: widget.submitLabel, isLoading: _saving, onPressed: _submit),
           ],
         ),
       ),

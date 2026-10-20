@@ -29,18 +29,18 @@ class InsuranceModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(path: InsuranceRoutes.dashboard, builder: (_, _) => const InsurerDashboardScreen()),
+    GoRoute(path: InsuranceRoutes.dashboard, builder: (_, _) => const InsurerDashboardScreen()),
     GoRoute(path: InsuranceRoutes.home, builder: (_, _) => const InsuranceHomeScreen()),
-      ];
+  ];
 
   @override
   List<ModuleShortcut> get patientShortcuts => const [
-        ModuleShortcut(
-          label: 'Assurance',
-          icon: Icons.health_and_safety_rounded,
-          route: InsuranceRoutes.home,
-          color: AppColors.moduleInsurance,
-          order: 40,
-        ),
-      ];
+    ModuleShortcut(
+      label: 'Assurance',
+      icon: Icons.health_and_safety_rounded,
+      route: InsuranceRoutes.home,
+      color: AppColors.moduleInsurance,
+      order: 40,
+    ),
+  ];
 }

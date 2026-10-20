@@ -61,7 +61,7 @@ class MLBotScreenState extends State<MLBotScreen> {
                         right: 0,
                         bottom: 6,
                         child: Icon(Icons.brightness_1_rounded, color: healthSuccess, size: 14),
-                      )
+                      ),
                     ],
                   ),
                   8.width,
@@ -72,7 +72,7 @@ class MLBotScreenState extends State<MLBotScreen> {
                       4.height,
                       Text('Online', style: secondaryTextStyle(size: 16, color: white.withValues(alpha: 0.5))),
                     ],
-                  )
+                  ),
                 ],
               ).paddingAll(16.0),
             ),
@@ -119,7 +119,10 @@ class MLBotScreenState extends State<MLBotScreen> {
                                   8.width,
                                   CircleAvatar(
                                     backgroundColor: mlColorCyan,
-                                    child: Image.asset(mlIcProfilePicture, fit: BoxFit.fill).cornerRadiusWithClipRRect(30.0),
+                                    child: Image.asset(
+                                      mlIcProfilePicture,
+                                      fit: BoxFit.fill,
+                                    ).cornerRadiusWithClipRRect(30.0),
                                   ),
                                 ],
                               ),
@@ -190,12 +193,10 @@ class MLBotScreenState extends State<MLBotScreen> {
                   hintStyle: secondaryTextStyle(size: 16),
                 ),
               ).expand(),
-              Icon(Icons.send_outlined, size: 24, color: medicalTealPrimary).paddingAll(4.0).onTap(
-                () {
-                  addMessage();
-                  messageController.clear();
-                },
-              ),
+              Icon(Icons.send_outlined, size: 24, color: medicalTealPrimary).paddingAll(4.0).onTap(() {
+                addMessage();
+                messageController.clear();
+              }),
               8.width,
             ],
           ),
@@ -205,10 +206,8 @@ class MLBotScreenState extends State<MLBotScreen> {
   }
 
   void addMessage() {
-    setState(
-      () {
-        data.insert(0, MLInboxData(id: 0, message: messageController.text));
-      },
-    );
+    setState(() {
+      data.insert(0, MLInboxData(id: 0, message: messageController.text));
+    });
   }
 }

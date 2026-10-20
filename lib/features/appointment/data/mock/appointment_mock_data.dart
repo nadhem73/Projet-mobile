@@ -15,18 +15,73 @@ List<MLBookAppointmentData> mlBookAppointmentDataList() {
   list.add(MLBookAppointmentData(id: '1', title: 'Select Service', widget: MLClinicVisitComponent(), progress: 0.2));
   list.add(MLBookAppointmentData(id: '2', title: 'Choose Doctor', widget: MLDoctorListComponent(), progress: 0.5));
   list.add(MLBookAppointmentData(id: '3', title: 'Choose Patient', widget: MLPatientComponent(), progress: 0.75));
-  list.add(MLBookAppointmentData(id: '4', title: 'Confirm Appointment', widget: MLConfirmAppointmentComponent(), progress: 1.0));
+  list.add(
+    MLBookAppointmentData(
+      id: '4',
+      title: 'Confirm Appointment',
+      widget: MLConfirmAppointmentComponent(),
+      progress: 1.0,
+    ),
+  );
   return list;
 }
 
 List<MLDoctorData> mlDoctorListDataList() {
   List<MLDoctorData> list = [];
-  list.add(MLDoctorData(title: 'Dr. Edward Jenner', subtitle: 'Endocrinology', image: mlIcDoctorImage, rating: '4.8', fees: '\$450'));
-  list.add(MLDoctorData(title: 'Dr. Edward Jenner', subtitle: 'Endocrinology', image: mlIcDoctorImage, rating: '4.8', fees: '\$450'));
-  list.add(MLDoctorData(title: 'Dr. Edward Jenner', subtitle: 'Endocrinology', image: mlIcDoctorImage, rating: '4.8', fees: '\$450'));
-  list.add(MLDoctorData(title: 'Dr. Edward Jenner', subtitle: 'Endocrinology', image: mlIcDoctorImage, rating: '4.8', fees: '\$450'));
-  list.add(MLDoctorData(title: 'Dr. Edward Jenner', subtitle: 'Endocrinology', image: mlIcDoctorImage, rating: '4.8', fees: '\$450'));
-  list.add(MLDoctorData(title: 'Dr. Edward Jenner', subtitle: 'Endocrinology', image: mlIcDoctorImage, rating: '4.8', fees: '\$450'));
+  list.add(
+    MLDoctorData(
+      title: 'Dr. Edward Jenner',
+      subtitle: 'Endocrinology',
+      image: mlIcDoctorImage,
+      rating: '4.8',
+      fees: '\$450',
+    ),
+  );
+  list.add(
+    MLDoctorData(
+      title: 'Dr. Edward Jenner',
+      subtitle: 'Endocrinology',
+      image: mlIcDoctorImage,
+      rating: '4.8',
+      fees: '\$450',
+    ),
+  );
+  list.add(
+    MLDoctorData(
+      title: 'Dr. Edward Jenner',
+      subtitle: 'Endocrinology',
+      image: mlIcDoctorImage,
+      rating: '4.8',
+      fees: '\$450',
+    ),
+  );
+  list.add(
+    MLDoctorData(
+      title: 'Dr. Edward Jenner',
+      subtitle: 'Endocrinology',
+      image: mlIcDoctorImage,
+      rating: '4.8',
+      fees: '\$450',
+    ),
+  );
+  list.add(
+    MLDoctorData(
+      title: 'Dr. Edward Jenner',
+      subtitle: 'Endocrinology',
+      image: mlIcDoctorImage,
+      rating: '4.8',
+      fees: '\$450',
+    ),
+  );
+  list.add(
+    MLDoctorData(
+      title: 'Dr. Edward Jenner',
+      subtitle: 'Endocrinology',
+      image: mlIcDoctorImage,
+      rating: '4.8',
+      fees: '\$450',
+    ),
+  );
   return list;
 }
 
@@ -64,10 +119,55 @@ List<MLSpecialistData> mlSpecialistDataDataList() {
 
 List<MLAppointmentData> mlAppointmentDataList() {
   List<MLAppointmentData> list = [];
-  list.add(MLAppointmentData(date: '10', month: 'october', doctor: 'Dr. Stephen Chew', department: 'General Care', patient: 'Kaixa Pham', service: 'Clinic Visit'));
-  list.add(MLAppointmentData(date: '12', month: 'September', doctor: 'Dr. Stephen Chew', department: 'Pediatric', patient: 'Kaixa Pham ', service: 'Home Visit'));
-  list.add(MLAppointmentData(date: '10', month: 'october', doctor: 'Dr. Stephen Chew', department: 'General Care', patient: 'Kaixa Pham ', service: 'Video Consult'));
-  list.add(MLAppointmentData(date: '12', month: 'September', doctor: 'Dr. Stephen Chew', department: 'Pediatric', patient: 'Kaixa Pham ', service: 'Home Visit'));
-  list.add(MLAppointmentData(date: '10', month: 'october', doctor: 'Dr. Stephen Chew', department: 'General Care', patient: 'Kaixa Pham ', service: 'Clinic Visit'));
+  list.add(
+    MLAppointmentData(
+      date: '10',
+      month: 'october',
+      doctor: 'Dr. Stephen Chew',
+      department: 'General Care',
+      patient: 'Kaixa Pham',
+      service: 'Clinic Visit',
+    ),
+  );
+  list.add(
+    MLAppointmentData(
+      date: '12',
+      month: 'September',
+      doctor: 'Dr. Stephen Chew',
+      department: 'Pediatric',
+      patient: 'Kaixa Pham ',
+      service: 'Home Visit',
+    ),
+  );
+  list.add(
+    MLAppointmentData(
+      date: '10',
+      month: 'october',
+      doctor: 'Dr. Stephen Chew',
+      department: 'General Care',
+      patient: 'Kaixa Pham ',
+      service: 'Video Consult',
+    ),
+  );
+  list.add(
+    MLAppointmentData(
+      date: '12',
+      month: 'September',
+      doctor: 'Dr. Stephen Chew',
+      department: 'Pediatric',
+      patient: 'Kaixa Pham ',
+      service: 'Home Visit',
+    ),
+  );
+  list.add(
+    MLAppointmentData(
+      date: '10',
+      month: 'october',
+      doctor: 'Dr. Stephen Chew',
+      department: 'General Care',
+      patient: 'Kaixa Pham ',
+      service: 'Clinic Visit',
+    ),
+  );
   return list;
 }

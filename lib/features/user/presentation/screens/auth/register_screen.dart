@@ -111,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context.showError('Vous devez accepter les conditions d\'utilisation');
       return;
     }
-    final user = await _controller.register(
+    final outcome = await _controller.register(
       RegistrationData(
         role: _role!,
         nom: _nom.text,
@@ -132,11 +132,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
     if (!mounted) return;
-    if (user == null) {
-      context.showError(_controller.error!);
-    } else {
-      context.showSuccess('Bienvenue ${user.prenom}, votre compte est créé !');
-      context.go(AppRoutes.homeFor(user.role));
+    switch (outcome) {
+      case null:
+        context.showError(_controller.error!);
+      case RegistrationOutcome.signedIn:
+        context.showSuccess('Bienvenue ${_prenom.text.trim()}, votre compte est créé !');
+        context.go(AppRoutes.homeFor(_role!));
+      case RegistrationOutcome.pendingValidation:
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (context) => AlertDialog(
+                icon: const Icon(Icons.hourglass_top_rounded, size: 36),
+                title: const Text('Demande envoyée'),
+                content: const Text(
+                  'Votre compte professionnel doit être vérifié par un administrateur MediLink '
+                  "(numéro d'inscription, autorisation...). Vous pourrez vous connecter dès sa validation.",
+                ),
+                actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Compris'))],
+              ),
+        );
+        if (mounted) context.go(AppRoutes.login);
     }
   }
 
@@ -165,7 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       key: const ValueKey('roles'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final role in UserRole.values) ...[
+        for (final role in UserRole.selfRegistrable) ...[
           RoleCard(role: role, selected: role == _selectedRole, onTap: () => setState(() => _selectedRole = role)),
           const SizedBox(height: AppSpacing.md),
         ],
@@ -250,6 +267,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             UserRole.doctor => 'Informations professionnelles',
             UserRole.pharmacist => 'Votre pharmacie',
             UserRole.insurer => 'Votre organisme',
+            UserRole.admin => '',
           }),
           ..._roleFields(role),
           const SizedBox(height: AppSpacing.xl),
@@ -410,6 +428,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           validator: Validators.required('Le matricule'),
         ),
       ],
+      UserRole.admin => const [],
     };
   }
 }

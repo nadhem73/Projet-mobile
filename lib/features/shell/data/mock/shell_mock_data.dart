@@ -12,20 +12,60 @@ import 'package:medilink/core/utils/app_assets.dart';
 
 List<MLServicesData> mlServiceDataList() {
   List<MLServicesData> list = [];
-  list.add(MLServicesData(title: 'Clinic Visit', icon: Icons.home_work_outlined, image: mlIcDashClinicVisit, widget: MLBookAppointmentScreen(index: 0)));
-  list.add(MLServicesData(title: 'Home Visit', icon: Icons.home, image: mlIcDashHomeVisit, widget: MLBookAppointmentScreen(index: 0)));
-  list.add(MLServicesData(title: 'Video Consult', icon: Icons.video_call, image: mlIcDashVideoCons, widget: MLVideoConsultScreen()));
-  list.add(MLServicesData(title: 'Pharmacy', icon: Icons.local_hospital, image: mlIcDashPharmacy, widget: MLOnlinePharmacyScreen()));
+  list.add(
+    MLServicesData(
+      title: 'Clinic Visit',
+      icon: Icons.home_work_outlined,
+      image: mlIcDashClinicVisit,
+      widget: MLBookAppointmentScreen(index: 0),
+    ),
+  );
+  list.add(
+    MLServicesData(
+      title: 'Home Visit',
+      icon: Icons.home,
+      image: mlIcDashHomeVisit,
+      widget: MLBookAppointmentScreen(index: 0),
+    ),
+  );
+  list.add(
+    MLServicesData(
+      title: 'Video Consult',
+      icon: Icons.video_call,
+      image: mlIcDashVideoCons,
+      widget: MLVideoConsultScreen(),
+    ),
+  );
+  list.add(
+    MLServicesData(
+      title: 'Pharmacy',
+      icon: Icons.local_hospital,
+      image: mlIcDashPharmacy,
+      widget: MLOnlinePharmacyScreen(),
+    ),
+  );
   return list;
 }
 
 List<MLNewsData> mlNewsDataList() {
   List<MLNewsData> list = [];
-  list.add(MLNewsData(image: mlIcDoctorImage, title: 'How to prepare before your medical appointment', duration: '18 min ago'));
-  list.add(MLNewsData(image: mlIcVideoConsult, title: 'Video consultation: what you need to know', duration: '18 min ago'));
-  list.add(MLNewsData(image: mlIcAppointmentBooked, title: 'Five tips to keep your treatment on track', duration: '18 min ago'));
+  list.add(
+    MLNewsData(image: mlIcDoctorImage, title: 'How to prepare before your medical appointment', duration: '18 min ago'),
+  );
+  list.add(
+    MLNewsData(image: mlIcVideoConsult, title: 'Video consultation: what you need to know', duration: '18 min ago'),
+  );
+  list.add(
+    MLNewsData(
+      image: mlIcAppointmentBooked,
+      title: 'Five tips to keep your treatment on track',
+      duration: '18 min ago',
+    ),
+  );
   list.add(MLNewsData(image: mlIcChat, title: 'Chat with your doctor from home', duration: '18 min ago'));
-  list.add(MLNewsData(image: mlIcOrderSuccess, title: 'Order your medicine online in a few steps', duration: '18 min ago'));
+  list.add(
+    MLNewsData(image: mlIcOrderSuccess, title: 'Order your medicine online in a few steps', duration: '18 min ago'),
+  );
   return list;
 }
 
@@ -43,20 +83,40 @@ List<MLInboxData> mlInboxChatDataList() {
 
 List<MLNotificationData> mlNotificationDataList() {
   List<MLNotificationData> list = [];
-  list.add(MLNotificationData(image: mlIcDoctorImage, title: 'an appointment has been scheduled??? in context from reliable sources', time: '3m ago', status: 'Completed', detail: 'Completed'));
+  list.add(
+    MLNotificationData(
+      image: mlIcDoctorImage,
+      title: 'an appointment has been scheduled??? in context from reliable sources',
+      time: '3m ago',
+      status: 'Completed',
+      detail: 'Completed',
+    ),
+  );
   list.add(MLNotificationData(image: mlIcDoctorImage, title: 'Dr. sent you a message', time: '3m ago', status: ''));
-  list.add(MLNotificationData(image: mlIcDoctorImage, title: 'Vitamins are essential to human health. Here, l', time: 'Today at 2.20 AM', status: 'Canceled'));
-  list.add(MLNotificationData(
+  list.add(
+    MLNotificationData(
+      image: mlIcDoctorImage,
+      title: 'Vitamins are essential to human health. Here, l',
+      time: 'Today at 2.20 AM',
+      status: 'Canceled',
+    ),
+  );
+  list.add(
+    MLNotificationData(
       image: mlIcDoctorImage,
       title: 'Hey Dustin,. This email confirms your Service Name appointment on Appointment Date Time Client',
       time: 'Today at 11.20 AM',
       status: 'Delivered',
-      detail: 'Succesfully delivered to you'));
-  list.add(MLNotificationData(
-    image: mlIcDoctorImage,
-    title: 'Hey Dustin,. This email confirms your Service Name appointment on Appointment Date Time Client',
-    time: '3m ago',
-    status: 'Delivered',
-  ));
+      detail: 'Succesfully delivered to you',
+    ),
+  );
+  list.add(
+    MLNotificationData(
+      image: mlIcDoctorImage,
+      title: 'Hey Dustin,. This email confirms your Service Name appointment on Appointment Date Time Client',
+      time: '3m ago',
+      status: 'Delivered',
+    ),
+  );
   return list;
 }

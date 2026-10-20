@@ -38,10 +38,7 @@ class MLDoctorConsultationDetailScreenState extends State<MLDoctorConsultationDe
 
   Future<void> init() async {
     final list = mlDoctorConsultationDataList();
-    consultation = list.firstWhere(
-      (c) => c.id == widget.consultationId,
-      orElse: () => list.first,
-    );
+    consultation = list.firstWhere((c) => c.id == widget.consultationId, orElse: () => list.first);
     _populateFields();
   }
 
@@ -69,7 +66,13 @@ class MLDoctorConsultationDetailScreenState extends State<MLDoctorConsultationDe
         } else if (v.contains('Saturation') || v.contains('SpO2')) {
           spo2Controller.text = v.replaceAll('Saturation O2:', '').replaceAll('SpO2:', '').replaceAll('%', '').trim();
         } else if (v.contains('Glycémie') || v.contains('HbA1c')) {
-          glycemiaController.text = v.replaceAll('Glycémie à jeun:', '').replaceAll('HbA1c:', '').replaceAll('g/L', '').replaceAll('%', '').trim();
+          glycemiaController.text =
+              v
+                  .replaceAll('Glycémie à jeun:', '')
+                  .replaceAll('HbA1c:', '')
+                  .replaceAll('g/L', '')
+                  .replaceAll('%', '')
+                  .trim();
         }
       }
     }
@@ -199,9 +202,15 @@ class MLDoctorConsultationDetailScreenState extends State<MLDoctorConsultationDe
                 children: [
                   Text(c.patientName.validate(), style: boldTextStyle(size: 18, color: white)),
                   2.height,
-                  Text('${c.patientAge} ans  •  ${c.patientGender == 'F' ? 'Femme' : 'Homme'}  •  ${c.type}', style: secondaryTextStyle(color: white.withValues(alpha: 0.7), size: 13)),
+                  Text(
+                    '${c.patientAge} ans  •  ${c.patientGender == 'F' ? 'Femme' : 'Homme'}  •  ${c.type}',
+                    style: secondaryTextStyle(color: white.withValues(alpha: 0.7), size: 13),
+                  ),
                   2.height,
-                  Text('${c.date} à ${c.time}', style: secondaryTextStyle(color: white.withValues(alpha: 0.5), size: 12)),
+                  Text(
+                    '${c.date} à ${c.time}',
+                    style: secondaryTextStyle(color: white.withValues(alpha: 0.5), size: 12),
+                  ),
                 ],
               ).expand(),
             ],
@@ -226,7 +235,12 @@ class MLDoctorConsultationDetailScreenState extends State<MLDoctorConsultationDe
           Row(
             children: [
               _infoItem(context, Icons.phone, 'Téléphone', c.patientId == 'P001' ? '06 12 34 56 78' : '06 XX XX XX XX'),
-              _infoItem(context, Icons.email, 'Email', c.patientId == 'P001' ? 'kaixa.pham@email.com' : 'patient@email.com'),
+              _infoItem(
+                context,
+                Icons.email,
+                'Email',
+                c.patientId == 'P001' ? 'kaixa.pham@email.com' : 'patient@email.com',
+              ),
             ],
           ),
         ],
@@ -435,7 +449,10 @@ class MLDoctorConsultationDetailScreenState extends State<MLDoctorConsultationDe
               // Navigate to prescription screen
             },
             icon: Icon(Icons.medication, size: 18),
-            label: Text(c.prescriptionId!.isNotEmpty ? 'Voir ordonnance' : 'Créer ordonnance', style: boldTextStyle(size: 14)),
+            label: Text(
+              c.prescriptionId!.isNotEmpty ? 'Voir ordonnance' : 'Créer ordonnance',
+              style: boldTextStyle(size: 14),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: medicalTealPrimary,
               foregroundColor: white,

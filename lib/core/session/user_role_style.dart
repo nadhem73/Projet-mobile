@@ -9,6 +9,7 @@ extension UserRoleStyle on UserRole {
     UserRole.doctor => Icons.medical_services_rounded,
     UserRole.pharmacist => Icons.local_pharmacy_rounded,
     UserRole.insurer => Icons.health_and_safety_rounded,
+    UserRole.admin => Icons.admin_panel_settings_rounded,
   };
 
   Color get color => switch (this) {
@@ -16,5 +17,6 @@ extension UserRoleStyle on UserRole {
     UserRole.doctor => AppColors.moduleAppointment,
     UserRole.pharmacist => AppColors.modulePharmacy,
     UserRole.insurer => AppColors.moduleInsurance,
+    UserRole.admin => AppColors.moduleAdmin,
   };
 }

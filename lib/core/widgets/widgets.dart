@@ -6,4 +6,5 @@ export 'package:medilink/core/widgets/medi_button.dart';
 export 'package:medilink/core/widgets/medi_card.dart';
 export 'package:medilink/core/widgets/medi_logo.dart';
 export 'package:medilink/core/widgets/medi_text_field.dart';
+export 'package:medilink/core/widgets/notification_bell.dart';
 export 'package:medilink/core/widgets/panel_widgets.dart';

@@ -44,6 +44,7 @@ class CurrentUser {
   bool get isDoctor => role == UserRole.doctor;
   bool get isPharmacist => role == UserRole.pharmacist;
   bool get isInsurer => role == UserRole.insurer;
+  bool get isAdmin => role == UserRole.admin;
 
   String get fullName => '$prenom $nom'.trim();
   String get displayName => isDoctor ? 'Dr $fullName' : fullName;
@@ -54,6 +55,7 @@ class CurrentUser {
     UserRole.doctor => specialty ?? 'Médecin',
     UserRole.pharmacist => organization ?? 'Pharmacien',
     UserRole.insurer => organization ?? 'Assureur',
+    UserRole.admin => 'Administrateur',
   };
 
   String get initials {

@@ -12,6 +12,7 @@ import 'package:medilink/features/user/data/models/medical_record.dart';
 import 'package:medilink/features/user/data/repositories/medical_record_repository.dart';
 import 'package:medilink/features/user/presentation/screens/medical_record/medical_record_screen.dart';
 import 'package:medilink/features/user/presentation/screens/profile/profile_screen.dart';
+import 'package:medilink/features/user/presentation/widgets/user_avatar.dart';
 import 'package:medilink/features/user/user_module.dart';
 
 /// Panel du patient : barre de navigation Accueil / Rendez-vous / Dossier / Profil.
@@ -119,7 +120,12 @@ class _PatientHomeTabState extends State<_PatientHomeTab> {
               title: user?.fullName ?? '',
               subtitle: 'Prenez soin de vous aujourd\'hui',
               initials: user?.initials ?? '',
+              avatar:
+                  user == null
+                      ? null
+                      : UserAvatar(userId: user.userId, initials: user.initials, size: 52, onDark: true),
               onAvatarTap: () => widget.onOpenTab(3),
+              actions: const [NotificationBell(onDark: true)],
               bottom: _HealthSummary(record: _record, onTap: () => widget.onOpenTab(2)),
             ),
           ),

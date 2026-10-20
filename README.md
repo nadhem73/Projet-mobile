@@ -29,6 +29,8 @@ Au premier lancement, la base SQLite est créée et remplie avec des comptes de 
 | Médecin | `dr.gharbi@medilink.tn` (Dermatologie) |
 | Pharmacien | `pharmacie@medilink.tn` (Pharmacie Ennour) |
 | Assureur | `assurance@medilink.tn` (CNAM) |
+| Administrateur | `admin@medilink.tn` |
+| Médecin **en attente de validation** | `dr.haddad@medilink.tn` (pour tester la validation par l'admin) |
 
 En mode debug, l'écran de connexion propose des raccourcis pour remplir ces comptes.
 
@@ -40,9 +42,14 @@ Chaque rôle a son propre **panel** après connexion :
 | Médecin | `/doctor/dashboard` | `MLDoctorDashboardScreen` | doctor |
 | Pharmacien | `/pharmacist/dashboard` | `PharmacistDashboardScreen` | pharmacy |
 | Assureur | `/insurer/dashboard` | `InsurerDashboardScreen` | insurance |
+| Administrateur | `/admin/dashboard` | `AdminDashboardScreen` | user |
 
-Les routes `/doctor/...`, `/pharmacist/...` et `/insurer/...` sont réservées au rôle correspondant
-(garde d'accès dans `lib/app/app_router.dart`).
+Les routes `/doctor/...`, `/pharmacist/...`, `/insurer/...` et `/admin/...` sont réservées au rôle
+correspondant (garde d'accès dans `lib/app/app_router.dart`).
+
+Les comptes **médecin, pharmacien et assureur** créés depuis l'application sont « en attente » jusqu'à
+leur validation par un administrateur. Le patient de démo a rendez-vous avec Dr Benali et Dr Trabelsi :
+eux seuls peuvent consulter son dossier médical.
 
 > La cible principale est **Android**. SQLite (`sqflite`) ne fonctionne pas sur le Web.
 
@@ -55,7 +62,7 @@ Chaque membre est responsable d'un dossier `lib/features/<module>/` et de son fi
 
 | Module | Dossier | Responsable | Périmètre |
 |---|---|---|---|
-| **User** | `features/user/` + `features/shell/` | Membre 1 | Authentification 4 rôles, profils, dossier médical, panel patient |
+| **User** | `features/user/` + `features/shell/` | Membre 1 | Comptes et sécurité (5 rôles, validation admin), profils, proches, dossier médical, panel patient, notifications |
 | **Rendez-vous** | `features/appointment/` | Membre 2 | Recherche de médecins, disponibilités, réservation, annulation |
 | **Assurance** | `features/insurance/` | Membre 3 | Contrats (CNAM, mutuelles), prise en charge, remboursements |
 | **Pharmacie** | `features/pharmacy/` | Membre 4 | Catalogue médicaments (PostgreSQL), commandes, rappels |

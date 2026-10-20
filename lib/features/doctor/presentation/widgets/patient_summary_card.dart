@@ -8,11 +8,7 @@ class MLDoctorPatientSummaryCard extends StatelessWidget {
   final MLDoctorPatientSummaryData patient;
   final VoidCallback? onTap;
 
-  const MLDoctorPatientSummaryCard({
-    super.key,
-    required this.patient,
-    this.onTap,
-  });
+  const MLDoctorPatientSummaryCard({super.key, required this.patient, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -51,23 +47,40 @@ class MLDoctorPatientSummaryCard extends StatelessWidget {
                     if (hasUpcoming)
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: careCoralPrimary.withValues(alpha: 0.12), borderRadius: radius(4)),
-                        child: Text('RDV ${_formatDate(p.nextAppointment!)}', style: boldTextStyle(size: 10, color: careCoralPrimary)),
+                        decoration: BoxDecoration(
+                          color: careCoralPrimary.withValues(alpha: 0.12),
+                          borderRadius: radius(4),
+                        ),
+                        child: Text(
+                          'RDV ${_formatDate(p.nextAppointment!)}',
+                          style: boldTextStyle(size: 10, color: careCoralPrimary),
+                        ),
                       ),
                   ],
                 ),
                 4.height,
-                Text('${p.age} ans  •  ${p.gender == 'F' ? 'Femme' : 'Homme'}  •  Dernière visite: ${_formatDate(p.lastVisit!)}', style: secondaryTextStyle(size: 12)),
+                Text(
+                  '${p.age} ans  •  ${p.gender == 'F' ? 'Femme' : 'Homme'}  •  Dernière visite: ${_formatDate(p.lastVisit!)}',
+                  style: secondaryTextStyle(size: 12),
+                ),
                 4.height,
                 if (hasConditions)
                   Wrap(
                     spacing: 6,
                     runSpacing: 4,
-                    children: p.conditions!.map((c) => Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: medicalTealPrimary.withValues(alpha: 0.1), borderRadius: radius(8)),
-                      child: Text(c, style: boldTextStyle(size: 10, color: medicalTealPrimary)),
-                    )).toList(),
+                    children:
+                        p.conditions!
+                            .map(
+                              (c) => Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: medicalTealPrimary.withValues(alpha: 0.1),
+                                  borderRadius: radius(8),
+                                ),
+                                child: Text(c, style: boldTextStyle(size: 10, color: medicalTealPrimary)),
+                              ),
+                            )
+                            .toList(),
                   ),
               ],
             ).expand(),
@@ -78,8 +91,14 @@ class MLDoctorPatientSummaryCard extends StatelessWidget {
                 if (p.activeMedications!.isNotEmpty)
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: vitalityGreenPrimary.withValues(alpha: 0.1), borderRadius: radius(4)),
-                    child: Text('${p.activeMedications!.length} médoc(s)', style: boldTextStyle(size: 9, color: vitalityGreenPrimary)),
+                    decoration: BoxDecoration(
+                      color: vitalityGreenPrimary.withValues(alpha: 0.1),
+                      borderRadius: radius(4),
+                    ),
+                    child: Text(
+                      '${p.activeMedications!.length} médoc(s)',
+                      style: boldTextStyle(size: 9, color: vitalityGreenPrimary),
+                    ),
                   ),
               ],
             ),

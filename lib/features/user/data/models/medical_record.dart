@@ -1,3 +1,5 @@
+import 'package:medilink/features/user/data/repositories/auth_repository.dart';
+
 /// Dossier médical d'un patient (table `medical_records`, cahier des charges §10.7).
 ///
 /// Utilisable par les autres modules en lecture seule
@@ -13,6 +15,8 @@ class MedicalRecord {
     this.allergies,
     this.chronicDiseases,
     this.currentTreatment,
+    this.surgicalHistory,
+    this.familyHistory,
     this.emergencyContactName,
     this.emergencyContactPhone,
     this.insuranceCompany,
@@ -30,6 +34,8 @@ class MedicalRecord {
       allergies = null,
       chronicDiseases = null,
       currentTreatment = null,
+      surgicalHistory = null,
+      familyHistory = null,
       emergencyContactName = null,
       emergencyContactPhone = null,
       insuranceCompany = null,
@@ -53,6 +59,12 @@ class MedicalRecord {
   final String? allergies;
   final String? chronicDiseases;
   final String? currentTreatment;
+
+  /// Antécédents chirurgicaux (opérations, dates).
+  final String? surgicalHistory;
+
+  /// Antécédents familiaux (maladies héréditaires...).
+  final String? familyHistory;
   final String? emergencyContactName;
   final String? emergencyContactPhone;
   final String? insuranceCompany;
@@ -86,22 +98,14 @@ class MedicalRecord {
   List<String> get allergyList => splitList(allergies);
   List<String> get chronicDiseaseList => splitList(chronicDiseases);
 
-  /// Pourcentage des rubriques renseignées (affiché comme « dossier complété à X % »).
+  /// Pourcentage des informations essentielles renseignées (« dossier complété à X % »).
+  ///
+  /// Les rubriques facultatives (allergies, antécédents, traitement, assurance)
+  /// n'en font pas partie : les laisser vides signifie « aucun ».
   int get completion {
-    final fields = [
-      gender,
-      bloodGroup,
-      height,
-      weight,
-      allergies,
-      chronicDiseases,
-      currentTreatment,
-      emergencyContactName,
-      emergencyContactPhone,
-      insuranceCompany,
-    ];
-    final filled = fields.where((f) => f != null && f.toString().trim().isNotEmpty).length;
-    return (filled * 100 / fields.length).round();
+    final essentials = [gender, bloodGroup, height, weight, emergencyContactName, emergencyContactPhone];
+    final filled = essentials.where((f) => f != null && f.toString().trim().isNotEmpty).length;
+    return (filled * 100 / essentials.length).round();
   }
 
   static List<String> splitList(String? raw) =>
@@ -117,11 +121,13 @@ class MedicalRecord {
     allergies: map['allergies'] as String?,
     chronicDiseases: map['chronic_diseases'] as String?,
     currentTreatment: map['current_treatment'] as String?,
+    surgicalHistory: map['surgical_history'] as String?,
+    familyHistory: map['family_history'] as String?,
     emergencyContactName: map['emergency_contact_name'] as String?,
     emergencyContactPhone: map['emergency_contact_phone'] as String?,
     insuranceCompany: map['insurance_company'] as String?,
     insuranceNumber: map['insurance_number'] as String?,
-    updatedAt: map['updated_at'] == null ? null : DateTime.tryParse('${map['updated_at']}Z')?.toLocal(),
+    updatedAt: parseSqlDateTime(map['updated_at'] as String?),
   );
 
   /// Colonnes modifiables (sans id ni date, gérés par le repository).
@@ -134,6 +140,8 @@ class MedicalRecord {
     'allergies': _clean(allergies),
     'chronic_diseases': _clean(chronicDiseases),
     'current_treatment': _clean(currentTreatment),
+    'surgical_history': _clean(surgicalHistory),
+    'family_history': _clean(familyHistory),
     'emergency_contact_name': _clean(emergencyContactName),
     'emergency_contact_phone': _clean(emergencyContactPhone),
     'insurance_company': _clean(insuranceCompany),

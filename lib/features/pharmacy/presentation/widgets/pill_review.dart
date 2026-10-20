@@ -84,7 +84,7 @@ class MLPillReviewComponentState extends State<MLPillReviewComponent> {
                                 ],
                               ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                       8.height,

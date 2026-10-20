@@ -14,17 +14,22 @@ abstract final class AppRoutes {
   /// Profil de l'utilisateur connecté (tous les rôles).
   static const profile = '/profile';
 
+  /// Notifications de l'utilisateur connecté (tous les rôles).
+  static const notifications = '/notifications';
+
   // ---- Panels (accueil de chaque rôle) ----
   static const patientHome = '/dashboard';
   static const doctorHome = '/doctor/dashboard';
   static const pharmacistHome = '/pharmacist/dashboard';
   static const insurerHome = '/insurer/dashboard';
+  static const adminHome = '/admin/dashboard';
 
   static String homeFor(UserRole role) => switch (role) {
     UserRole.patient => patientHome,
     UserRole.doctor => doctorHome,
     UserRole.pharmacist => pharmacistHome,
     UserRole.insurer => insurerHome,
+    UserRole.admin => adminHome,
   };
 
   /// Espaces réservés : toute route commençant par ce préfixe n'est
@@ -33,6 +38,7 @@ abstract final class AppRoutes {
     UserRole.doctor: '/doctor/',
     UserRole.pharmacist: '/pharmacist/',
     UserRole.insurer: '/insurer/',
+    UserRole.admin: '/admin/',
   };
 
   /// Routes réservées aux patients (hors préfixe).

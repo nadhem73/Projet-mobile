@@ -49,28 +49,28 @@ class PharmacyModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(path: PharmacyRoutes.dashboard, builder: (_, _) => const PharmacistDashboardScreen()),
+    GoRoute(path: PharmacyRoutes.dashboard, builder: (_, _) => const PharmacistDashboardScreen()),
     GoRoute(path: PharmacyRoutes.home, builder: (_, _) => const MLOnlinePharmacyScreen()),
-        GoRoute(path: PharmacyRoutes.detail, builder: (_, _) => const MLOnlinePharmacyDetailScreen()),
-        GoRoute(path: PharmacyRoutes.product, builder: (_, _) => const MLProductDetailScreen()),
-        GoRoute(path: PharmacyRoutes.productMore, builder: (_, _) => const MLProductMoreDetailScreen()),
-        GoRoute(path: PharmacyRoutes.medicines, builder: (_, _) => const MLMedicineScreen()),
-        GoRoute(path: PharmacyRoutes.createMedicine, builder: (_, _) => const MLCreateNewMedicine()),
-        GoRoute(path: PharmacyRoutes.cart, builder: (_, _) => const MLAddToCartScreen()),
-        GoRoute(path: PharmacyRoutes.confirmOrder, builder: (_, _) => const MLConfirmOrderScreen()),
-        GoRoute(path: PharmacyRoutes.orderDetail, builder: (_, _) => const MLOrderDetailScreen()),
-        GoRoute(path: PharmacyRoutes.addVoucher, builder: (_, _) => const MLAddVoucherScreen()),
-        GoRoute(path: PharmacyRoutes.addPayment, builder: (_, _) => const MLAddPaymentScreen()),
-      ];
+    GoRoute(path: PharmacyRoutes.detail, builder: (_, _) => const MLOnlinePharmacyDetailScreen()),
+    GoRoute(path: PharmacyRoutes.product, builder: (_, _) => const MLProductDetailScreen()),
+    GoRoute(path: PharmacyRoutes.productMore, builder: (_, _) => const MLProductMoreDetailScreen()),
+    GoRoute(path: PharmacyRoutes.medicines, builder: (_, _) => const MLMedicineScreen()),
+    GoRoute(path: PharmacyRoutes.createMedicine, builder: (_, _) => const MLCreateNewMedicine()),
+    GoRoute(path: PharmacyRoutes.cart, builder: (_, _) => const MLAddToCartScreen()),
+    GoRoute(path: PharmacyRoutes.confirmOrder, builder: (_, _) => const MLConfirmOrderScreen()),
+    GoRoute(path: PharmacyRoutes.orderDetail, builder: (_, _) => const MLOrderDetailScreen()),
+    GoRoute(path: PharmacyRoutes.addVoucher, builder: (_, _) => const MLAddVoucherScreen()),
+    GoRoute(path: PharmacyRoutes.addPayment, builder: (_, _) => const MLAddPaymentScreen()),
+  ];
 
   @override
   List<ModuleShortcut> get patientShortcuts => const [
-        ModuleShortcut(
-          label: 'Pharmacie',
-          icon: Icons.local_pharmacy_rounded,
-          route: PharmacyRoutes.home,
-          color: AppColors.modulePharmacy,
-          order: 50,
-        ),
-      ];
+    ModuleShortcut(
+      label: 'Pharmacie',
+      icon: Icons.local_pharmacy_rounded,
+      route: PharmacyRoutes.home,
+      color: AppColors.modulePharmacy,
+      order: 50,
+    ),
+  ];
 }

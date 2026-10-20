@@ -53,9 +53,7 @@ class MLDoctorAgendaScreenState extends State<MLDoctorAgendaScreen> {
               _buildHeader(context, isDark),
               _buildViewSelector(context, isDark),
               _buildWeekCalendar(context, isDark),
-              Expanded(
-                child: _buildTimeSlots(context, isDark, agendaList),
-              ),
+              Expanded(child: _buildTimeSlots(context, isDark, agendaList)),
             ],
           ),
         ),
@@ -93,21 +91,25 @@ class MLDoctorAgendaScreenState extends State<MLDoctorAgendaScreen> {
     return Container(
       padding: EdgeInsets.all(16),
       child: Row(
-        children: views.map((view) {
-          final isSelected = selectedView == view;
-          return Container(
-            margin: EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(view, style: boldTextStyle(size: 13, color: isSelected ? white : (isDark ? white : mlColorDarkBlue))),
-              selected: isSelected,
-              onSelected: (val) => setState(() => selectedView = view),
-              selectedColor: mlColorDarkBlue,
-              backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade100,
-              shape: RoundedRectangleBorder(borderRadius: radius(20)),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
-          );
-        }).toList(),
+        children:
+            views.map((view) {
+              final isSelected = selectedView == view;
+              return Container(
+                margin: EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(
+                    view,
+                    style: boldTextStyle(size: 13, color: isSelected ? white : (isDark ? white : mlColorDarkBlue)),
+                  ),
+                  selected: isSelected,
+                  onSelected: (val) => setState(() => selectedView = view),
+                  selectedColor: mlColorDarkBlue,
+                  backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade100,
+                  shape: RoundedRectangleBorder(borderRadius: radius(20)),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+              );
+            }).toList(),
       ),
     );
   }
@@ -124,15 +126,20 @@ class MLDoctorAgendaScreenState extends State<MLDoctorAgendaScreen> {
         itemCount: 7,
         itemBuilder: (context, index) {
           final date = startOfWeek.add(Duration(days: index));
-          final isToday = date.day == DateTime.now().day && date.month == DateTime.now().month && date.year == DateTime.now().year;
-          final isSelected = date.day == selectedDate.day && date.month == selectedDate.month && date.year == selectedDate.year;
+          final isToday =
+              date.day == DateTime.now().day && date.month == DateTime.now().month && date.year == DateTime.now().year;
+          final isSelected =
+              date.day == selectedDate.day && date.month == selectedDate.month && date.year == selectedDate.year;
 
           return Container(
             width: 56,
             margin: EdgeInsets.only(right: 8),
             child: Column(
               children: [
-                Text(days[index], style: secondaryTextStyle(size: 12, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
+                Text(
+                  days[index],
+                  style: secondaryTextStyle(size: 12, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                ),
                 8.height,
                 GestureDetector(
                   onTap: () => setState(() => selectedDate = date),
@@ -140,17 +147,17 @@ class MLDoctorAgendaScreenState extends State<MLDoctorAgendaScreen> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: isSelected ? mlColorDarkBlue : (isToday ? mlColorDarkBlue.withValues(alpha: 0.12) : Colors.transparent),
+                      color:
+                          isSelected
+                              ? mlColorDarkBlue
+                              : (isToday ? mlColorDarkBlue.withValues(alpha: 0.12) : Colors.transparent),
                       borderRadius: radius(22),
                       border: isToday && !isSelected ? Border.all(color: mlColorDarkBlue, width: 2) : null,
                     ),
                     child: Center(
                       child: Text(
                         '${date.day}',
-                        style: boldTextStyle(
-                          size: 16,
-                          color: isSelected ? white : (isDark ? white : mlColorDarkBlue),
-                        ),
+                        style: boldTextStyle(size: 16, color: isSelected ? white : (isDark ? white : mlColorDarkBlue)),
                       ),
                     ),
                   ),
@@ -178,7 +185,8 @@ class MLDoctorAgendaScreenState extends State<MLDoctorAgendaScreen> {
   }
 
   Widget _buildTimeSlots(BuildContext context, bool isDark, List<MLDoctorAgendaData> agendaList) {
-    final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
     final dayAgenda = agendaList.where((e) => e.date == dateStr).toList();
     final timeSlots = _generateTimeSlots();
 
@@ -197,9 +205,17 @@ class MLDoctorAgendaScreenState extends State<MLDoctorAgendaScreen> {
           height: 60,
           margin: EdgeInsets.only(bottom: 8),
           decoration: boxDecorationWithRoundedCorners(
-            backgroundColor: hasAppointment ? (isDark ? mlColorDarkBlue.withValues(alpha: 0.2) : mlColorDarkBlue.withValues(alpha: 0.05)) : (isDark ? scaffoldDarkColor : Colors.grey.shade50),
+            backgroundColor:
+                hasAppointment
+                    ? (isDark ? mlColorDarkBlue.withValues(alpha: 0.2) : mlColorDarkBlue.withValues(alpha: 0.05))
+                    : (isDark ? scaffoldDarkColor : Colors.grey.shade50),
             borderRadius: radius(12),
-            border: Border.all(color: hasAppointment ? mlColorDarkBlue.withValues(alpha: 0.3) : (isDark ? Colors.grey.shade700 : Colors.grey.shade200)),
+            border: Border.all(
+              color:
+                  hasAppointment
+                      ? mlColorDarkBlue.withValues(alpha: 0.3)
+                      : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
+            ),
           ),
           child: Row(
             children: [
@@ -218,35 +234,36 @@ class MLDoctorAgendaScreenState extends State<MLDoctorAgendaScreen> {
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.all(12),
-                  child: hasAppointment
-                      ? Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(appointment.status!),
-                                shape: BoxShape.circle,
+                  child:
+                      hasAppointment
+                          ? Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: _getStatusColor(appointment.status!),
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                            ),
-                            8.width,
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(appointment.patientName.validate(), style: boldTextStyle(size: 13)),
-                                Text('${appointment.type}  •  ${appointment.notes}', style: secondaryTextStyle(size: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
-                              ],
-                            ).expand(),
-                            Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                          ],
-                        )
-                      : Center(
-                          child: Text(
-                            'Disponible',
-                            style: secondaryTextStyle(size: 13, color: Colors.grey),
-                          ),
-                        ),
+                              8.width,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(appointment.patientName.validate(), style: boldTextStyle(size: 13)),
+                                  Text(
+                                    '${appointment.type}  •  ${appointment.notes}',
+                                    style: secondaryTextStyle(size: 11),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ).expand(),
+                              Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                            ],
+                          )
+                          : Center(child: Text('Disponible', style: secondaryTextStyle(size: 13, color: Colors.grey))),
                 ),
               ),
             ],

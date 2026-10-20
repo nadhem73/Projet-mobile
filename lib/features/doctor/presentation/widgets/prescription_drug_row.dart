@@ -13,13 +13,13 @@ class MLPrescriptionDrugRow {
   final TextEditingController instructionsController;
 
   MLPrescriptionDrugRow({String? medicine})
-      : medicineController = TextEditingController(text: medicine ?? ''),
-        dosageController = TextEditingController(),
-        frequencyController = TextEditingController(),
-        durationController = TextEditingController(),
-        timingController = TextEditingController(),
-        routeController = TextEditingController(),
-        instructionsController = TextEditingController();
+    : medicineController = TextEditingController(text: medicine ?? ''),
+      dosageController = TextEditingController(),
+      frequencyController = TextEditingController(),
+      durationController = TextEditingController(),
+      timingController = TextEditingController(),
+      routeController = TextEditingController(),
+      instructionsController = TextEditingController();
 
   void dispose() {
     medicineController.dispose();
@@ -68,10 +68,7 @@ class MLPrescriptionDrugRow {
                 ),
               ),
               if (showDelete)
-                IconButton(
-                  onPressed: onDelete,
-                  icon: Icon(Icons.delete_outline, color: healthError, size: 20),
-                ),
+                IconButton(onPressed: onDelete, icon: Icon(Icons.delete_outline, color: healthError, size: 20)),
             ],
           ),
           12.height,
@@ -87,7 +84,9 @@ class MLPrescriptionDrugRow {
           12.height,
           Row(
             children: [
-              Expanded(child: _buildField(context, 'Moment', timingController, 'ex: Matin/Midi/Soir', Icons.access_time)),
+              Expanded(
+                child: _buildField(context, 'Moment', timingController, 'ex: Matin/Midi/Soir', Icons.access_time),
+              ),
               12.width,
               Expanded(child: _buildField(context, 'Voie', routeController, 'ex: Orale', Icons.medical_information)),
             ],
@@ -100,7 +99,10 @@ class MLPrescriptionDrugRow {
               hintStyle: secondaryTextStyle(size: 12),
               filled: true,
               fillColor: isDark ? scaffoldDarkColor : white,
-              border: OutlineInputBorder(borderRadius: radius(8), borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300)),
+              border: OutlineInputBorder(
+                borderRadius: radius(8),
+                borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+              ),
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               isDense: true,
             ),
@@ -131,7 +133,10 @@ class MLPrescriptionDrugRow {
             hintStyle: secondaryTextStyle(size: 12),
             filled: true,
             fillColor: isDark ? scaffoldDarkColor : white,
-            border: OutlineInputBorder(borderRadius: radius(8), borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300)),
+            border: OutlineInputBorder(
+              borderRadius: radius(8),
+              borderSide: BorderSide(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+            ),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             isDense: true,
           ),

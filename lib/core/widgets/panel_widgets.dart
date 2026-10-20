@@ -15,6 +15,7 @@ class PanelHeader extends StatelessWidget {
     this.greeting,
     this.subtitle,
     this.color,
+    this.avatar,
     this.onAvatarTap,
     this.actions = const [],
     this.bottom,
@@ -32,6 +33,9 @@ class PanelHeader extends StatelessWidget {
 
   /// Couleur du rôle. Par défaut : dégradé de la marque.
   final Color? color;
+
+  /// Remplace le cercle d'initiales (ex. photo de profil).
+  final Widget? avatar;
   final VoidCallback? onAvatarTap;
   final List<Widget> actions;
 
@@ -70,20 +74,22 @@ class PanelHeader extends StatelessWidget {
                     InkWell(
                       onTap: onAvatarTap,
                       customBorder: const CircleBorder(),
-                      child: Container(
-                        width: 52,
-                        height: 52,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-                        ),
-                        child: Text(
-                          initials.isEmpty ? '?' : initials,
-                          style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
-                        ),
-                      ),
+                      child:
+                          avatar ??
+                          Container(
+                            width: 52,
+                            height: 52,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                            ),
+                            child: Text(
+                              initials.isEmpty ? '?' : initials,
+                              style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
+                            ),
+                          ),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(

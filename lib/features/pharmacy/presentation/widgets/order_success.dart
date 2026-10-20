@@ -75,26 +75,25 @@ class MLOrderSuccessComponentState extends State<MLOrderSuccessComponent> {
           Divider(height: 0.5),
           16.height,
           Column(
-            children: data.map(
-              (e) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.rounded_corner, size: 16, color: black),
-                    4.width,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(e.title.validate(), style: primaryTextStyle()),
-                        4.height,
-                        Text(e.data.validate(), style: boldTextStyle(color: mlColorBlue, size: 18)),
-                      ],
-                    )
-                  ],
-                ).paddingBottom(16.0);
-              },
-            ).toList(),
+            children:
+                data.map((e) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.rounded_corner, size: 16, color: black),
+                      4.width,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(e.title.validate(), style: primaryTextStyle()),
+                          4.height,
+                          Text(e.data.validate(), style: boldTextStyle(color: mlColorBlue, size: 18)),
+                        ],
+                      ),
+                    ],
+                  ).paddingBottom(16.0);
+                }).toList(),
           ),
           42.height,
         ],

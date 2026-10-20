@@ -11,6 +11,9 @@ abstract final class NotificationTypes {
   static const insurance = 'INSURANCE';
   static const pharmacy = 'PHARMACY';
   static const system = 'SYSTEM';
+  static const account = 'ACCOUNT';
+  static const security = 'SECURITY';
+  static const medicalRecord = 'MEDICAL_RECORD';
 }
 
 class AppNotification {
@@ -79,6 +82,32 @@ class NotificationService extends ChangeNotifier {
     });
     notifyListeners();
     return id;
+  }
+
+  /// Notifie tous les comptes actifs d'un rôle (ex. 'ADMIN' pour une nouvelle demande de compte).
+  Future<void> notifyRole({
+    required String roleDbValue,
+    required String type,
+    required String title,
+    String? body,
+    Map<String, dynamic>? payload,
+  }) async {
+    final users = await _database.db.query(
+      'users',
+      columns: ['id'],
+      where: "role = ? AND status = 'ACTIVE'",
+      whereArgs: [roleDbValue],
+    );
+    for (final u in users) {
+      await _database.db.insert(SharedTables.notifications, {
+        'user_id': u['id'],
+        'type': type,
+        'title': title,
+        'body': body,
+        'payload': payload == null ? null : jsonEncode(payload),
+      });
+    }
+    if (users.isNotEmpty) notifyListeners();
   }
 
   Future<List<AppNotification>> forUser(int userId) async {

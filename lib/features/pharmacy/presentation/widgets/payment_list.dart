@@ -54,22 +54,15 @@ class MLAddPaymentListComponentState extends State<MLAddPaymentListComponent> {
               children: [
                 Image.asset((paymentData[index].image).validate(), fit: BoxFit.fill, width: 50, height: 50),
                 Text((paymentData[index].title).validate(), style: boldTextStyle()).expand(),
-                Radio<int>(
-                  value: 1,
-                  activeColor: selectedIndex == index ? mlColorBlue : mlColorLightGrey100,
-                ),
+                Radio<int>(value: 1, activeColor: selectedIndex == index ? mlColorBlue : mlColorLightGrey100),
                 4.width,
               ],
             ),
-          ).onTap(
-            () {
-              setState(
-                () {
-                  selectedIndex = index;
-                },
-              );
-            },
-          );
+          ).onTap(() {
+            setState(() {
+              selectedIndex = index;
+            });
+          });
         },
       ),
     );

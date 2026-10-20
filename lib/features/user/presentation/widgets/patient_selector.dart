@@ -1,120 +1,116 @@
 import 'package:flutter/material.dart';
-import 'package:medilink/main.dart';
-import 'package:nb_utils/nb_utils.dart';
-import 'package:medilink/features/user/data/models/patient_model.dart';
-import 'package:medilink/features/user/presentation/screens/add_dependent_screen.dart';
-import 'package:medilink/core/theme/colors.dart';
-import 'package:medilink/core/utils/mock_data.dart';
-import 'package:medilink/core/utils/app_assets.dart';
+import 'package:go_router/go_router.dart';
+import 'package:medilink/core/di/injection.dart';
+import 'package:medilink/core/session/session_service.dart';
+import 'package:medilink/core/theme/app_colors.dart';
+import 'package:medilink/core/theme/app_dimens.dart';
+import 'package:medilink/core/widgets/widgets.dart';
+import 'package:medilink/features/user/data/models/dependent.dart';
+import 'package:medilink/features/user/data/repositories/dependent_repository.dart';
+import 'package:medilink/features/user/user_module.dart';
 
+/// Étape « Pour qui est ce rendez-vous ? » du parcours de réservation
+/// (module Rendez-vous) : le patient connecté ou l'un de ses proches.
+///
+/// [onChanged] reçoit null pour « moi-même », sinon le proche choisi.
 class MLPatientComponent extends StatefulWidget {
-  static String tag = '/MLPatientComponent';
+  const MLPatientComponent({super.key, this.onChanged});
 
-  const MLPatientComponent({super.key});
+  final ValueChanged<Dependent?>? onChanged;
 
   @override
-  MLPatientComponentState createState() => MLPatientComponentState();
+  State<MLPatientComponent> createState() => _MLPatientComponentState();
 }
 
-class MLPatientComponentState extends State<MLPatientComponent> {
-  List<MLPatientData> patientData = mlPatientDataList();
-  int? selectedIndex = 0;
+class _MLPatientComponentState extends State<MLPatientComponent> {
+  final _session = getIt<SessionService>();
+  List<Dependent> _dependents = [];
+
+  /// null = moi-même.
+  int? _selectedId;
 
   @override
   void initState() {
     super.initState();
-    init();
+    _load();
   }
 
-  Future<void> init() async {
-    //
+  Future<void> _load() async {
+    final patientId = _session.currentUser?.patientId;
+    if (patientId == null) return;
+    final list = await getIt<DependentRepository>().forPatient(patientId);
+    if (mounted) setState(() => _dependents = list);
   }
 
-  @override
-  void setState(fn) {
-    if (mounted) super.setState(fn);
+  void _select(Dependent? d) {
+    setState(() => _selectedId = d?.id);
+    widget.onChanged?.call(d);
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Choose Patient', style: boldTextStyle(size: 24)),
-          8.height,
-          Text('Find the service you are', style: secondaryTextStyle()),
-          16.height,
-          ListView.builder(
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: patientData.length,
-            itemBuilder: (context, index) {
-              return Container(
-                decoration: boxDecorationWithRoundedCorners(
-                  borderRadius: radius(12),
-                  border: Border.all(color: selectedIndex == index ? mlColorBlue : mlColorLightGrey100),
-                  backgroundColor: context.cardColor,
-                ),
-                child: Row(
+    final theme = Theme.of(context);
+    final user = _session.currentUser;
+
+    Widget option({required String initials, required String name, required String detail, Dependent? dependent}) {
+      final selected = _selectedId == dependent?.id;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        child: MediCard(
+          onTap: () => _select(dependent),
+          borderColor: selected ? theme.colorScheme.primary : null,
+          color: selected ? theme.colorScheme.primary.withValues(alpha: 0.06) : null,
+          child: Row(
+            children: [
+              MediAvatar(initials: initials, size: 48),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 32.0,
-                      backgroundColor: mlColorCyan,
-                      child: Image.asset(mlIcProfilePicture).paddingAll(4.0),
-                    ),
-                    8.width,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text((patientData[index].name).validate(), style: boldTextStyle()),
-                        4.height,
-                        Text((patientData[index].dob).validate(), style: secondaryTextStyle(size: 16)),
-                        4.height,
-                        Container(
-                          padding: EdgeInsets.fromLTRB(16, 2, 16, 2),
-                          decoration: boxDecorationWithRoundedCorners(
-                            backgroundColor: medicalTealPrimary,
-                            borderRadius: radius(20),
-                          ),
-                          child: Text(
-                            (patientData[index].relation).validate(),
-                            style: boldTextStyle(size: 14, color: whiteColor, wordSpacing: 4),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
+                    Text(name, style: theme.textTheme.titleMedium),
+                    Text(detail, style: theme.textTheme.bodySmall),
                   ],
-                ).paddingAll(16.0),
-              ).paddingBottom(16.0).onTap(() {
-                setState(() {
-                  selectedIndex = index;
-                });
-              });
-            },
+                ),
+              ),
+              Icon(
+                selected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                color: selected ? theme.colorScheme.primary : theme.dividerColor,
+              ),
+            ],
           ),
-          Container(
-            alignment: Alignment.center,
-            decoration: boxDecorationWithRoundedCorners(
-              borderRadius: radius(12),
-              backgroundColor: appStore.isDarkModeOn ? scaffoldDarkColor : white,
-              border: Border.all(color: medicalTealPrimary),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Pour qui est ce rendez-vous ?', style: theme.textTheme.headlineSmall),
+          const SizedBox(height: AppSpacing.xs),
+          Text('Vous pouvez réserver pour vous ou pour un proche.', style: theme.textTheme.bodySmall),
+          const SizedBox(height: AppSpacing.lg),
+          option(initials: user?.initials ?? '', name: 'Moi-même', detail: user?.fullName ?? ''),
+          for (final d in _dependents)
+            option(
+              initials: d.initials,
+              name: d.fullName,
+              detail: [d.relation.label, if (d.age != null) '${d.age} ans'].join(' · '),
+              dependent: d,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Add New Dependent', style: primaryTextStyle(color: mlColorDarkBlue)),
-                8.width,
-                Icon(Icons.add_circle_outline, color: mlColorDarkBlue, size: 16),
-              ],
-            ).paddingAll(16.0).onTap(() {
-              MLAddDependentScreen().launch(context);
-            }),
+          OutlinedButton.icon(
+            onPressed: () async {
+              await context.push(UserRoutes.dependents);
+              _load();
+            },
+            style: OutlinedButton.styleFrom(foregroundColor: AppColors.primary),
+            icon: const Icon(Icons.person_add_alt_1_rounded),
+            label: const Text('Ajouter un proche'),
           ),
         ],
-      ).paddingAll(16.0),
+      ),
     );
   }
 }

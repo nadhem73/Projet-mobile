@@ -53,36 +53,30 @@ class MLAddToCartScreenState extends State<MLAddToCartScreen> {
                     8.height,
                     Row(
                       children: [
-                        Icon(
-                          Icons.arrow_back_ios,
-                          color: appStore.isDarkModeOn ? white : blackColor,
-                          size: 22,
-                        ).onTap(
+                        Icon(Icons.arrow_back_ios, color: appStore.isDarkModeOn ? white : blackColor, size: 22).onTap(
                           () {
                             currentWidget == 0
                                 ? Navigator.of(context).pop()
-                                : setState(
-                                    () {
-                                      currentWidget--;
-                                    },
-                                  );
+                                : setState(() {
+                                  currentWidget--;
+                                });
                           },
                         ),
                         currentWidget == 0
                             ? Row(
-                                children: [
-                                  Text('Shopping Cart', style: boldTextStyle(size: 24)),
-                                  8.width,
-                                  Container(
-                                    padding: EdgeInsets.all(8.0),
-                                    decoration: boxDecorationWithRoundedCorners(
-                                      backgroundColor: mlColorDarkBlue,
-                                      boxShape: BoxShape.circle,
-                                    ),
-                                    child: Text('3', style: secondaryTextStyle(size: 18, color: white)),
+                              children: [
+                                Text('Shopping Cart', style: boldTextStyle(size: 24)),
+                                8.width,
+                                Container(
+                                  padding: EdgeInsets.all(8.0),
+                                  decoration: boxDecorationWithRoundedCorners(
+                                    backgroundColor: mlColorDarkBlue,
+                                    boxShape: BoxShape.circle,
                                   ),
-                                ],
-                              )
+                                  child: Text('3', style: secondaryTextStyle(size: 18, color: white)),
+                                ),
+                              ],
+                            )
                             : Text('Check Out', style: boldTextStyle(size: 22)),
                       ],
                     ).paddingAll(16.0),
@@ -100,57 +94,52 @@ class MLAddToCartScreenState extends State<MLAddToCartScreen> {
                 decoration: boxDecorationWithRoundedCorners(
                   borderRadius: radius(0.0),
                   backgroundColor: context.cardColor,
-                  boxShadow: [
-                    BoxShadow(color: Colors.grey, blurRadius: 0.0),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 0.0)],
                 ),
-                child: currentWidget == 0
-                    ? Row(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          8.width,
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Total', style: secondaryTextStyle(size: 16)),
-                              Text('\$250.00', style: boldTextStyle()),
-                            ],
-                          ),
-                          32.width,
-                          AppButton(
-                            color: mlColorDarkBlue,
-                            onTap: () {
-                              setState(
-                                () {
-                                  currentWidget++;
-                                },
-                              );
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                child:
+                    currentWidget == 0
+                        ? Row(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            8.width,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Check Out', style: boldTextStyle(color: white)),
-                                4.width,
-                                Icon(Icons.arrow_forward_ios, color: white, size: 16),
+                                Text('Total', style: secondaryTextStyle(size: 16)),
+                                Text('\$250.00', style: boldTextStyle()),
                               ],
                             ),
-                          ).expand()
-                        ],
-                      )
-                    : AppButton(
-                        color: mlColorDarkBlue,
-                        width: context.width() / 2,
-                        onTap: () {
-                          setState(
-                            () {
+                            32.width,
+                            AppButton(
+                              color: mlColorDarkBlue,
+                              onTap: () {
+                                setState(() {
+                                  currentWidget++;
+                                });
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Check Out', style: boldTextStyle(color: white)),
+                                  4.width,
+                                  Icon(Icons.arrow_forward_ios, color: white, size: 16),
+                                ],
+                              ),
+                            ).expand(),
+                          ],
+                        )
+                        : AppButton(
+                          color: mlColorDarkBlue,
+                          width: context.width() / 2,
+                          onTap: () {
+                            setState(() {
                               MLConfirmOrderScreen().launch(context);
-                            },
-                          );
-                        },
-                        child: Text('Confirm', style: boldTextStyle(color: white)),
-                      ),
+                            });
+                          },
+                          child: Text('Confirm', style: boldTextStyle(color: white)),
+                        ),
               ),
-            )
+            ),
           ],
         ),
       ),

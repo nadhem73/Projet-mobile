@@ -132,21 +132,28 @@ class MLDoctorConsultationListState extends State<MLDoctorConsultationListScreen
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: filters.map((filter) {
-                final isSelected = selectedFilter == filter;
-                return Container(
-                  margin: EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(filter, style: boldTextStyle(size: 12, color: isSelected ? white : (isDark ? white : mlColorDarkBlue))),
-                    selected: isSelected,
-                    onSelected: (val) => setState(() => selectedFilter = filter),
-                    selectedColor: mlColorDarkBlue,
-                    backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade100,
-                    shape: RoundedRectangleBorder(borderRadius: radius(20)),
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                );
-              }).toList(),
+              children:
+                  filters.map((filter) {
+                    final isSelected = selectedFilter == filter;
+                    return Container(
+                      margin: EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(
+                          filter,
+                          style: boldTextStyle(
+                            size: 12,
+                            color: isSelected ? white : (isDark ? white : mlColorDarkBlue),
+                          ),
+                        ),
+                        selected: isSelected,
+                        onSelected: (val) => setState(() => selectedFilter = filter),
+                        selectedColor: mlColorDarkBlue,
+                        backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade100,
+                        shape: RoundedRectangleBorder(borderRadius: radius(20)),
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
         ],
@@ -155,29 +162,34 @@ class MLDoctorConsultationListState extends State<MLDoctorConsultationListScreen
   }
 
   List<MLDoctorConsultationData> _filterConsultations(List<MLDoctorConsultationData> list) {
-    var filtered = list.where((c) {
-      final search = searchController.text.toLowerCase();
-      final matchesSearch = search.isEmpty ||
-          c.patientName!.toLowerCase().contains(search) ||
-          c.chiefComplaint!.toLowerCase().contains(search) ||
-          c.diagnosis!.toLowerCase().contains(search);
-      return matchesSearch;
-    }).toList();
+    var filtered =
+        list.where((c) {
+          final search = searchController.text.toLowerCase();
+          final matchesSearch =
+              search.isEmpty ||
+              c.patientName!.toLowerCase().contains(search) ||
+              c.chiefComplaint!.toLowerCase().contains(search) ||
+              c.diagnosis!.toLowerCase().contains(search);
+          return matchesSearch;
+        }).toList();
 
     switch (selectedFilter) {
       case 'Aujourd\'hui':
         final today = DateTime.now();
-        final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+        final todayStr =
+            '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
         filtered = filtered.where((c) => c.date == todayStr).toList();
         break;
       case 'Cette semaine':
         final now = DateTime.now();
         final weekStart = now.subtract(Duration(days: now.weekday - 1));
         final weekEnd = weekStart.add(Duration(days: 6));
-        filtered = filtered.where((c) {
-          final date = DateTime.parse(c.date!);
-          return date.isAfter(weekStart.subtract(Duration(days: 1))) && date.isBefore(weekEnd.add(Duration(days: 1)));
-        }).toList();
+        filtered =
+            filtered.where((c) {
+              final date = DateTime.parse(c.date!);
+              return date.isAfter(weekStart.subtract(Duration(days: 1))) &&
+                  date.isBefore(weekEnd.add(Duration(days: 1)));
+            }).toList();
         break;
       case 'En cours':
         filtered = filtered.where((c) => c.status == 'En cours' || c.status == 'Programmé').toList();
@@ -237,7 +249,10 @@ class MLDoctorConsultationListState extends State<MLDoctorConsultationListScreen
                 children: [
                   Text(c.patientName.validate(), style: boldTextStyle(size: 15)),
                   2.height,
-                  Text('${c.patientAge} ans  •  ${c.patientGender == 'F' ? 'Femme' : 'Homme'}', style: secondaryTextStyle(size: 12)),
+                  Text(
+                    '${c.patientAge} ans  •  ${c.patientGender == 'F' ? 'Femme' : 'Homme'}',
+                    style: secondaryTextStyle(size: 12),
+                  ),
                 ],
               ).expand(),
               Column(

@@ -38,6 +38,7 @@ class InsurerDashboardScreen extends StatelessWidget {
               color: color,
               onAvatarTap: () => context.push(AppRoutes.profile),
               actions: [
+                const NotificationBell(onDark: true),
                 PanelHeaderAction(
                   icon: Icons.person_outline_rounded,
                   tooltip: 'Mon profil',

@@ -31,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     UserRole.doctor: 'dr.benali@medilink.tn',
     UserRole.pharmacist: 'pharmacie@medilink.tn',
     UserRole.insurer: 'assurance@medilink.tn',
+    UserRole.admin: 'admin@medilink.tn',
   };
 
   @override

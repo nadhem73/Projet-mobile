@@ -5,6 +5,7 @@ import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/session/session_service.dart';
 import 'package:medilink/core/theme/app_colors.dart';
 import 'package:medilink/core/widgets/medi_logo.dart';
+import 'package:medilink/features/user/data/repositories/auth_repository.dart';
 
 /// Écran de démarrage : affiche le logo puis redirige selon la session.
 class SplashScreen extends StatefulWidget {
@@ -26,15 +27,23 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     Future.delayed(const Duration(milliseconds: 1600), _redirect);
   }
 
-  void _redirect() {
+  Future<void> _redirect() async {
     if (!mounted) return;
     final session = getIt<SessionService>();
-    final user = session.currentUser;
-    if (user != null) {
-      context.go(AppRoutes.homeFor(user.role));
-    } else {
-      context.go(session.onboardingDone ? AppRoutes.login : AppRoutes.onboarding);
+    final saved = session.currentUser;
+    if (saved != null) {
+      // Revalide la session restaurée : compte supprimé ou suspendu → déconnexion.
+      final user = await getIt<AuthRepository>().refreshSession(saved.userId).catchError((_) => null);
+      if (!mounted) return;
+      if (user == null) {
+        await session.close();
+      } else {
+        await session.update(user);
+        if (mounted) context.go(AppRoutes.homeFor(user.role));
+        return;
+      }
     }
+    if (mounted) context.go(session.onboardingDone ? AppRoutes.login : AppRoutes.onboarding);
   }
 
   @override

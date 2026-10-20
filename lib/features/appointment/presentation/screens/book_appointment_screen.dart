@@ -76,22 +76,16 @@ class MLBookAppointmentScreenState extends State<MLBookAppointmentScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Icon(
-                          Icons.arrow_back_ios,
-                          color: appStore.isDarkModeOn ? white : blackColor,
-                          size: 22,
-                        ).onTap(
-                          () {
-                            currentWidget == 0
-                                ? Navigator.of(context).pop()
-                                : setState(
-                                    () {
-                                      currentWidget--;
-                                      widget.index == currentWidget;
-                                    },
-                                  );
-                          },
-                        ).expand(flex: 1),
+                        Icon(Icons.arrow_back_ios, color: appStore.isDarkModeOn ? white : blackColor, size: 22)
+                            .onTap(() {
+                              currentWidget == 0
+                                  ? Navigator.of(context).pop()
+                                  : setState(() {
+                                    currentWidget--;
+                                    widget.index == currentWidget;
+                                  });
+                            })
+                            .expand(flex: 1),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -131,23 +125,19 @@ class MLBookAppointmentScreenState extends State<MLBookAppointmentScreen> {
                   ],
                 ),
                 onTap: () {
-                  setState(
-                    () {
-                      currentWidget++;
-                    },
-                  );
+                  setState(() {
+                    currentWidget++;
+                  });
                   if (currentWidget > 3) {
-                    setState(
-                      () {
-                        currentWidget--;
-                      },
-                    );
+                    setState(() {
+                      currentWidget--;
+                    });
                     currentWidget = 0;
                     finish(context);
                     MLAddPaymentScreen().launch(context);
                   }
                 },
-              ).paddingOnly(right: 16, left: 16, bottom: 16)
+              ).paddingOnly(right: 16, left: 16, bottom: 16),
             ],
           ),
         ),

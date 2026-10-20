@@ -291,6 +291,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           validator: (v) => v == null ? 'Choisissez votre organisme' : null,
         ),
       ],
+      UserRole.admin => const <Widget>[],
     };
   }
 }

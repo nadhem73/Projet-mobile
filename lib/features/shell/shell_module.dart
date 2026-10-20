@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:medilink/core/modules/feature_module.dart';
 import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/features/shell/presentation/screens/chat_screen.dart';
+import 'package:medilink/features/shell/presentation/screens/notifications_screen.dart';
 import 'package:medilink/features/shell/presentation/screens/onboarding_screen.dart';
 import 'package:medilink/features/shell/presentation/screens/patient_panel_screen.dart';
 import 'package:medilink/features/shell/presentation/screens/splash_screen.dart';
@@ -20,9 +21,10 @@ class ShellModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashScreen()),
-        GoRoute(path: AppRoutes.onboarding, builder: (_, _) => const OnboardingScreen()),
-        GoRoute(path: AppRoutes.patientHome, builder: (_, _) => const PatientPanelScreen()),
-        GoRoute(path: ShellRoutes.chat, builder: (_, _) => const MLChatScreen()),
-      ];
+    GoRoute(path: AppRoutes.splash, builder: (_, _) => const SplashScreen()),
+    GoRoute(path: AppRoutes.onboarding, builder: (_, _) => const OnboardingScreen()),
+    GoRoute(path: AppRoutes.patientHome, builder: (_, _) => const PatientPanelScreen()),
+    GoRoute(path: AppRoutes.notifications, builder: (_, _) => const NotificationsScreen()),
+    GoRoute(path: ShellRoutes.chat, builder: (_, _) => const MLChatScreen()),
+  ];
 }

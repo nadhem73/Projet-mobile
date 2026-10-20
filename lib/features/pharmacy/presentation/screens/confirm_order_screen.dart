@@ -69,14 +69,12 @@ class MLConfirmOrderScreenState extends State<MLConfirmOrderScreen> {
                   ),
                 ),
                 SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == 0) {
-                        return ComingSoonView().withHeight(context.height() * 0.5);
-                      }
-                      return null;
-                    },
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    if (index == 0) {
+                      return ComingSoonView().withHeight(context.height() * 0.5);
+                    }
+                    return null;
+                  }),
                 ),
               ],
             ),
@@ -97,7 +95,7 @@ class MLConfirmOrderScreenState extends State<MLConfirmOrderScreen> {
                   Icon(Icons.shopping_bag_outlined, color: white, size: 16),
                 ],
               ),
-            ).paddingOnly(right: 16, left: 16, bottom: 18)
+            ).paddingOnly(right: 16, left: 16, bottom: 18),
           ],
         ),
       ),

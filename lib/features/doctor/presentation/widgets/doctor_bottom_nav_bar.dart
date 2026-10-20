@@ -23,13 +23,7 @@ class MLDoctorBottomNavigationBarWidgetState extends State<MLDoctorBottomNavigat
     Icons.medication_outlined,
   ];
 
-  final List<String> _labels = [
-    'Tableau de bord',
-    'Agenda',
-    'Consultations',
-    'Patients',
-    'Ordonnances',
-  ];
+  final List<String> _labels = ['Tableau de bord', 'Agenda', 'Consultations', 'Patients', 'Ordonnances'];
 
   final List<int> _displayOrder = [1, 2, 0, 3, 4];
 
@@ -59,17 +53,13 @@ class MLDoctorBottomNavigationBarWidgetState extends State<MLDoctorBottomNavigat
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.5)
-                : medicalTealPrimary.withValues(alpha: 0.15),
+            color: isDark ? Colors.black.withValues(alpha: 0.5) : medicalTealPrimary.withValues(alpha: 0.15),
             offset: const Offset(0, -6),
             blurRadius: 24,
             spreadRadius: 0,
           ),
           BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.06),
+            color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.06),
             offset: const Offset(0, 8),
             blurRadius: 20,
             spreadRadius: -4,
@@ -87,16 +77,14 @@ class MLDoctorBottomNavigationBarWidgetState extends State<MLDoctorBottomNavigat
               return Expanded(
                 child: Tooltip(
                   message: _labels[screenIndex],
-                  child: isCenter
-                      ? _buildCenterNavItem(
-                          icon: _icons[screenIndex],
-                          onTap: () => widget.onTap?.call(screenIndex),
-                        )
-                      : _buildNavItem(
-                          icon: _icons[screenIndex],
-                          isSelected: widget.index == screenIndex,
-                          onTap: () => widget.onTap?.call(screenIndex),
-                        ),
+                  child:
+                      isCenter
+                          ? _buildCenterNavItem(icon: _icons[screenIndex], onTap: () => widget.onTap?.call(screenIndex))
+                          : _buildNavItem(
+                            icon: _icons[screenIndex],
+                            isSelected: widget.index == screenIndex,
+                            onTap: () => widget.onTap?.call(screenIndex),
+                          ),
                 ),
               );
             }),
@@ -106,10 +94,7 @@ class MLDoctorBottomNavigationBarWidgetState extends State<MLDoctorBottomNavigat
     );
   }
 
-  Widget _buildCenterNavItem({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildCenterNavItem({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -144,11 +129,7 @@ class MLDoctorBottomNavigationBarWidgetState extends State<MLDoctorBottomNavigat
     );
   }
 
-  Widget _buildNavItem({
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildNavItem({required IconData icon, required bool isSelected, required VoidCallback onTap}) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -161,22 +142,21 @@ class MLDoctorBottomNavigationBarWidgetState extends State<MLDoctorBottomNavigat
           decoration: BoxDecoration(
             color: isSelected ? careCoralPrimary : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: careCoralPrimary.withValues(alpha: 0.4),
-                      offset: const Offset(0, 6),
-                      blurRadius: 14,
-                    ),
-                  ]
-                : [],
+            boxShadow:
+                isSelected
+                    ? [
+                      BoxShadow(
+                        color: careCoralPrimary.withValues(alpha: 0.4),
+                        offset: const Offset(0, 6),
+                        blurRadius: 14,
+                      ),
+                    ]
+                    : [],
           ),
           child: Icon(
             icon,
             size: 22,
-            color: isSelected
-                ? medicalWhite
-                : (appStore.isDarkModeOn ? iconColorSecondaryDark : iconColorSecondary),
+            color: isSelected ? medicalWhite : (appStore.isDarkModeOn ? iconColorSecondaryDark : iconColorSecondary),
           ),
         ),
       ),

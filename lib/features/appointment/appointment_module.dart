@@ -34,29 +34,29 @@ class AppointmentModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(path: AppointmentRoutes.list, builder: (_, _) => const MLRendezVousScreen()),
-        GoRoute(path: AppointmentRoutes.book, builder: (_, _) => const MLBookAppointmentScreen()),
-        GoRoute(path: AppointmentRoutes.detail, builder: (_, _) => const MLAppointmentDetailScreen()),
-        GoRoute(path: AppointmentRoutes.doctorDetail, builder: (_, _) => const MLDoctorDetailScreen()),
-        GoRoute(path: AppointmentRoutes.specialists, builder: (_, _) => const MLSpecialistScreen()),
-        GoRoute(path: AppointmentRoutes.videoConsult, builder: (_, _) => const MLVideoConsultScreen()),
-      ];
+    GoRoute(path: AppointmentRoutes.list, builder: (_, _) => const MLRendezVousScreen()),
+    GoRoute(path: AppointmentRoutes.book, builder: (_, _) => const MLBookAppointmentScreen()),
+    GoRoute(path: AppointmentRoutes.detail, builder: (_, _) => const MLAppointmentDetailScreen()),
+    GoRoute(path: AppointmentRoutes.doctorDetail, builder: (_, _) => const MLDoctorDetailScreen()),
+    GoRoute(path: AppointmentRoutes.specialists, builder: (_, _) => const MLSpecialistScreen()),
+    GoRoute(path: AppointmentRoutes.videoConsult, builder: (_, _) => const MLVideoConsultScreen()),
+  ];
 
   @override
   List<ModuleShortcut> get patientShortcuts => const [
-        ModuleShortcut(
-          label: 'Rendez-vous',
-          icon: Icons.calendar_month_rounded,
-          route: AppointmentRoutes.list,
-          color: AppColors.moduleAppointment,
-          order: 10,
-        ),
-        ModuleShortcut(
-          label: 'Trouver un médecin',
-          icon: Icons.person_search_rounded,
-          route: AppointmentRoutes.specialists,
-          color: AppColors.moduleAppointment,
-          order: 11,
-        ),
-      ];
+    ModuleShortcut(
+      label: 'Rendez-vous',
+      icon: Icons.calendar_month_rounded,
+      route: AppointmentRoutes.list,
+      color: AppColors.moduleAppointment,
+      order: 10,
+    ),
+    ModuleShortcut(
+      label: 'Trouver un médecin',
+      icon: Icons.person_search_rounded,
+      route: AppointmentRoutes.specialists,
+      color: AppColors.moduleAppointment,
+      order: 11,
+    ),
+  ];
 }

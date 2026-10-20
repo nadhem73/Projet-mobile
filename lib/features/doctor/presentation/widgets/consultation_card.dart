@@ -8,11 +8,7 @@ class MLDoctorConsultationCard extends StatelessWidget {
   final MLDoctorConsultationData consultation;
   final VoidCallback? onTap;
 
-  const MLDoctorConsultationCard({
-    super.key,
-    required this.consultation,
-    this.onTap,
-  });
+  const MLDoctorConsultationCard({super.key, required this.consultation, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +52,10 @@ class MLDoctorConsultationCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 22,
                   backgroundColor: medicalBluePrimary.withValues(alpha: 0.12),
-                  child: Text(c.patientName!.substring(0, 1), style: boldTextStyle(size: 14, color: medicalBluePrimary)),
+                  child: Text(
+                    c.patientName!.substring(0, 1),
+                    style: boldTextStyle(size: 14, color: medicalBluePrimary),
+                  ),
                 ),
                 12.width,
                 Column(
@@ -64,7 +63,10 @@ class MLDoctorConsultationCard extends StatelessWidget {
                   children: [
                     Text(c.patientName.validate(), style: boldTextStyle(size: 15)),
                     2.height,
-                    Text('${c.patientAge} ans  •  ${c.patientGender == 'F' ? 'Femme' : 'Homme'}', style: secondaryTextStyle(size: 12)),
+                    Text(
+                      '${c.patientAge} ans  •  ${c.patientGender == 'F' ? 'Femme' : 'Homme'}',
+                      style: secondaryTextStyle(size: 12),
+                    ),
                   ],
                 ).expand(),
                 Column(
@@ -93,7 +95,10 @@ class MLDoctorConsultationCard extends StatelessWidget {
                 if (c.prescriptionId!.isNotEmpty)
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: medicalTealPrimary.withValues(alpha: 0.1), borderRadius: radius(8)),
+                    decoration: BoxDecoration(
+                      color: medicalTealPrimary.withValues(alpha: 0.1),
+                      borderRadius: radius(8),
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

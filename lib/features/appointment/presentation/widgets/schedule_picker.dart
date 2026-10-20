@@ -113,27 +113,28 @@ class MLScheduleApoointmentSheetState extends State<MLScheduleApoointmentSheet> 
                     Wrap(
                       runSpacing: 8.0,
                       spacing: 8.0,
-                      children: time.map((e) {
-                        return InkWell(
-                          onTap: () {
-                            setState(() {
-                              selectedTime = e;
-                            });
-                          },
-                          child: Container(
-                            width: context.width() * 0.45,
-                            padding: EdgeInsets.only(right: 8.0, left: 8.0, top: 8.0, bottom: 8.0),
-                            decoration: boxDecorationWithRoundedCorners(
-                              backgroundColor: selectedTime == e ? mlColorDarkBlue : duckBlueSurface,
-                            ),
-                            child: Text(
-                              e.validate(),
-                              style: boldTextStyle(size: 14, color: selectedTime == e ? white : mlColorDarkBlue),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                      children:
+                          time.map((e) {
+                            return InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedTime = e;
+                                });
+                              },
+                              child: Container(
+                                width: context.width() * 0.45,
+                                padding: EdgeInsets.only(right: 8.0, left: 8.0, top: 8.0, bottom: 8.0),
+                                decoration: boxDecorationWithRoundedCorners(
+                                  backgroundColor: selectedTime == e ? mlColorDarkBlue : duckBlueSurface,
+                                ),
+                                child: Text(
+                                  e.validate(),
+                                  style: boldTextStyle(size: 14, color: selectedTime == e ? white : mlColorDarkBlue),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                     ).center(),
                   ],
                 ),

@@ -43,58 +43,51 @@ class MLOrderTrackingDetailComponentState extends State<MLOrderTrackingDetailCom
       shrinkWrap: true,
       children: [
         Column(
-          children: data.map(
-            (e) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      8.height,
-                      Text((e.date).validate(), style: secondaryTextStyle(color: black)),
-                      Text((e.time).validate(), style: primaryTextStyle()),
-                    ],
-                  ),
-                  16.width,
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 40.0,
-                        width: 40.0,
-                        child: (e.value == true)
-                            ? Icon(Icons.check_box, color: mlColorBlue)
-                            : Icon(
-                                Icons.check_box_outline_blank,
-                                color: Colors.grey,
-                              ),
-                      ),
-                      (e.value == true)
-                          ? Container(
-                              height: 100,
-                              width: 1.0,
-                              color: Colors.grey.withValues(alpha: 0.3),
-                            )
-                          : Container(),
-                    ],
-                  ),
-                  16.width,
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      8.height,
-                      Text((e.stage).validate(), style: boldTextStyle()),
-                      8.width,
-                      Text((e.message).validate(), style: secondaryTextStyle()),
-                    ],
-                  ).expand(),
-                ],
-              );
-            },
-          ).toList(),
+          children:
+              data.map((e) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        8.height,
+                        Text((e.date).validate(), style: secondaryTextStyle(color: black)),
+                        Text((e.time).validate(), style: primaryTextStyle()),
+                      ],
+                    ),
+                    16.width,
+                    Column(
+                      children: [
+                        SizedBox(
+                          height: 40.0,
+                          width: 40.0,
+                          child:
+                              (e.value == true)
+                                  ? Icon(Icons.check_box, color: mlColorBlue)
+                                  : Icon(Icons.check_box_outline_blank, color: Colors.grey),
+                        ),
+                        (e.value == true)
+                            ? Container(height: 100, width: 1.0, color: Colors.grey.withValues(alpha: 0.3))
+                            : Container(),
+                      ],
+                    ),
+                    16.width,
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        8.height,
+                        Text((e.stage).validate(), style: boldTextStyle()),
+                        8.width,
+                        Text((e.message).validate(), style: secondaryTextStyle()),
+                      ],
+                    ).expand(),
+                  ],
+                );
+              }).toList(),
         ),
         16.height,
         Divider(thickness: 0.5),
@@ -144,7 +137,7 @@ class MLOrderTrackingDetailComponentState extends State<MLOrderTrackingDetailCom
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

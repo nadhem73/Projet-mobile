@@ -47,17 +47,15 @@ class MLSpecialistScreenState extends State<MLSpecialistScreen> {
               Row(
                 children: [
                   8.width,
-                  Icon(Icons.arrow_back_ios, size: 22).onTap(
-                    () {
-                      finish(context);
-                    },
-                  ),
+                  Icon(Icons.arrow_back_ios, size: 22).onTap(() {
+                    finish(context);
+                  }),
                   8.width,
                   Text('Specialist', style: boldTextStyle(size: 20)).expand(),
                 ],
               ),
               16.height,
-              MLSpecialistVListComponent().expand()
+              MLSpecialistVListComponent().expand(),
             ],
           ).paddingAll(16),
         ),
