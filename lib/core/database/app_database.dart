@@ -50,7 +50,7 @@ class AppDatabase {
         onCreate: (db, _) => _create(db, seed: seed),
         onUpgrade: (db, oldVersion, newVersion) async {
           debugPrint('[AppDatabase] schéma v$oldVersion → v$newVersion : recréation de la base');
-          await _dropAll(db);
+          await dropAll(db);
           await _create(db, seed: seed);
         },
       ),
@@ -69,15 +69,20 @@ class AppDatabase {
     if (seed) await DatabaseSeeder(db).seed();
   }
 
-  static Future<void> _dropAll(Database db) async {
-    await db.execute('PRAGMA foreign_keys = OFF');
+  /// Supprime toutes les tables de l'application.
+  ///
+  /// sqflite exécute `onUpgrade` dans une transaction, où `PRAGMA foreign_keys`
+  /// est sans effet : les tables sont donc supprimées dans l'ordre inverse de
+  /// leur création (tables dépendantes d'abord) pour respecter les clés étrangères.
+  @visibleForTesting
+  static Future<void> dropAll(DatabaseExecutor db) async {
     final tables = await db.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name <> 'android_metadata'",
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' "
+      "AND name <> 'android_metadata' ORDER BY rowid DESC",
     );
     for (final row in tables) {
       await db.execute('DROP TABLE IF EXISTS "${row['name']}"');
     }
-    await db.execute('PRAGMA foreign_keys = ON');
   }
 
   Future<void> close() => db.close();
