@@ -203,10 +203,12 @@ void main() {
       final adminId = await userIdOf('admin@medilink.tn');
       final user = await auth.login('pharmacie@medilink.tn', password);
       await admin.suspend(user.userId, adminUserId: adminId);
-      expect(await auth.refreshSession(user.userId), isNull);
+      expect(await auth.refreshSession(user.userId, email: user.email), isNull);
       expect(() => auth.login('pharmacie@medilink.tn', password), appError('suspended'));
       await admin.reactivate(user.userId);
-      expect(await auth.refreshSession(user.userId), isNotNull);
+      expect(await auth.refreshSession(user.userId, email: user.email), isNotNull);
+      // Même identifiant mais autre e-mail (base recréée) : session refusée.
+      expect(await auth.refreshSession(user.userId, email: 'autre@medilink.tn'), isNull);
       expect(() => admin.suspend(adminId, adminUserId: adminId), throwsA(isA<AppException>()));
     });
 

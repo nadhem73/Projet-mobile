@@ -33,7 +33,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final saved = session.currentUser;
     if (saved != null) {
       // Revalide la session restaurée : compte supprimé ou suspendu → déconnexion.
-      final user = await getIt<AuthRepository>().refreshSession(saved.userId).catchError((_) => null);
+      final user = await getIt<AuthRepository>()
+          .refreshSession(saved.userId, email: saved.email)
+          .catchError((_) => null);
       if (!mounted) return;
       if (user == null) {
         await session.close();

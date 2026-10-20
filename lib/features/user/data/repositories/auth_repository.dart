@@ -119,9 +119,13 @@ class AuthRepository {
 
   /// Revalide une session restaurée au démarrage : null si le compte a été
   /// supprimé, suspendu, ou n'est plus actif.
-  Future<CurrentUser?> refreshSession(int userId) async {
-    final rows = await _db.query(UserTables.users, columns: ['status'], where: 'id = ?', whereArgs: [userId]);
+  ///
+  /// [email] doit correspondre au compte : après une recréation de la base, un
+  /// même identifiant peut désigner un autre utilisateur.
+  Future<CurrentUser?> refreshSession(int userId, {required String email}) async {
+    final rows = await _db.query(UserTables.users, columns: ['status', 'email'], where: 'id = ?', whereArgs: [userId]);
     if (rows.isEmpty || rows.first['status'] != AccountStatus.active) return null;
+    if ((rows.first['email'] as String).toLowerCase() != email.trim().toLowerCase()) return null;
     return loadCurrentUser(userId);
   }
 
