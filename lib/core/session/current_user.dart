@@ -2,8 +2,11 @@ import 'package:medilink/core/session/user_role.dart';
 
 /// Instantané de l'utilisateur connecté, partagé par tous les modules.
 ///
-/// - [patientId] est renseigné si [role] == patient (table `patients`).
-/// - [doctorId] est renseigné si [role] == doctor (table `doctors`).
+/// Selon [role], un seul des identifiants métier est renseigné :
+/// - [patientId] (table `patients`) pour un patient ;
+/// - [doctorId] (table `doctors`) pour un médecin ;
+/// - [pharmacistId] (table `pharmacists`) pour un pharmacien ;
+/// - [insurerId] (table `insurers`) pour un assureur.
 class CurrentUser {
   const CurrentUser({
     required this.userId,
@@ -14,6 +17,10 @@ class CurrentUser {
     this.phone,
     this.patientId,
     this.doctorId,
+    this.pharmacistId,
+    this.insurerId,
+    this.specialty,
+    this.organization,
   });
 
   final int userId;
@@ -24,29 +31,36 @@ class CurrentUser {
   final String? phone;
   final int? patientId;
   final int? doctorId;
+  final int? pharmacistId;
+  final int? insurerId;
+
+  /// Spécialité (médecins uniquement).
+  final String? specialty;
+
+  /// Nom de la pharmacie (pharmacien) ou de la compagnie d'assurance (assureur).
+  final String? organization;
 
   bool get isPatient => role == UserRole.patient;
   bool get isDoctor => role == UserRole.doctor;
+  bool get isPharmacist => role == UserRole.pharmacist;
+  bool get isInsurer => role == UserRole.insurer;
 
   String get fullName => '$prenom $nom'.trim();
   String get displayName => isDoctor ? 'Dr $fullName' : fullName;
+
+  /// Ligne affichée sous le nom dans les en-têtes (spécialité, pharmacie...).
+  String get subtitle => switch (role) {
+    UserRole.patient => 'Patient',
+    UserRole.doctor => specialty ?? 'Médecin',
+    UserRole.pharmacist => organization ?? 'Pharmacien',
+    UserRole.insurer => organization ?? 'Assureur',
+  };
 
   String get initials {
     final p = prenom.isNotEmpty ? prenom[0] : '';
     final n = nom.isNotEmpty ? nom[0] : '';
     return (p + n).toUpperCase();
   }
-
-  CurrentUser copyWith({String? nom, String? prenom, String? email, String? phone}) => CurrentUser(
-    userId: userId,
-    role: role,
-    nom: nom ?? this.nom,
-    prenom: prenom ?? this.prenom,
-    email: email ?? this.email,
-    phone: phone ?? this.phone,
-    patientId: patientId,
-    doctorId: doctorId,
-  );
 
   Map<String, Object?> toJson() => {
     'userId': userId,
@@ -57,6 +71,10 @@ class CurrentUser {
     'phone': phone,
     'patientId': patientId,
     'doctorId': doctorId,
+    'pharmacistId': pharmacistId,
+    'insurerId': insurerId,
+    'specialty': specialty,
+    'organization': organization,
   };
 
   factory CurrentUser.fromJson(Map<String, dynamic> json) => CurrentUser(
@@ -68,5 +86,9 @@ class CurrentUser {
     phone: json['phone'] as String?,
     patientId: json['patientId'] as int?,
     doctorId: json['doctorId'] as int?,
+    pharmacistId: json['pharmacistId'] as int?,
+    insurerId: json['insurerId'] as int?,
+    specialty: json['specialty'] as String?,
+    organization: json['organization'] as String?,
   );
 }

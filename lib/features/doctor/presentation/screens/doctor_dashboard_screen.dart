@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:medilink/core/di/injection.dart';
+import 'package:medilink/core/navigation/app_routes.dart';
+import 'package:medilink/core/session/session_service.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:medilink/features/doctor/presentation/widgets/doctor_bottom_nav_bar.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_screen.dart';
@@ -120,6 +124,7 @@ class _DoctorDashboardHome extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, bool isDark) {
+    final user = getIt<SessionService>().currentUser;
     return Container(
       padding: EdgeInsets.all(16),
       decoration: boxDecorationWithRoundedCorners(
@@ -128,18 +133,23 @@ class _DoctorDashboardHome extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: mlColorCyan,
-            child: Image.asset('assets/images/ml_profile_Image.png', fit: BoxFit.cover),
+          // Compte connecté (module User) : touche l'avatar pour ouvrir le profil.
+          InkWell(
+            onTap: () => context.push(AppRoutes.profile),
+            customBorder: const CircleBorder(),
+            child: CircleAvatar(
+              radius: 28,
+              backgroundColor: mlColorCyan,
+              child: Text(user?.initials ?? '', style: boldTextStyle(size: 18, color: white)),
+            ),
           ),
           12.width,
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Dr. Stephen Chew', style: boldTextStyle(size: 20, color: white)),
+              Text(user?.displayName ?? 'Médecin', style: boldTextStyle(size: 20, color: white)),
               2.height,
-              Text('Médecine Générale', style: secondaryTextStyle(color: white.withValues(alpha: 0.7), size: 13)),
+              Text(user?.subtitle ?? '', style: secondaryTextStyle(color: white.withValues(alpha: 0.7), size: 13)),
             ],
           ).expand(),
           Container(

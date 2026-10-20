@@ -9,6 +9,8 @@ import 'package:sqflite/sqflite.dart';
 /// Comptes disponibles (mot de passe identique pour tous : `Medilink123`) :
 /// - patient : `patient@medilink.tn`
 /// - médecins : `dr.benali@medilink.tn`, `dr.trabelsi@medilink.tn`, `dr.gharbi@medilink.tn`
+/// - pharmacien : `pharmacie@medilink.tn`
+/// - assureur : `assurance@medilink.tn`
 class DatabaseSeeder {
   DatabaseSeeder(this._db, {PasswordHasher hasher = const PasswordHasher()}) : _hasher = hasher;
 
@@ -88,5 +90,37 @@ class DatabaseSeeder {
         'address': 'Avenue Habib Bourguiba, $city',
       });
     }
+
+    // ----- Pharmacien de démo -----
+    final pharmacistUserId = await _db.insert(UserTables.users, {
+      'nom': 'Mansouri',
+      'prenom': 'Hela',
+      'email': 'pharmacie@medilink.tn',
+      'password_hash': passwordHash,
+      'phone': '+216 71 222 333',
+      'role': 'PHARMACIST',
+    });
+    await _db.insert(UserTables.pharmacists, {
+      'pharmacy_name': 'Pharmacie Ennour',
+      'license_number': 'TN-PH-2001',
+      'address': 'Rue de Marseille',
+      'city': 'Tunis',
+      'user_id': pharmacistUserId,
+    });
+
+    // ----- Assureur de démo -----
+    final insurerUserId = await _db.insert(UserTables.users, {
+      'nom': 'Jaziri',
+      'prenom': 'Mehdi',
+      'email': 'assurance@medilink.tn',
+      'password_hash': passwordHash,
+      'phone': '+216 71 444 555',
+      'role': 'INSURER',
+    });
+    await _db.insert(UserTables.insurers, {
+      'company': 'CNAM',
+      'agent_code': 'CNAM-AG-301',
+      'user_id': insurerUserId,
+    });
   }
 }

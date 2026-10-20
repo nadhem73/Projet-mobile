@@ -40,21 +40,20 @@ class MLProfileFormComponentState extends State<MLProfileFormComponent> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-            padding: EdgeInsets.all(16.0),
-            decoration: boxDecorationWithRoundedCorners(
-              borderRadius: radius(30.0),
-              backgroundColor: appStore.isDarkModeOn ? scaffoldDarkColor : Colors.grey.shade100,
-            ),
-            child: Icon(Icons.camera_alt_outlined, color: mlColorBlue)),
+          padding: EdgeInsets.all(16.0),
+          decoration: boxDecorationWithRoundedCorners(
+            borderRadius: radius(30.0),
+            backgroundColor: appStore.isDarkModeOn ? scaffoldDarkColor : Colors.grey.shade100,
+          ),
+          child: Icon(Icons.camera_alt_outlined, color: mlColorBlue),
+        ),
         16.height,
         Text('First Name*', style: primaryTextStyle()),
         AppTextField(
           decoration: InputDecoration(
             hintText: mlFirstName,
             hintStyle: secondaryTextStyle(size: 16),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: mlColorLightGrey.withValues(alpha: 0.2)),
-            ),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: mlColorLightGrey.withValues(alpha: 0.2))),
           ),
           textFieldType: TextFieldType.NAME,
         ),
@@ -65,9 +64,7 @@ class MLProfileFormComponentState extends State<MLProfileFormComponent> {
           decoration: InputDecoration(
             hintText: mlLastName,
             hintStyle: secondaryTextStyle(size: 16),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: mlColorLightGrey.withValues(alpha: 0.2)),
-            ),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: mlColorLightGrey.withValues(alpha: 0.2))),
           ),
         ),
         16.height,
@@ -78,9 +75,7 @@ class MLProfileFormComponentState extends State<MLProfileFormComponent> {
             hintText: mlDateFormat,
             hintStyle: secondaryTextStyle(size: 16),
             suffixIcon: Icon(Icons.calendar_today_outlined, color: mlColorBlue),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: mlColorLightGrey.withValues(alpha: 0.2)),
-            ),
+            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: mlColorLightGrey.withValues(alpha: 0.2))),
           ),
         ),
         16.height,
@@ -94,7 +89,9 @@ class MLProfileFormComponentState extends State<MLProfileFormComponent> {
               decoration: InputDecoration(
                 labelText: mlPhoneNumber,
                 labelStyle: secondaryTextStyle(size: 16),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: mlColorLightGrey.withValues(alpha: 0.2))),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: mlColorLightGrey.withValues(alpha: 0.2)),
+                ),
               ),
             ).expand(),
           ],
@@ -103,11 +100,7 @@ class MLProfileFormComponentState extends State<MLProfileFormComponent> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            genderDropDown().expand(flex: 5),
-            24.width,
-            bloodGroupDropDown().expand(flex: 5),
-          ],
+          children: [genderDropDown().expand(flex: 5), 24.width, bloodGroupDropDown().expand(flex: 5)],
         ),
         16.height,
       ],
@@ -126,21 +119,14 @@ class MLProfileFormComponentState extends State<MLProfileFormComponent> {
           elevation: 16,
           style: secondaryTextStyle(size: 16),
           onChanged: (String? newValue) {
-            setState(
-              () {
-                dropdownValue = newValue!;
-              },
-            );
+            setState(() {
+              dropdownValue = newValue!;
+            });
           },
-          items: <String>[
-            'Female',
-            'Male',
-            'Other',
-          ].map<DropdownMenuItem<String>>(
-            (String value) {
-              return DropdownMenuItem<String>(value: value, child: Text(value, style: secondaryTextStyle(size: 16)));
-            },
-          ).toList(),
+          items:
+              <String>['Female', 'Male', 'Other'].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(value: value, child: Text(value, style: secondaryTextStyle(size: 16)));
+              }).toList(),
         ),
       ],
     );
@@ -164,20 +150,13 @@ class MLProfileFormComponentState extends State<MLProfileFormComponent> {
                 bloodGroupValue = newValue!;
               });
             },
-            items: <String>[
-              'None',
-              'A+',
-              'A-',
-              'B+',
-              'B-',
-              'O+',
-              'O-',
-            ].map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value, style: secondaryTextStyle(size: 16)),
-              );
-            }).toList(),
+            items:
+                <String>['None', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-'].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value, style: secondaryTextStyle(size: 16)),
+                  );
+                }).toList(),
           ),
         ),
       ],

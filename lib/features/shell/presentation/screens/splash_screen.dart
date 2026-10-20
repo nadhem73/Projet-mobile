@@ -31,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final session = getIt<SessionService>();
     final user = session.currentUser;
     if (user != null) {
-      context.go(user.isDoctor ? AppRoutes.doctorHome : AppRoutes.patientHome);
+      context.go(AppRoutes.homeFor(user.role));
     } else {
       context.go(session.onboardingDone ? AppRoutes.login : AppRoutes.onboarding);
     }

@@ -58,7 +58,10 @@ Règle : **un écran ne fait jamais de SQL**. Écran → Controller → Reposito
 | Besoin | À utiliser |
 |---|---|
 | Base SQLite | `getIt<AppDatabase>().db` (dans un repository) |
-| Utilisateur connecté | `getIt<SessionService>().requireUser` → `patientId`, `doctorId`, `role`... |
+| Utilisateur connecté | `getIt<SessionService>().requireUser` → `role`, `patientId`, `doctorId`, `pharmacistId`, `insurerId`, `organization`... |
+| Accueil (panel) d'un rôle | `AppRoutes.homeFor(user.role)` ; profil commun : `context.push(AppRoutes.profile)` |
+| Dossier médical d'un patient | `getIt<MedicalRecordRepository>().forPatient(patientId)` + widget `MedicalRecordView` (lecture seule) |
+| En-tête et tuiles de panel | `PanelHeader`, `PanelHeaderAction`, `ShortcutTile` |
 | Couleurs | `AppColors.primary`, `Theme.of(context).colorScheme` |
 | Espacements / arrondis | `AppSpacing.lg`, `AppRadius.card` |
 | Boutons, champs, cartes | `MediButton`, `MediTextField`, `MediCard`, `SectionHeader`, `InfoRow`, `StatusBadge`, `MediAvatar` |

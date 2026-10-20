@@ -1,4 +1,4 @@
-// Module USER (Membre 1) — inscription, profils, dossier médical.
+// Module USER (Membre 1) — comptes, rôles, profils, dossier médical.
 // Cahier des charges §10.1, §10.2, §10.3, §10.4, §10.7.
 
 abstract final class UserTables {
@@ -6,6 +6,8 @@ abstract final class UserTables {
   static const patients = 'patients';
   static const doctors = 'doctors';
   static const doctorProfiles = 'doctor_profiles';
+  static const pharmacists = 'pharmacists';
+  static const insurers = 'insurers';
   static const medicalRecords = 'medical_records';
 }
 
@@ -18,7 +20,7 @@ const List<String> userSchema = [
     email         TEXT NOT NULL UNIQUE COLLATE NOCASE,
     password_hash TEXT NOT NULL,
     phone         TEXT,
-    role          TEXT NOT NULL CHECK (role IN ('PATIENT', 'DOCTOR')),
+    role          TEXT NOT NULL CHECK (role IN ('PATIENT', 'DOCTOR', 'PHARMACIST', 'INSURER')),
     created_at    TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
   )
@@ -49,6 +51,26 @@ const List<String> userSchema = [
     address           TEXT,
     city              TEXT,
     doctor_id         INTEGER NOT NULL UNIQUE REFERENCES doctors(doctor_id) ON DELETE CASCADE
+  )
+  ''',
+  // Compte pharmacien : une pharmacie d'officine.
+  '''
+  CREATE TABLE pharmacists (
+    pharmacist_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    pharmacy_name  TEXT NOT NULL,
+    license_number TEXT NOT NULL UNIQUE, -- numéro d'autorisation d'exercice
+    address        TEXT,
+    city           TEXT,
+    user_id        INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE
+  )
+  ''',
+  // Compte assureur : agent d'une caisse / compagnie (CNAM, STAR, COMAR...).
+  '''
+  CREATE TABLE insurers (
+    insurer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company    TEXT NOT NULL,
+    agent_code TEXT NOT NULL UNIQUE, -- matricule de l'agent
+    user_id    INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE
   )
   ''',
   '''

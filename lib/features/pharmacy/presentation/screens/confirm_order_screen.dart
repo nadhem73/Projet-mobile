@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:medilink/features/shell/presentation/screens/dashboard_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/widgets/feedback_views.dart';
 import 'package:medilink/core/theme/colors.dart';
 import 'package:medilink/core/utils/app_assets.dart';
@@ -86,7 +87,7 @@ class MLConfirmOrderScreenState extends State<MLConfirmOrderScreen> {
                 finish(context);
                 finish(context);
                 finish(context);
-                MLDashboardScreen().launch(context);
+                context.go(AppRoutes.patientHome);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

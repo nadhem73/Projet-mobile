@@ -8,8 +8,9 @@ import 'package:medilink/core/session/session_service.dart';
 ///
 /// Garde d'accès (cahier des charges §13.1 « accès contrôlés selon le rôle ») :
 /// - non connecté → seules les routes publiques sont accessibles ;
-/// - connecté → login / inscription redirigent vers l'accueil du rôle ;
-/// - l'espace `/doctor/...` est réservé aux médecins.
+/// - connecté → login / inscription redirigent vers le panel du rôle ;
+/// - `/doctor/...`, `/pharmacist/...`, `/insurer/...` sont réservés au rôle concerné ;
+/// - le panel patient est réservé aux patients.
 GoRouter buildAppRouter({required List<FeatureModule> modules, required SessionService session}) {
   return GoRouter(
     initialLocation: AppRoutes.splash,
@@ -24,9 +25,12 @@ GoRouter buildAppRouter({required List<FeatureModule> modules, required SessionS
       if (location == AppRoutes.splash) return null;
       if (user == null) return isPublic ? null : AppRoutes.login;
 
-      final home = user.isDoctor ? AppRoutes.doctorHome : AppRoutes.patientHome;
+      final home = AppRoutes.homeFor(user.role);
       if (isPublic) return home;
-      if (location.startsWith(AppRoutes.doctorAreaPrefix) && !user.isDoctor) return home;
+      for (final MapEntry(key: role, value: prefix) in AppRoutes.areaPrefixes.entries) {
+        if (location.startsWith(prefix) && user.role != role) return home;
+      }
+      if (AppRoutes.patientOnly.contains(location) && !user.isPatient) return home;
       return null;
     },
   );

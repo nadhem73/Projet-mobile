@@ -52,7 +52,7 @@ class MLCountryPickerComponentState extends State<MLCountryPickerComponent> {
           ],
         ),
         8.height,
-        Container(width: 80, height: 1, color: mlColorLightGrey.withValues(alpha: 0.2))
+        Container(width: 80, height: 1, color: mlColorLightGrey.withValues(alpha: 0.2)),
       ],
     );
   }

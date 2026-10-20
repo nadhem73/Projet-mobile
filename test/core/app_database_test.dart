@@ -38,7 +38,7 @@ void main() {
     );
 
     final users = await database.db.query('users');
-    expect(users, hasLength(4));
+    expect(users, hasLength(6));
     expect(users.every((u) => !(u['password_hash'] as String).contains('Medilink123')), isTrue);
   });
 
@@ -56,9 +56,6 @@ void main() {
   });
 
   test('les clés étrangères sont actives', () async {
-    expect(
-      () => database.db.insert('patients', {'user_id': 999}),
-      throwsA(isA<DatabaseException>()),
-    );
+    expect(() => database.db.insert('patients', {'user_id': 999}), throwsA(isA<DatabaseException>()));
   });
 }

@@ -88,15 +88,11 @@ class MLPatientComponentState extends State<MLPatientComponent> {
                     ),
                   ],
                 ).paddingAll(16.0),
-              ).paddingBottom(16.0).onTap(
-                () {
-                  setState(
-                    () {
-                      selectedIndex = index;
-                    },
-                  );
-                },
-              );
+              ).paddingBottom(16.0).onTap(() {
+                setState(() {
+                  selectedIndex = index;
+                });
+              });
             },
           ),
           Container(
@@ -113,11 +109,9 @@ class MLPatientComponentState extends State<MLPatientComponent> {
                 8.width,
                 Icon(Icons.add_circle_outline, color: mlColorDarkBlue, size: 16),
               ],
-            ).paddingAll(16.0).onTap(
-              () {
-                MLAddDependentScreen().launch(context);
-              },
-            ),
+            ).paddingAll(16.0).onTap(() {
+              MLAddDependentScreen().launch(context);
+            }),
           ),
         ],
       ).paddingAll(16.0),
