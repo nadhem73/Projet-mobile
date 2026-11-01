@@ -6,9 +6,9 @@ import 'package:medilink/core/session/session_service.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:medilink/features/doctor/presentation/widgets/doctor_bottom_nav_bar.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_consultation_list_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/consultations_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_list_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_prescription_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/prescriptions_screen.dart';
 import 'package:medilink/core/theme/colors.dart';
 import 'package:medilink/core/utils/mock_data.dart';
 import 'package:medilink/main.dart';
@@ -27,9 +27,9 @@ class MLDoctorDashboardScreenState extends State<MLDoctorDashboardScreen> {
   List<Widget> widgets = [
     _DoctorDashboardHome(onNavigateToTab: (index) {}),
     MLDoctorAgendaScreen(),
-    MLDoctorConsultationListScreen(),
+    const DoctorConsultationsScreen(),
     MLDoctorPatientListScreen(),
-    MLDoctorPrescriptionScreen(),
+    const PrescriptionsScreen(embedded: true),
   ];
 
   @override
@@ -371,7 +371,7 @@ class _DoctorDashboardHome extends StatelessWidget {
       {'label': 'Nouvelle consultation', 'icon': Icons.add_circle_outline, 'color': medicalBluePrimary, 'index': 2},
       {'label': 'Gérer l\'agenda', 'icon': Icons.calendar_month, 'color': medicalTealPrimary, 'index': 1},
       {'label': 'Mes patients', 'icon': Icons.people_outline, 'color': careCoralPrimary, 'index': 3},
-      {'label': 'Nouvelle ordonnance', 'icon': Icons.description_outlined, 'color': vitalityGreenPrimary, 'index': 4},
+      {'label': 'Ordonnances', 'icon': Icons.description_outlined, 'color': vitalityGreenPrimary, 'index': 4},
       // Module User : dossiers médicaux des patients (accès contrôlé et tracé).
       {
         'label': 'Dossiers médicaux',
