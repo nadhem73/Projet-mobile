@@ -7,6 +7,12 @@ abstract final class DoctorTables {
   static const prescriptionItems = 'prescription_items';
 }
 
+/// Statuts possibles d'une consultation (colonne `consultations.status`).
+abstract final class ConsultationStatus {
+  static const inProgress = 'IN_PROGRESS';
+  static const closed = 'CLOSED';
+}
+
 const List<String> doctorSchema = [
   '''
   CREATE TABLE consultations (
@@ -14,6 +20,8 @@ const List<String> doctorSchema = [
     appointment_id  INTEGER UNIQUE REFERENCES appointments(appointment_id) ON DELETE SET NULL,
     doctor_id       INTEGER NOT NULL REFERENCES doctors(doctor_id),
     patient_id      INTEGER NOT NULL REFERENCES patients(patient_id) ON DELETE CASCADE,
+    motif           TEXT,    -- motif de consultation
+    diagnostic      TEXT,
     blood_pressure  TEXT,    -- ex. "12/8"
     temperature     REAL,    -- °C
     height          REAL,    -- cm
@@ -53,5 +61,6 @@ const List<String> doctorSchema = [
   )
   ''',
   'CREATE INDEX idx_consultations_patient ON consultations(patient_id)',
+  'CREATE INDEX idx_consultations_doctor ON consultations(doctor_id, status)',
   'CREATE INDEX idx_prescriptions_patient ON prescriptions(patient_id)',
 ];
