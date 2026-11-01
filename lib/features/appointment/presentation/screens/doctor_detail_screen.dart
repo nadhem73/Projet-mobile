@@ -54,17 +54,15 @@ class MLDoctorDetailScreenState extends State<MLDoctorDetailScreen> {
               ),
             ),
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  if (index == 0) {
-                    return Container(
-                      decoration: boxDecorationWithRoundedCorners(borderRadius: radiusOnly(topRight: 12, topLeft: 12)),
-                      child: MLDoctorDetailComponent(),
-                    );
-                  }
-                  return null;
-                },
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                if (index == 0) {
+                  return Container(
+                    decoration: boxDecorationWithRoundedCorners(borderRadius: radiusOnly(topRight: 12, topLeft: 12)),
+                    child: MLDoctorDetailComponent(),
+                  );
+                }
+                return null;
+              }),
             ),
           ],
         ),

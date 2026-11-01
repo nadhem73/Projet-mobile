@@ -62,7 +62,7 @@ class MLAddPaymentScreenState extends State<MLAddPaymentScreen> {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

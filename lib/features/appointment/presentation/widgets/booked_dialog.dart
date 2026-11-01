@@ -46,11 +46,9 @@ class MLBookedDialog extends StatelessWidget {
                 backgroundColor: appStore.isDarkModeOn ? black : white,
               ),
               child: Text("Close", style: primaryTextStyle(color: mlColorDarkBlue)),
-            ).onTap(
-              () {
-                finish(context);
-              },
-            ),
+            ).onTap(() {
+              finish(context);
+            }),
           ],
         ),
       ),

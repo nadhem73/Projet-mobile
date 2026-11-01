@@ -79,15 +79,11 @@ class MLCreateMedicineComponentState extends State<MLCreateMedicineComponent> {
                   width: 80,
                   fit: BoxFit.cover,
                 ).cornerRadiusWithClipRRect(6.0),
-              ).onTap(
-                () {
-                  setState(
-                    () {
-                      selectedIndex = index;
-                    },
-                  );
-                },
-              );
+              ).onTap(() {
+                setState(() {
+                  selectedIndex = index;
+                });
+              });
             },
           ),
           16.height,
@@ -135,24 +131,19 @@ class MLCreateMedicineComponentState extends State<MLCreateMedicineComponent> {
                 height: 50,
                 padding: EdgeInsets.all(4.0),
                 decoration: boxDecorationWithRoundedCorners(
-                  backgroundColor: (day[index] == 'Mon' || day[index] == 'Wed' || day[index] == 'Fri') ? medicalTealLight : medicalDarkGray,
+                  backgroundColor:
+                      (day[index] == 'Mon' || day[index] == 'Wed' || day[index] == 'Fri')
+                          ? medicalTealLight
+                          : medicalDarkGray,
                   borderRadius: radius(12),
                   border: Border.all(color: selectedDay == index ? medicalTealPrimary : Colors.transparent, width: 2),
                 ),
-                child: Text(
-                  (day[index]).validate(),
-                  style: boldTextStyle(color: white),
-                  textAlign: TextAlign.center,
-                ),
-              ).paddingOnly(left: 4.0, right: 4.0).onTap(
-                () {
-                  setState(
-                    () {
-                      selectedDay = index;
-                    },
-                  );
-                },
-              );
+                child: Text((day[index]).validate(), style: boldTextStyle(color: white), textAlign: TextAlign.center),
+              ).paddingOnly(left: 4.0, right: 4.0).onTap(() {
+                setState(() {
+                  selectedDay = index;
+                });
+              });
             },
           ).paddingOnly(top: 8.0, bottom: 8.0),
           16.height,

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:medilink/core/di/injection.dart';
+import 'package:medilink/core/navigation/app_routes.dart';
+import 'package:medilink/core/session/session_service.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:medilink/features/doctor/presentation/widgets/doctor_bottom_nav_bar.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_consultation_list_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/consultations_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_list_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_prescription_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/prescriptions_screen.dart';
 import 'package:medilink/core/theme/colors.dart';
 import 'package:medilink/core/utils/mock_data.dart';
 import 'package:medilink/main.dart';
@@ -23,9 +27,9 @@ class MLDoctorDashboardScreenState extends State<MLDoctorDashboardScreen> {
   List<Widget> widgets = [
     _DoctorDashboardHome(onNavigateToTab: (index) {}),
     MLDoctorAgendaScreen(),
-    MLDoctorConsultationListScreen(),
+    const DoctorConsultationsScreen(),
     MLDoctorPatientListScreen(),
-    MLDoctorPrescriptionScreen(),
+    const PrescriptionsScreen(embedded: true),
   ];
 
   @override
@@ -45,18 +49,15 @@ class MLDoctorDashboardScreenState extends State<MLDoctorDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    widgets[0] = _DoctorDashboardHome(onNavigateToTab: (index) {
-      setState(() {
-        currentWidget = index;
-      });
-    });
-
-    return SafeArea(
-      child: Scaffold(
-        body: widgets[currentWidget],
-        bottomNavigationBar: showBottomDrawer(),
-      ),
+    widgets[0] = _DoctorDashboardHome(
+      onNavigateToTab: (index) {
+        setState(() {
+          currentWidget = index;
+        });
+      },
     );
+
+    return SafeArea(child: Scaffold(body: widgets[currentWidget], bottomNavigationBar: showBottomDrawer()));
   }
 
   Widget showBottomDrawer() {
@@ -80,7 +81,8 @@ class _DoctorDashboardHome extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isDark = appStore.isDarkModeOn;
     final agendaList = mlDoctorAgendaDataList().where((e) => e.date == '2026-09-28').toList();
-    final consultationList = mlDoctorConsultationDataList().where((e) => e.status == 'Programmé' || e.status == 'En cours').toList();
+    final consultationList =
+        mlDoctorConsultationDataList().where((e) => e.status == 'Programmé' || e.status == 'En cours').toList();
     mlDoctorPatientSummaryDataList();
 
     return Scaffold(
@@ -120,6 +122,7 @@ class _DoctorDashboardHome extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, bool isDark) {
+    final user = getIt<SessionService>().currentUser;
     return Container(
       padding: EdgeInsets.all(16),
       decoration: boxDecorationWithRoundedCorners(
@@ -128,18 +131,23 @@ class _DoctorDashboardHome extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: mlColorCyan,
-            child: Image.asset('assets/images/ml_profile_Image.png', fit: BoxFit.cover),
+          // Compte connecté (module User) : touche l'avatar pour ouvrir le profil.
+          InkWell(
+            onTap: () => context.push(AppRoutes.profile),
+            customBorder: const CircleBorder(),
+            child: CircleAvatar(
+              radius: 28,
+              backgroundColor: mlColorCyan,
+              child: Text(user?.initials ?? '', style: boldTextStyle(size: 18, color: white)),
+            ),
           ),
           12.width,
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Dr. Stephen Chew', style: boldTextStyle(size: 20, color: white)),
+              Text(user?.displayName ?? 'Médecin', style: boldTextStyle(size: 20, color: white)),
               2.height,
-              Text('Médecine Générale', style: secondaryTextStyle(color: white.withValues(alpha: 0.7), size: 13)),
+              Text(user?.subtitle ?? '', style: secondaryTextStyle(color: white.withValues(alpha: 0.7), size: 13)),
             ],
           ).expand(),
           Container(
@@ -170,29 +178,33 @@ class _DoctorDashboardHome extends StatelessWidget {
     ];
 
     return Row(
-      children: stats.map((stat) {
-        return Container(
-          margin: EdgeInsets.only(right: 12),
-          padding: EdgeInsets.all(12),
-          decoration: boxDecorationWithRoundedCorners(
-            backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade50,
-            borderRadius: radius(12),
-          ),
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(color: (stat['color'] as Color).withValues(alpha: 0.12), borderRadius: radius(8)),
-                child: Icon(stat['icon'] as IconData, color: stat['color'] as Color, size: 20),
+      children:
+          stats.map((stat) {
+            return Container(
+              margin: EdgeInsets.only(right: 12),
+              padding: EdgeInsets.all(12),
+              decoration: boxDecorationWithRoundedCorners(
+                backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade50,
+                borderRadius: radius(12),
               ),
-              8.height,
-              Text(stat['value'] as String, style: boldTextStyle(size: 20)),
-              2.height,
-              Text(stat['label'] as String, style: secondaryTextStyle(size: 11), textAlign: TextAlign.center),
-            ],
-          ),
-        ).expand();
-      }).toList(),
+              child: Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: (stat['color'] as Color).withValues(alpha: 0.12),
+                      borderRadius: radius(8),
+                    ),
+                    child: Icon(stat['icon'] as IconData, color: stat['color'] as Color, size: 20),
+                  ),
+                  8.height,
+                  Text(stat['value'] as String, style: boldTextStyle(size: 20)),
+                  2.height,
+                  Text(stat['label'] as String, style: secondaryTextStyle(size: 11), textAlign: TextAlign.center),
+                ],
+              ),
+            ).expand();
+          }).toList(),
     );
   }
 
@@ -244,11 +256,7 @@ class _DoctorDashboardHome extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 4,
-            height: 50,
-            decoration: BoxDecoration(color: statusColor, borderRadius: radius(2)),
-          ),
+          Container(width: 4, height: 50, decoration: BoxDecoration(color: statusColor, borderRadius: radius(2))),
           12.width,
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +333,10 @@ class _DoctorDashboardHome extends StatelessWidget {
                   8.width,
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: medicalBluePrimary.withValues(alpha: 0.12), borderRadius: radius(4)),
+                    decoration: BoxDecoration(
+                      color: medicalBluePrimary.withValues(alpha: 0.12),
+                      borderRadius: radius(4),
+                    ),
                     child: Text(e.type.validate(), style: boldTextStyle(size: 10, color: medicalBluePrimary)),
                   ),
                 ],
@@ -333,7 +344,12 @@ class _DoctorDashboardHome extends StatelessWidget {
               4.height,
               Text('${e.date} à ${e.time}', style: secondaryTextStyle(size: 12)),
               2.height,
-              Text(e.chiefComplaint.validate(), style: secondaryTextStyle(size: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                e.chiefComplaint.validate(),
+                style: secondaryTextStyle(size: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ).expand(),
           Column(
@@ -355,7 +371,14 @@ class _DoctorDashboardHome extends StatelessWidget {
       {'label': 'Nouvelle consultation', 'icon': Icons.add_circle_outline, 'color': medicalBluePrimary, 'index': 2},
       {'label': 'Gérer l\'agenda', 'icon': Icons.calendar_month, 'color': medicalTealPrimary, 'index': 1},
       {'label': 'Mes patients', 'icon': Icons.people_outline, 'color': careCoralPrimary, 'index': 3},
-      {'label': 'Nouvelle ordonnance', 'icon': Icons.description_outlined, 'color': vitalityGreenPrimary, 'index': 4},
+      {'label': 'Ordonnances', 'icon': Icons.description_outlined, 'color': vitalityGreenPrimary, 'index': 4},
+      // Module User : dossiers médicaux des patients (accès contrôlé et tracé).
+      {
+        'label': 'Dossiers médicaux',
+        'icon': Icons.folder_shared_outlined,
+        'color': medicalBluePrimary,
+        'route': '/doctor/medical-records',
+      },
     ];
 
     return Column(
@@ -387,7 +410,10 @@ class _DoctorDashboardHome extends StatelessWidget {
                 children: [
                   Container(
                     padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: (action['color'] as Color).withValues(alpha: 0.12), borderRadius: radius(12)),
+                    decoration: BoxDecoration(
+                      color: (action['color'] as Color).withValues(alpha: 0.12),
+                      borderRadius: radius(12),
+                    ),
                     child: Icon(action['icon'] as IconData, color: action['color'] as Color, size: 24),
                   ),
                   10.height,
@@ -395,7 +421,8 @@ class _DoctorDashboardHome extends StatelessWidget {
                 ],
               ),
             ).onTap(() {
-              onNavigateToTab(action['index'] as int);
+              final route = action['route'] as String?;
+              route != null ? context.push(route) : onNavigateToTab(action['index'] as int);
             });
           },
         ),

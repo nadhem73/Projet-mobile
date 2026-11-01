@@ -45,14 +45,15 @@ class MLOnCallComponentState extends State<MLOnCallComponent> {
             ),
           ),
           Positioned(
-              bottom: 48,
-              right: 16,
-              child: Container(
-                decoration: boxDecorationWithRoundedCorners(backgroundColor: mlColorLightGrey, borderRadius: radius(12)),
-                width: context.width() / 3,
-                height: context.height() / 4,
-                child: Image.asset(mlIcProfilePicture).cornerRadiusWithClipRRect(24.0),
-              )),
+            bottom: 48,
+            right: 16,
+            child: Container(
+              decoration: boxDecorationWithRoundedCorners(backgroundColor: mlColorLightGrey, borderRadius: radius(12)),
+              width: context.width() / 3,
+              height: context.height() / 4,
+              child: Image.asset(mlIcProfilePicture).cornerRadiusWithClipRRect(24.0),
+            ),
+          ),
           Positioned(
             bottom: 48,
             left: 16,
@@ -66,7 +67,10 @@ class MLOnCallComponentState extends State<MLOnCallComponent> {
                 8.height,
                 Container(
                   padding: EdgeInsets.all(4.0),
-                  decoration: boxDecorationWithRoundedCorners(backgroundColor: Colors.black12, borderRadius: radius(12)),
+                  decoration: boxDecorationWithRoundedCorners(
+                    backgroundColor: Colors.black12,
+                    borderRadius: radius(12),
+                  ),
                   child: Row(
                     children: [
                       Icon(Icons.fiber_smart_record_rounded, color: mlColorRed, size: 12),
@@ -74,7 +78,7 @@ class MLOnCallComponentState extends State<MLOnCallComponent> {
                       Text('01:20:12', style: boldTextStyle(color: whiteColor)),
                     ],
                   ).paddingOnly(right: 8.0, left: 8.0),
-                )
+                ),
               ],
             ),
           ),

@@ -52,6 +52,7 @@ abstract final class AppColors {
   static const Color modulePharmacy = Color(0xFF16A34A);
   static const Color moduleDoctor = Color(0xFF0F766E);
   static const Color moduleAi = accent;
+  static const Color moduleAdmin = Color(0xFF475569);
 
   // ---------- Dégradés ----------
   static const LinearGradient brandGradient = LinearGradient(

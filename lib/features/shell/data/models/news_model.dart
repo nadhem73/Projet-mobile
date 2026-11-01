@@ -3,9 +3,5 @@ class MLNewsData {
   String? title;
   String? duration;
 
-  MLNewsData({
-    this.image,
-    this.title,
-    this.duration,
-  });
+  MLNewsData({this.image, this.title, this.duration});
 }

@@ -22,26 +22,26 @@ class AiModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(path: AiRoutes.assistant, builder: (_, _) => const MLAiAssistantScreen()),
-        GoRoute(path: AiRoutes.labScan, builder: (_, _) => const MLLabScanScreen()),
-        GoRoute(path: AiRoutes.bot, builder: (_, _) => const MLBotScreen()),
-      ];
+    GoRoute(path: AiRoutes.assistant, builder: (_, _) => const MLAiAssistantScreen()),
+    GoRoute(path: AiRoutes.labScan, builder: (_, _) => const MLLabScanScreen()),
+    GoRoute(path: AiRoutes.bot, builder: (_, _) => const MLBotScreen()),
+  ];
 
   @override
   List<ModuleShortcut> get patientShortcuts => const [
-        ModuleShortcut(
-          label: 'Analyser un bilan',
-          icon: Icons.document_scanner_rounded,
-          route: AiRoutes.labScan,
-          color: AppColors.moduleAi,
-          order: 60,
-        ),
-        ModuleShortcut(
-          label: 'Assistant IA',
-          icon: Icons.auto_awesome_rounded,
-          route: AiRoutes.assistant,
-          color: AppColors.moduleAi,
-          order: 61,
-        ),
-      ];
+    ModuleShortcut(
+      label: 'Analyser un bilan',
+      icon: Icons.document_scanner_rounded,
+      route: AiRoutes.labScan,
+      color: AppColors.moduleAi,
+      order: 60,
+    ),
+    ModuleShortcut(
+      label: 'Assistant IA',
+      icon: Icons.auto_awesome_rounded,
+      route: AiRoutes.assistant,
+      color: AppColors.moduleAi,
+      order: 61,
+    ),
+  ];
 }

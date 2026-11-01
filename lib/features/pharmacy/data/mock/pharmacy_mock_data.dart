@@ -48,9 +48,33 @@ List<MLMedicationData> mlPrescriptionMedicineDataList() {
 
 List<MLDeliveredData> mlDeliveredDataList() {
   List<MLDeliveredData> list = [];
-  list.add(MLDeliveredData(imageOne: mlIcMediTwo, imageTwo: mlIcMediTwo, status: 'Pending', medicineOne: 'Apple Cinder Vinegar Goli', medicineTwo: 'High Potency Vitamin'));
-  list.add(MLDeliveredData(imageOne: mlIcMediFour, imageTwo: mlIcMediThree, status: 'Processing', medicineOne: 'medicine', medicineTwo: 'medicine'));
-  list.add(MLDeliveredData(imageOne: mlIcMediFive, imageTwo: mlIcMediFour, status: 'Pending', medicineOne: 'medicine', medicineTwo: 'medicine'));
+  list.add(
+    MLDeliveredData(
+      imageOne: mlIcMediTwo,
+      imageTwo: mlIcMediTwo,
+      status: 'Pending',
+      medicineOne: 'Apple Cinder Vinegar Goli',
+      medicineTwo: 'High Potency Vitamin',
+    ),
+  );
+  list.add(
+    MLDeliveredData(
+      imageOne: mlIcMediFour,
+      imageTwo: mlIcMediThree,
+      status: 'Processing',
+      medicineOne: 'medicine',
+      medicineTwo: 'medicine',
+    ),
+  );
+  list.add(
+    MLDeliveredData(
+      imageOne: mlIcMediFive,
+      imageTwo: mlIcMediFour,
+      status: 'Pending',
+      medicineOne: 'medicine',
+      medicineTwo: 'medicine',
+    ),
+  );
   return list;
 }
 
@@ -67,10 +91,42 @@ List<MLOrderSuccessData> mlOrderSuccessDataList() {
 
 List<MLDeliveredData> mlDeliveredStatusDataList() {
   List<MLDeliveredData> list = [];
-  list.add(MLDeliveredData(imageOne: mlIcMediTwo, imageTwo: mlIcMediFive, status: 'Pending', medicineOne: 'Apple Cinder Vinegar Goli', medicineTwo: 'High Potency Vitamin'));
-  list.add(MLDeliveredData(imageOne: mlIcMediThree, imageTwo: mlIcMediTwo, status: 'Processing', medicineOne: 'Apple Cinder Vinegar Goli', medicineTwo: 'medicine'));
-  list.add(MLDeliveredData(imageOne: mlIcMediFour, imageTwo: mlIcMediFour, status: 'Pending', medicineOne: 'Apple Cinder Vinegar Goli', medicineTwo: 'medicine'));
-  list.add(MLDeliveredData(imageOne: mlIcMediFive, imageTwo: mlIcMediThree, status: 'Pending', medicineOne: 'Apple Cinder Vinegar Goli', medicineTwo: 'medicine'));
+  list.add(
+    MLDeliveredData(
+      imageOne: mlIcMediTwo,
+      imageTwo: mlIcMediFive,
+      status: 'Pending',
+      medicineOne: 'Apple Cinder Vinegar Goli',
+      medicineTwo: 'High Potency Vitamin',
+    ),
+  );
+  list.add(
+    MLDeliveredData(
+      imageOne: mlIcMediThree,
+      imageTwo: mlIcMediTwo,
+      status: 'Processing',
+      medicineOne: 'Apple Cinder Vinegar Goli',
+      medicineTwo: 'medicine',
+    ),
+  );
+  list.add(
+    MLDeliveredData(
+      imageOne: mlIcMediFour,
+      imageTwo: mlIcMediFour,
+      status: 'Pending',
+      medicineOne: 'Apple Cinder Vinegar Goli',
+      medicineTwo: 'medicine',
+    ),
+  );
+  list.add(
+    MLDeliveredData(
+      imageOne: mlIcMediFive,
+      imageTwo: mlIcMediThree,
+      status: 'Pending',
+      medicineOne: 'Apple Cinder Vinegar Goli',
+      medicineTwo: 'medicine',
+    ),
+  );
   return list;
 }
 
@@ -89,10 +145,50 @@ List<MLMedicationData> mlPillDataList() {
 
 List<MLOrderTrackData> mlOrderTrackDataList() {
   List<MLOrderTrackData> list = [];
-  list.add(MLOrderTrackData(date: '27 Sep', time: '09:30 AM', stage: 'Order Placed', message: 'your order #5465422212 is placed', value: true));
-  list.add(MLOrderTrackData(date: '27 Sep', time: '16:30 PM', stage: 'Pending', message: 'your order is pending for confirmation,your order is penging for confirmation', value: true));
-  list.add(MLOrderTrackData(date: '27 Sep', time: '16:30 PM', stage: 'Confirmed', message: 'your order #5465422212 confirm,your order #5465422212 confirm', value: true));
-  list.add(MLOrderTrackData(date: '27 Sep', time: '16:30 PM', stage: 'Processing', message: 'your order #5465422212 Proccesing,your order #5465422212 Proccesing', value: true));
-  list.add(MLOrderTrackData(date: 'Today', time: '16:30 PM', stage: 'Delivered', message: 'product delivery to you and marked as deliver', value: false));
+  list.add(
+    MLOrderTrackData(
+      date: '27 Sep',
+      time: '09:30 AM',
+      stage: 'Order Placed',
+      message: 'your order #5465422212 is placed',
+      value: true,
+    ),
+  );
+  list.add(
+    MLOrderTrackData(
+      date: '27 Sep',
+      time: '16:30 PM',
+      stage: 'Pending',
+      message: 'your order is pending for confirmation,your order is penging for confirmation',
+      value: true,
+    ),
+  );
+  list.add(
+    MLOrderTrackData(
+      date: '27 Sep',
+      time: '16:30 PM',
+      stage: 'Confirmed',
+      message: 'your order #5465422212 confirm,your order #5465422212 confirm',
+      value: true,
+    ),
+  );
+  list.add(
+    MLOrderTrackData(
+      date: '27 Sep',
+      time: '16:30 PM',
+      stage: 'Processing',
+      message: 'your order #5465422212 Proccesing,your order #5465422212 Proccesing',
+      value: true,
+    ),
+  );
+  list.add(
+    MLOrderTrackData(
+      date: 'Today',
+      time: '16:30 PM',
+      stage: 'Delivered',
+      message: 'product delivery to you and marked as deliver',
+      value: false,
+    ),
+  );
   return list;
 }

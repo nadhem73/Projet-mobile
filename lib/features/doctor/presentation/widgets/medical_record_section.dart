@@ -39,31 +39,32 @@ class MLMedicalRecordSection extends StatelessWidget {
             12.width,
             Text(title, style: boldTextStyle(size: 16)).expand(),
             if (trailing != null) trailing!,
-            if (onTap != null)
-              Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+            if (onTap != null) Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
           ],
         ).onTap(onTap),
         if (expandable) ...[
           12.height,
-          ...items.map((item) => Container(
-            margin: EdgeInsets.only(bottom: 8),
-            padding: EdgeInsets.all(12),
-            decoration: boxDecorationWithRoundedCorners(
-              backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade50,
-              borderRadius: radius(12),
+          ...items.map(
+            (item) => Container(
+              margin: EdgeInsets.only(bottom: 8),
+              padding: EdgeInsets.all(12),
+              decoration: boxDecorationWithRoundedCorners(
+                backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade50,
+                borderRadius: radius(12),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: radius(8)),
+                    child: Icon(Icons.chevron_right, color: color, size: 20),
+                  ),
+                  12.width,
+                  Text(item, style: boldTextStyle(size: 13)).expand(),
+                ],
+              ),
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: radius(8)),
-                  child: Icon(Icons.chevron_right, color: color, size: 20),
-                ),
-                12.width,
-                Text(item, style: boldTextStyle(size: 13)).expand(),
-              ],
-            ),
-          )),
+          ),
         ],
       ],
     );

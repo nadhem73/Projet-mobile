@@ -15,16 +15,8 @@ class MLOnlinePharmacyScreen extends StatefulWidget {
 }
 
 class MLOnlinePharmacyScreenState extends State<MLOnlinePharmacyScreen> {
-  PageController controller = PageController(
-    viewportFraction: 0.8,
-    initialPage: 0,
-  );
-  List<String> slides = <String>[
-    mlIcPharmacySlide3,
-    mlIcPharmacySlide1,
-    mlIcPharmacySlide2,
-    mlIcPharmacySlide4,
-  ];
+  PageController controller = PageController(viewportFraction: 0.8, initialPage: 0);
+  List<String> slides = <String>[mlIcPharmacySlide3, mlIcPharmacySlide1, mlIcPharmacySlide2, mlIcPharmacySlide4];
 
   @override
   void initState() {
@@ -64,7 +56,10 @@ class MLOnlinePharmacyScreenState extends State<MLOnlinePharmacyScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Your Location', style: secondaryTextStyle(size: 12, color: white.withValues(alpha: 0.5))),
+                              Text(
+                                'Your Location',
+                                style: secondaryTextStyle(size: 12, color: white.withValues(alpha: 0.5)),
+                              ),
                               4.height,
                               Text('35 St Martin\'s St West end', style: boldTextStyle(size: 14, color: white)),
                             ],
@@ -92,14 +87,13 @@ class MLOnlinePharmacyScreenState extends State<MLOnlinePharmacyScreen> {
                         width: context.width(),
                         child: PageView(
                           controller: controller,
-                          children: slides.map(
-                            (e) {
-                              return commonCachedNetworkImage(
-                                e.validate(),
-                                fit: BoxFit.cover,
-                              ).cornerRadiusWithClipRRect(12.0).paddingRight(16.0);
-                            },
-                          ).toList(),
+                          children:
+                              slides.map((e) {
+                                return commonCachedNetworkImage(
+                                  e.validate(),
+                                  fit: BoxFit.cover,
+                                ).cornerRadiusWithClipRRect(12.0).paddingRight(16.0);
+                              }).toList(),
                         ),
                       ),
                       16.height,
@@ -114,10 +108,7 @@ class MLOnlinePharmacyScreenState extends State<MLOnlinePharmacyScreen> {
                 ),
               ),
             ),
-            SliverToBoxAdapter(
-              child: MLPharmacyCategoriesComponent(),
-            )
-,
+            SliverToBoxAdapter(child: MLPharmacyCategoriesComponent()),
           ],
         ),
       ),

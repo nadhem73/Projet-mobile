@@ -57,25 +57,24 @@ class MLProductDetailComponentState extends State<MLProductDetailComponent> {
                   borderRadius: radius(24),
                   backgroundColor: context.cardColor,
                 ),
-                child: liked == true
-                    ? InkWell(
-                        onTap: () {
-                          setState(
-                            () {
+                child:
+                    liked == true
+                        ? InkWell(
+                          onTap: () {
+                            setState(() {
                               liked = false;
-                            },
-                          );
-                        },
-                        child: Icon(Icons.favorite, color: healthError, size: 16),
-                      )
-                    : InkWell(
-                        onTap: () {
-                          setState(() {
-                            liked = true;
-                          });
-                        },
-                        child: Icon(Icons.favorite_outline, color: Colors.grey, size: 16),
-                      ),
+                            });
+                          },
+                          child: Icon(Icons.favorite, color: healthError, size: 16),
+                        )
+                        : InkWell(
+                          onTap: () {
+                            setState(() {
+                              liked = true;
+                            });
+                          },
+                          child: Icon(Icons.favorite_outline, color: Colors.grey, size: 16),
+                        ),
               ),
             ],
           ),
@@ -161,7 +160,7 @@ class MLProductDetailComponentState extends State<MLProductDetailComponent> {
                     ],
                   ),
                 ],
-              )
+              ),
             ],
           ),
           64.height,

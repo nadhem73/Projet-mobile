@@ -128,21 +128,28 @@ class MLDoctorPatientListScreenState extends State<MLDoctorPatientListScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: filters.map((filter) {
-                final isSelected = selectedFilter == filter;
-                return Container(
-                  margin: EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(filter, style: boldTextStyle(size: 12, color: isSelected ? white : (isDark ? white : mlColorDarkBlue))),
-                    selected: isSelected,
-                    onSelected: (val) => setState(() => selectedFilter = filter),
-                    selectedColor: mlColorDarkBlue,
-                    backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade100,
-                    shape: RoundedRectangleBorder(borderRadius: radius(20)),
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                );
-              }).toList(),
+              children:
+                  filters.map((filter) {
+                    final isSelected = selectedFilter == filter;
+                    return Container(
+                      margin: EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(
+                          filter,
+                          style: boldTextStyle(
+                            size: 12,
+                            color: isSelected ? white : (isDark ? white : mlColorDarkBlue),
+                          ),
+                        ),
+                        selected: isSelected,
+                        onSelected: (val) => setState(() => selectedFilter = filter),
+                        selectedColor: mlColorDarkBlue,
+                        backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade100,
+                        shape: RoundedRectangleBorder(borderRadius: radius(20)),
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
         ],
@@ -151,14 +158,16 @@ class MLDoctorPatientListScreenState extends State<MLDoctorPatientListScreen> {
   }
 
   List<MLDoctorPatientSummaryData> _filterPatients(List<MLDoctorPatientSummaryData> list) {
-    var filtered = list.where((p) {
-      final search = searchController.text.toLowerCase();
-      final matchesSearch = search.isEmpty ||
-          p.name!.toLowerCase().contains(search) ||
-          p.phone!.contains(search) ||
-          p.email!.toLowerCase().contains(search);
-      return matchesSearch;
-    }).toList();
+    var filtered =
+        list.where((p) {
+          final search = searchController.text.toLowerCase();
+          final matchesSearch =
+              search.isEmpty ||
+              p.name!.toLowerCase().contains(search) ||
+              p.phone!.contains(search) ||
+              p.email!.toLowerCase().contains(search);
+          return matchesSearch;
+        }).toList();
 
     switch (selectedFilter) {
       case 'RDV à venir':
@@ -205,23 +214,40 @@ class MLDoctorPatientListScreenState extends State<MLDoctorPatientListScreen> {
                   if (hasUpcoming)
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: careCoralPrimary.withValues(alpha: 0.12), borderRadius: radius(4)),
-                      child: Text('RDV ${_formatDate(p.nextAppointment!)}', style: boldTextStyle(size: 10, color: careCoralPrimary)),
+                      decoration: BoxDecoration(
+                        color: careCoralPrimary.withValues(alpha: 0.12),
+                        borderRadius: radius(4),
+                      ),
+                      child: Text(
+                        'RDV ${_formatDate(p.nextAppointment!)}',
+                        style: boldTextStyle(size: 10, color: careCoralPrimary),
+                      ),
                     ),
                 ],
               ),
               4.height,
-              Text('${p.age} ans  •  ${p.gender == 'F' ? 'Femme' : 'Homme'}  •  Dernière visite: ${_formatDate(p.lastVisit!)}', style: secondaryTextStyle(size: 12)),
+              Text(
+                '${p.age} ans  •  ${p.gender == 'F' ? 'Femme' : 'Homme'}  •  Dernière visite: ${_formatDate(p.lastVisit!)}',
+                style: secondaryTextStyle(size: 12),
+              ),
               4.height,
               if (hasConditions)
                 Wrap(
                   spacing: 6,
                   runSpacing: 4,
-                  children: p.conditions!.map((c) => Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(color: medicalTealPrimary.withValues(alpha: 0.1), borderRadius: radius(8)),
-                    child: Text(c, style: boldTextStyle(size: 10, color: medicalTealPrimary)),
-                  )).toList(),
+                  children:
+                      p.conditions!
+                          .map(
+                            (c) => Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: medicalTealPrimary.withValues(alpha: 0.1),
+                                borderRadius: radius(8),
+                              ),
+                              child: Text(c, style: boldTextStyle(size: 10, color: medicalTealPrimary)),
+                            ),
+                          )
+                          .toList(),
                 ),
             ],
           ).expand(),
@@ -232,8 +258,14 @@ class MLDoctorPatientListScreenState extends State<MLDoctorPatientListScreen> {
               if (p.activeMedications!.isNotEmpty)
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(color: vitalityGreenPrimary.withValues(alpha: 0.1), borderRadius: radius(4)),
-                  child: Text('${p.activeMedications!.length} médoc(s)', style: boldTextStyle(size: 9, color: vitalityGreenPrimary)),
+                  decoration: BoxDecoration(
+                    color: vitalityGreenPrimary.withValues(alpha: 0.1),
+                    borderRadius: radius(4),
+                  ),
+                  child: Text(
+                    '${p.activeMedications!.length} médoc(s)',
+                    style: boldTextStyle(size: 9, color: vitalityGreenPrimary),
+                  ),
                 ),
             ],
           ),

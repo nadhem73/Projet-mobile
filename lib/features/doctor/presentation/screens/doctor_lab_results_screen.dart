@@ -104,10 +104,11 @@ class MLDoctorLabResultsScreenState extends State<MLDoctorLabResultsScreen> {
   }
 
   List<MLLabScanData> _filterLabs(List<MLLabScanData> list) {
-    var filtered = list.where((l) {
-      final search = searchController.text.toLowerCase();
-      return search.isEmpty || l.title!.toLowerCase().contains(search);
-    }).toList();
+    var filtered =
+        list.where((l) {
+          final search = searchController.text.toLowerCase();
+          return search.isEmpty || l.title!.toLowerCase().contains(search);
+        }).toList();
 
     return filtered;
   }
@@ -140,21 +141,28 @@ class MLDoctorLabResultsScreenState extends State<MLDoctorLabResultsScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: categories.map((cat) {
-                final isSelected = selectedCategory == cat;
-                return Container(
-                  margin: EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(cat, style: boldTextStyle(size: 12, color: isSelected ? white : (isDark ? white : mlColorDarkBlue))),
-                    selected: isSelected,
-                    onSelected: (val) => setState(() => selectedCategory = cat),
-                    selectedColor: mlColorDarkBlue,
-                    backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade100,
-                    shape: RoundedRectangleBorder(borderRadius: radius(20)),
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                );
-              }).toList(),
+              children:
+                  categories.map((cat) {
+                    final isSelected = selectedCategory == cat;
+                    return Container(
+                      margin: EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(
+                          cat,
+                          style: boldTextStyle(
+                            size: 12,
+                            color: isSelected ? white : (isDark ? white : mlColorDarkBlue),
+                          ),
+                        ),
+                        selected: isSelected,
+                        onSelected: (val) => setState(() => selectedCategory = cat),
+                        selectedColor: mlColorDarkBlue,
+                        backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade100,
+                        shape: RoundedRectangleBorder(borderRadius: radius(20)),
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
         ],

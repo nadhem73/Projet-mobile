@@ -46,10 +46,7 @@ class MLMedicationComponentState extends State<MLMedicationComponent> {
           MLCalenderComponent(),
           8.height,
           Row(
-            children: [
-              Text('Today medicine', style: boldTextStyle()).expand(),
-              Text(date!, style: boldTextStyle()),
-            ],
+            children: [Text('Today medicine', style: boldTextStyle()).expand(), Text(date!, style: boldTextStyle())],
           ).paddingAll(16.0),
           ListView.builder(
             scrollDirection: Axis.vertical,
@@ -63,10 +60,7 @@ class MLMedicationComponentState extends State<MLMedicationComponent> {
                   Container(
                     margin: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
                     padding: EdgeInsets.all(8.0),
-                    decoration: boxDecorationWithRoundedCorners(
-                      backgroundColor: mlColorBlue,
-                      borderRadius: radius(12),
-                    ),
+                    decoration: boxDecorationWithRoundedCorners(backgroundColor: mlColorBlue, borderRadius: radius(12)),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Icon(Icons.check, color: white).paddingOnly(top: 28.0, bottom: 28.0),
@@ -74,19 +68,15 @@ class MLMedicationComponentState extends State<MLMedicationComponent> {
                   ), // instead of background
                   Dismissible(
                     key: UniqueKey(),
-                    child: primaryBackground(context, index).onTap(
-                      () {
-                        MLMedicineScreen(index: 0).launch(context);
-                      },
-                    ),
+                    child: primaryBackground(context, index).onTap(() {
+                      MLMedicineScreen(index: 0).launch(context);
+                    }),
                     onDismissed: (DismissDirection direction) {
-                      setState(
-                        () {
-                          data.removeAt(index);
-                        },
-                      );
+                      setState(() {
+                        data.removeAt(index);
+                      });
                     },
-                  )
+                  ),
                 ],
               );
             },

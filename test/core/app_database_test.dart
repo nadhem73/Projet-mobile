@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medilink/core/database/app_database.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -38,7 +40,7 @@ void main() {
     );
 
     final users = await database.db.query('users');
-    expect(users, hasLength(4));
+    expect(users, hasLength(8));
     expect(users.every((u) => !(u['password_hash'] as String).contains('Medilink123')), isTrue);
   });
 
@@ -55,10 +57,34 @@ void main() {
     expect(() => database.db.insert('appointments', slot(1)), throwsA(isA<DatabaseException>()));
   });
 
-  test('les clés étrangères sont actives', () async {
-    expect(
-      () => database.db.insert('patients', {'user_id': 999}),
-      throwsA(isA<DatabaseException>()),
+  test('mise à jour du schéma : suppression de toutes les tables dans une transaction', () async {
+    // Reproduit onUpgrade (transaction, clés étrangères actives) sur une base remplie.
+    await database.db.transaction((txn) => AppDatabase.dropAll(txn));
+    final left = await database.db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
     );
+    expect(left, isEmpty);
+  });
+
+  test("mise à jour du schéma : une base d'ancienne version est recréée", () async {
+    final path = '${Directory.systemTemp.createTempSync('medilink').path}/upgrade.db';
+    final old = await databaseFactoryFfi.openDatabase(path, options: OpenDatabaseOptions(version: 1));
+    await old.execute('CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT)');
+    await old.execute('CREATE TABLE patients (patient_id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id))');
+    await old.execute(
+      'CREATE TABLE medical_records (id INTEGER PRIMARY KEY, patient_id INTEGER REFERENCES patients(patient_id))',
+    );
+    await old.insert('users', {'id': 1, 'email': 'a@b.tn'});
+    await old.insert('patients', {'patient_id': 1, 'user_id': 1});
+    await old.insert('medical_records', {'patient_id': 1});
+    await old.close();
+
+    final upgraded = await AppDatabase.open(factory: databaseFactoryFfi, path: path);
+    expect(await upgraded.db.query('users'), hasLength(8));
+    await upgraded.close();
+  });
+
+  test('les clés étrangères sont actives', () async {
+    expect(() => database.db.insert('patients', {'user_id': 999}), throwsA(isA<DatabaseException>()));
   });
 }

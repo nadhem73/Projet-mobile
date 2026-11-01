@@ -73,7 +73,7 @@ class MLPharmacyProductComponentState extends State<MLPharmacyProductComponent> 
                       Container(
                         decoration: boxDecorationWithRoundedCorners(backgroundColor: mlColorDarkBlue),
                         child: Text('-30%', style: secondaryTextStyle(color: white)).paddingOnly(right: 8, left: 8.0),
-                      ).paddingOnly(left: 4.0, bottom: 8)
+                      ).paddingOnly(left: 4.0, bottom: 8),
                     ],
                   ),
                   16.height,
@@ -102,11 +102,9 @@ class MLPharmacyProductComponentState extends State<MLPharmacyProductComponent> 
                   12.height,
                 ],
               ),
-            ).onTap(
-              () {
-                MLProductDetailScreen().launch(context);
-              },
-            );
+            ).onTap(() {
+              MLProductDetailScreen().launch(context);
+            });
           },
           staggeredTileBuilder: (index) => StaggeredTile.fit(1),
           mainAxisSpacing: 16.0,

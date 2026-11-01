@@ -59,13 +59,13 @@ class MLOnlinePharmacyDetailScreenState extends State<MLOnlinePharmacyDetailScre
                     Text('Online Pharmacy ', style: secondaryTextStyle(size: 12, color: white.withValues(alpha: 0.4))),
                     (widget.index == 0)
                         ? Text(
-                            '> Prescription Drug',
-                            style: secondaryTextStyle(size: 12, color: white.withValues(alpha: 0.4)),
-                          )
+                          '> Prescription Drug',
+                          style: secondaryTextStyle(size: 12, color: white.withValues(alpha: 0.4)),
+                        )
                         : Text(
-                            '> Prescription Drug > Analgesic',
-                            style: secondaryTextStyle(size: 12, color: white.withValues(alpha: 0.3)),
-                          ),
+                          '> Prescription Drug > Analgesic',
+                          style: secondaryTextStyle(size: 12, color: white.withValues(alpha: 0.3)),
+                        ),
                   ],
                 ).paddingLeft(8.0),
               ],

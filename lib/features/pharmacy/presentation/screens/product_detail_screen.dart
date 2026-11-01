@@ -60,11 +60,10 @@ class MLProductDetailScreenState extends State<MLProductDetailScreen> {
                             children: [
                               PageView(
                                 controller: controller,
-                                children: slides.map(
-                                  (e) {
-                                    return commonCachedNetworkImage(e.validate(), fit: BoxFit.cover);
-                                  },
-                                ).toList(),
+                                children:
+                                    slides.map((e) {
+                                      return commonCachedNetworkImage(e.validate(), fit: BoxFit.cover);
+                                    }).toList(),
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -83,26 +82,24 @@ class MLProductDetailScreenState extends State<MLProductDetailScreen> {
                                     pageController: controller,
                                     pages: slides,
                                   ),
-                                  SizedBox(width: context.width() * 0.25)
+                                  SizedBox(width: context.width() * 0.25),
                                 ],
                               ).paddingOnly(left: 16.0, bottom: 16.0),
                             ],
                           ),
                         ),
-                        mlBackToPreviousWidget(context, black).paddingOnly(left: 16, top: 16)
+                        mlBackToPreviousWidget(context, black).paddingOnly(left: 16, top: 16),
                       ],
                     ),
                   ),
                 ),
                 SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == 0) {
-                        return MLProductDetailComponent();
-                      }
-                      return null;
-                    },
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    if (index == 0) {
+                      return MLProductDetailComponent();
+                    }
+                    return null;
+                  }),
                 ),
               ],
             ),

@@ -48,18 +48,20 @@ class MLChatScreenState extends State<MLChatScreen> {
                 children: [
                   mlBackToPreviousWidget(context, white),
                   8.width,
-                  Stack(children: [
-                    CircleAvatar(
-                      backgroundColor: mlColorLightGrey,
-                      radius: 24,
-                      child: Image.asset(mlIcDoctorImage, fit: BoxFit.cover).cornerRadiusWithClipRRect(30.0),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 6,
-                      child: Icon(Icons.brightness_1_rounded, color: Colors.greenAccent, size: 14),
-                    )
-                  ]),
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: mlColorLightGrey,
+                        radius: 24,
+                        child: Image.asset(mlIcDoctorImage, fit: BoxFit.cover).cornerRadiusWithClipRRect(30.0),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 6,
+                        child: Icon(Icons.brightness_1_rounded, color: Colors.greenAccent, size: 14),
+                      ),
+                    ],
+                  ),
                   8.width,
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,7 +70,7 @@ class MLChatScreenState extends State<MLChatScreen> {
                       4.height,
                       Text('Online', style: secondaryTextStyle(size: 16, color: white.withValues(alpha: 0.5))),
                     ],
-                  )
+                  ),
                 ],
               ).paddingAll(16.0),
             ),
@@ -109,12 +111,10 @@ class MLChatScreenState extends State<MLChatScreen> {
                   hintStyle: secondaryTextStyle(size: 16),
                 ),
               ).expand(),
-              Icon(Icons.send_outlined, size: 24, color: medicalTealPrimary).paddingAll(4.0).onTap(
-                () {
-                  addMessage();
-                  messageController.clear();
-                },
-              ),
+              Icon(Icons.send_outlined, size: 24, color: medicalTealPrimary).paddingAll(4.0).onTap(() {
+                addMessage();
+                messageController.clear();
+              }),
               8.width,
             ],
           ),
@@ -124,10 +124,8 @@ class MLChatScreenState extends State<MLChatScreen> {
   }
 
   void addMessage() {
-    setState(
-      () {
-        data.insert(0, MLInboxData(id: 0, message: messageController.text));
-      },
-    );
+    setState(() {
+      data.insert(0, MLInboxData(id: 0, message: messageController.text));
+    });
   }
 }

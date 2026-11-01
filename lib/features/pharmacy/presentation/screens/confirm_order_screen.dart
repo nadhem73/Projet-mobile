@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:medilink/features/shell/presentation/screens/dashboard_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/widgets/feedback_views.dart';
 import 'package:medilink/core/theme/colors.dart';
 import 'package:medilink/core/utils/app_assets.dart';
@@ -68,14 +69,12 @@ class MLConfirmOrderScreenState extends State<MLConfirmOrderScreen> {
                   ),
                 ),
                 SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == 0) {
-                        return ComingSoonView().withHeight(context.height() * 0.5);
-                      }
-                      return null;
-                    },
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    if (index == 0) {
+                      return ComingSoonView().withHeight(context.height() * 0.5);
+                    }
+                    return null;
+                  }),
                 ),
               ],
             ),
@@ -86,7 +85,7 @@ class MLConfirmOrderScreenState extends State<MLConfirmOrderScreen> {
                 finish(context);
                 finish(context);
                 finish(context);
-                MLDashboardScreen().launch(context);
+                context.go(AppRoutes.patientHome);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -96,7 +95,7 @@ class MLConfirmOrderScreenState extends State<MLConfirmOrderScreen> {
                   Icon(Icons.shopping_bag_outlined, color: white, size: 16),
                 ],
               ),
-            ).paddingOnly(right: 16, left: 16, bottom: 18)
+            ).paddingOnly(right: 16, left: 16, bottom: 18),
           ],
         ),
       ),

@@ -93,18 +93,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Container(
                           width: 200,
                           height: 200,
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
+                          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
                           child: Center(
                             child: Container(
                               width: 120,
                               height: 120,
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.18),
-                                shape: BoxShape.circle,
-                              ),
+                              decoration: BoxDecoration(color: color.withValues(alpha: 0.18), shape: BoxShape.circle),
                               child: Icon(icon, size: 56, color: color),
                             ),
                           ),
@@ -144,9 +138,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: MediButton(
                 label: isLast ? 'Commencer' : 'Suivant',
                 icon: isLast ? Icons.arrow_forward_rounded : null,
-                onPressed: isLast
-                    ? _finish
-                    : () => _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut),
+                onPressed:
+                    isLast
+                        ? _finish
+                        : () =>
+                            _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut),
               ),
             ),
           ],

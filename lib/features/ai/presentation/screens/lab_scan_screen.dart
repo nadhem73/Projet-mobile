@@ -49,11 +49,7 @@ class MLLabScanScreenState extends State<MLLabScanScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               8.height,
-              Row(
-                children: [
-                  Text('Scanner un bilan', style: boldTextStyle(size: 22)),
-                ],
-              ).paddingAll(16),
+              Row(children: [Text('Scanner un bilan', style: boldTextStyle(size: 22))]).paddingAll(16),
               Flexible(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.all(16),
@@ -147,10 +143,7 @@ class MLLabScanScreenState extends State<MLLabScanScreen> {
                             children: [
                               Container(
                                 padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: medicalBlueUltraLight,
-                                  borderRadius: radius(10),
-                                ),
+                                decoration: BoxDecoration(color: medicalBlueUltraLight, borderRadius: radius(10)),
                                 child: Icon(Icons.description_outlined, color: medicalBlueDark, size: 22),
                               ),
                               12.width,

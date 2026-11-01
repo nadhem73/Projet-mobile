@@ -70,56 +70,54 @@ class MLAddVoucherScreenState extends State<MLAddVoucherScreen> {
                       itemCount: data.length,
                       itemBuilder: (context, index) {
                         return GestureDetector(
-                        onTap: () {
-                          setState(
-                            () {
+                          onTap: () {
+                            setState(() {
                               selectedIndex = index;
-                            },
-                          );
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(12.0),
-                          decoration: boxDecorationWithRoundedCorners(
-                            borderRadius: radius(12.0),
-                            border: Border.all(color: selectedIndex == index ? mlColorBlue : mlColorLightGrey100),
-                            backgroundColor: context.cardColor,
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(16.0),
-                                decoration: boxDecorationWithRoundedCorners(
-                                  borderRadius: radius(12.0),
-                                  backgroundColor: cyanAccent.withValues(alpha: 0.12),
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(12.0),
+                            decoration: boxDecorationWithRoundedCorners(
+                              borderRadius: radius(12.0),
+                              border: Border.all(color: selectedIndex == index ? mlColorBlue : mlColorLightGrey100),
+                              backgroundColor: context.cardColor,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(16.0),
+                                  decoration: boxDecorationWithRoundedCorners(
+                                    borderRadius: radius(12.0),
+                                    backgroundColor: cyanAccent.withValues(alpha: 0.12),
+                                  ),
+                                  child: Image.asset(
+                                    (data[index].image).validate(),
+                                    fit: BoxFit.fill,
+                                    width: 45,
+                                    height: 45,
+                                  ),
                                 ),
-                                child: Image.asset(
-                                  (data[index].image).validate(),
-                                  fit: BoxFit.fill,
-                                  width: 45,
-                                  height: 45,
+                                8.width,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text((data[index].title).validate(), style: boldTextStyle()),
+                                    4.height,
+                                    Text(('[Up-to \$50]'), style: boldTextStyle()),
+                                    4.height,
+                                    Text(('Exp: 21 April 2021'), style: secondaryTextStyle()),
+                                  ],
+                                ).expand(),
+                                Radio<int>(
+                                  value: 1,
+                                  activeColor: selectedIndex == index ? mlColorBlue : mlColorLightGrey100,
                                 ),
-                              ),
-                              8.width,
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text((data[index].title).validate(), style: boldTextStyle()),
-                                  4.height,
-                                  Text(('[Up-to \$50]'), style: boldTextStyle()),
-                                  4.height,
-                                  Text(('Exp: 21 April 2021'), style: secondaryTextStyle()),
-                                ],
-                              ).expand(),
-                              Radio<int>(
-                                value: 1,
-                                activeColor: selectedIndex == index ? mlColorBlue : mlColorLightGrey100,
-                              ),
-                            ],
-                          ),
-                        ).paddingBottom(8.0),
-                      );
-                    },
-                  ),
+                              ],
+                            ),
+                          ).paddingBottom(8.0),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),

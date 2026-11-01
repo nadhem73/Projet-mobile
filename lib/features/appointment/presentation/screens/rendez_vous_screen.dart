@@ -54,11 +54,7 @@ class MLRendezVousScreenState extends State<MLRendezVousScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               8.height,
-              Row(
-                children: [
-                  Text('Mes rendez-vous', style: boldTextStyle(size: 22)),
-                ],
-              ).paddingAll(16),
+              Row(children: [Text('Mes rendez-vous', style: boldTextStyle(size: 22))]).paddingAll(16),
               8.height,
               Row(
                 children: List.generate(tabs.length, (index) {
@@ -72,10 +68,7 @@ class MLRendezVousScreenState extends State<MLRendezVousScreen> {
                     ),
                     child: Text(
                       tabs[index],
-                      style: boldTextStyle(
-                        size: 14,
-                        color: isSelected ? white : (isDark ? white : blackColor),
-                      ),
+                      style: boldTextStyle(size: 14, color: isSelected ? white : (isDark ? white : blackColor)),
                     ),
                   ).onTap(() {
                     setState(() {
@@ -115,7 +108,10 @@ class MLRendezVousScreenState extends State<MLRendezVousScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text((e.date).validate(), style: boldTextStyle(size: 24, color: white)),
-                                    Text((e.month).validate().substring(0, 3), style: secondaryTextStyle(color: white, size: 11)),
+                                    Text(
+                                      (e.month).validate().substring(0, 3),
+                                      style: secondaryTextStyle(color: white, size: 11),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -157,11 +153,11 @@ class MLRendezVousScreenState extends State<MLRendezVousScreen> {
                               8.width,
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: medicalBlueUltraLight,
-                                  borderRadius: radius(8),
+                                decoration: BoxDecoration(color: medicalBlueUltraLight, borderRadius: radius(8)),
+                                child: Text(
+                                  (e.service).validate(),
+                                  style: secondaryTextStyle(size: 11, color: medicalBlueDark),
                                 ),
-                                child: Text((e.service).validate(), style: secondaryTextStyle(size: 11, color: medicalBlueDark)),
                               ),
                             ],
                           ),

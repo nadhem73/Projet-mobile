@@ -59,26 +59,27 @@ class MLNotificationFragmentState extends State<MLNotificationFragment> {
                     8.width,
                     checked == false
                         ? Container(
-                      padding: EdgeInsets.all(8.0),
-                      decoration: boxDecorationWithRoundedCorners(
-                        backgroundColor: medicalTealPrimary,
-                        boxShape: BoxShape.circle,
-                      ),
-                      child: Text(newNotification.toString(), style: primaryTextStyle(color: white)),
-                    ).onTap(() {
-                      openBottomSheet();
-                    })
+                          padding: EdgeInsets.all(8.0),
+                          decoration: boxDecorationWithRoundedCorners(
+                            backgroundColor: medicalTealPrimary,
+                            boxShape: BoxShape.circle,
+                          ),
+                          child: Text(newNotification.toString(), style: primaryTextStyle(color: white)),
+                        ).onTap(() {
+                          openBottomSheet();
+                        })
                         : Container(),
                   ],
                 ).expand(),
                 Container(
-                    padding: EdgeInsets.all(6),
-                    decoration: boxDecorationWithRoundedCorners(
-                      boxShape: BoxShape.circle,
-                      border: Border.all(color: medicalMediumGray),
-                      backgroundColor: context.cardColor,
-                    ),
-                    child: Icon(Icons.settings, color: mlColorDarkBlue, size: 20)),
+                  padding: EdgeInsets.all(6),
+                  decoration: boxDecorationWithRoundedCorners(
+                    boxShape: BoxShape.circle,
+                    border: Border.all(color: medicalMediumGray),
+                    backgroundColor: context.cardColor,
+                  ),
+                  child: Icon(Icons.settings, color: mlColorDarkBlue, size: 20),
+                ),
               ],
             ).paddingAll(16.0),
             ComingSoonView().expand(),
@@ -117,15 +118,11 @@ class MLNotificationFragmentState extends State<MLNotificationFragment> {
                     children: [
                       Text("Mark all read", style: boldTextStyle(color: white, size: 14)),
                       4.width,
-                      Icon(Icons.check_box, color: white, size: 20).onTap(
-                        () {
-                          setState(
-                            () {
-                              checked = true;
-                            },
-                          );
-                        },
-                      ),
+                      Icon(Icons.check_box, color: white, size: 20).onTap(() {
+                        setState(() {
+                          checked = true;
+                        });
+                      }),
                     ],
                   ),
                 ),
@@ -146,11 +143,9 @@ class MLNotificationFragmentState extends State<MLNotificationFragment> {
                       Icon(Icons.delete_outline, color: medicalTealPrimary, size: 20).paddingBottom(4.0),
                     ],
                   ),
-                ).onTap(
-                  () {
-                    finish(context);
-                  },
-                ),
+                ).onTap(() {
+                  finish(context);
+                }),
               ],
             ),
           ),

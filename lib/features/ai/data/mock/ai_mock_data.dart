@@ -5,15 +5,23 @@ import 'package:medilink/features/ai/data/models/lab_scan_model.dart';
 
 List<MLInboxData> mlBotChatDataList() {
   List<MLInboxData> list = [];
-  list.add(MLInboxData(
+  list.add(
+    MLInboxData(
       id: 1,
-      message: 'These are some of the frequantly asked question whencustomers use our services. Please '
-          'choose the question you are intrested in'));
+      message:
+          'These are some of the frequantly asked question whencustomers use our services. Please '
+          'choose the question you are intrested in',
+    ),
+  );
   list.add(MLInboxData(id: 0, message: 'yes'));
-  list.add(MLInboxData(
+  list.add(
+    MLInboxData(
       id: 1,
-      message: 'Hi Kaixa, Thank you for using Medilink\'s consulting service.'
-          'what are you intrested in our comprehensice checkup package?'));
+      message:
+          'Hi Kaixa, Thank you for using Medilink\'s consulting service.'
+          'what are you intrested in our comprehensice checkup package?',
+    ),
+  );
   list.add(MLInboxData(id: 0, message: 'Get Started'));
   return list;
 }

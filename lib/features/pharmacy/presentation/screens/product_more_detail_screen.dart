@@ -53,11 +53,9 @@ class MLProductMoreDetailScreenState extends State<MLProductMoreDetailScreen> wi
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               24.height,
-              Icon(Icons.close, color: mlColorBlue).paddingRight(32.0).onTap(
-                () {
-                  finish(context);
-                },
-              ),
+              Icon(Icons.close, color: mlColorBlue).paddingRight(32.0).onTap(() {
+                finish(context);
+              }),
               24.height,
               Container(
                 decoration: boxDecorationWithRoundedCorners(
@@ -75,19 +73,11 @@ class MLProductMoreDetailScreenState extends State<MLProductMoreDetailScreen> wi
                       unselectedLabelColor: Colors.grey,
                       indicatorSize: TabBarIndicatorSize.label,
                       labelStyle: primaryTextStyle(),
-                      tabs: [
-                        Tab(text: 'Detail'),
-                        Tab(text: 'How to Use'),
-                        Tab(text: 'Review'),
-                      ],
+                      tabs: [Tab(text: 'Detail'), Tab(text: 'How to Use'), Tab(text: 'Review')],
                     ),
                     TabBarView(
                       controller: _tabController,
-                      children: [
-                        MLPillDetailComponent(),
-                        MLPillHowToUseComponent(),
-                        MLPillReviewComponent(),
-                      ],
+                      children: [MLPillDetailComponent(), MLPillHowToUseComponent(), MLPillReviewComponent()],
                     ).expand(),
                   ],
                 ),

@@ -61,15 +61,11 @@ class MLVideoConsultScreenState extends State<MLVideoConsultScreen> {
             top: 150,
             child: Column(
               children: [
-                CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  radius: 45.0,
-                  backgroundImage: AssetImage(mlIcVideoConsult),
-                ),
+                CircleAvatar(backgroundColor: Colors.grey, radius: 45.0, backgroundImage: AssetImage(mlIcVideoConsult)),
                 8.height,
                 Text('Dr. Stephen Chow', style: boldTextStyle(size: 18, color: whiteColor)),
                 8.height,
-                Text(call, style: secondaryTextStyle(color: whiteColor))
+                Text(call, style: secondaryTextStyle(color: whiteColor)),
               ],
             ),
           ),
@@ -83,18 +79,16 @@ class MLVideoConsultScreenState extends State<MLVideoConsultScreen> {
                     MaterialButton(
                       child: Image.asset(mlIcEndCall, width: 50, height: 50),
                       onPressed: () {
-                        setState(
-                          () {
-                            currentWidget++;
-                            setOpacity = 0.0;
-                            call = 'Decline Call';
-                            goBackToMainScreen();
-                          },
-                        );
+                        setState(() {
+                          currentWidget++;
+                          setOpacity = 0.0;
+                          call = 'Decline Call';
+                          goBackToMainScreen();
+                        });
                       },
                     ),
                     8.height,
-                    Text('Reject', style: secondaryTextStyle(color: appStore.isDarkModeOn ? black : white))
+                    Text('Reject', style: secondaryTextStyle(color: appStore.isDarkModeOn ? black : white)),
                   ],
                 ),
                 16.width,
@@ -126,16 +120,14 @@ class MLVideoConsultScreenState extends State<MLVideoConsultScreen> {
                     MaterialButton(
                       child: Image.asset(mlIcReceiveCall, width: 50, height: 50),
                       onPressed: () {
-                        setState(
-                          () {
-                            currentWidget++;
-                            MLOnCallComponent().launch(context);
-                          },
-                        );
+                        setState(() {
+                          currentWidget++;
+                          MLOnCallComponent().launch(context);
+                        });
                       },
                     ),
                     8.height,
-                    Text('Confirm', style: secondaryTextStyle(color: appStore.isDarkModeOn ? black : white))
+                    Text('Confirm', style: secondaryTextStyle(color: appStore.isDarkModeOn ? black : white)),
                   ],
                 ),
               ],

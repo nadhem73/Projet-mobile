@@ -54,42 +54,41 @@ class MLCheckOutComponentState extends State<MLCheckOutComponent> {
                 8.height,
                 Divider(height: 0.5),
                 Column(
-                  children: data.map(
-                    (e) {
-                      return Row(
-                        children: [
-                          commonCachedNetworkImage(
-                            e.imageOne.validate(),
-                            height: 90,
-                            width: 90,
-                            fit: BoxFit.cover,
-                          ).cornerRadiusWithClipRRect(8.0),
-                          8.width,
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text((e.medicineOne).validate(), style: boldTextStyle()),
-                              6.height,
-                              Text(('Tablets : 50 pills').validate(), style: secondaryTextStyle()),
-                              8.height,
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.shopping_bag_outlined, size: 18, color: textSecondaryColorGlobal),
-                                  Text('Quantity: ', style: boldTextStyle(size: 14, color: textSecondaryColorGlobal)),
-                                  Text('02', style: boldTextStyle(size: 14)),
-                                  50.width,
-                                  Text('\$12.00', style: boldTextStyle(size: 14, color: mlColorBlue)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ).paddingAll(8.0);
-                    },
-                  ).toList(),
-                )
+                  children:
+                      data.map((e) {
+                        return Row(
+                          children: [
+                            commonCachedNetworkImage(
+                              e.imageOne.validate(),
+                              height: 90,
+                              width: 90,
+                              fit: BoxFit.cover,
+                            ).cornerRadiusWithClipRRect(8.0),
+                            8.width,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text((e.medicineOne).validate(), style: boldTextStyle()),
+                                6.height,
+                                Text(('Tablets : 50 pills').validate(), style: secondaryTextStyle()),
+                                8.height,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.shopping_bag_outlined, size: 18, color: textSecondaryColorGlobal),
+                                    Text('Quantity: ', style: boldTextStyle(size: 14, color: textSecondaryColorGlobal)),
+                                    Text('02', style: boldTextStyle(size: 14)),
+                                    50.width,
+                                    Text('\$12.00', style: boldTextStyle(size: 14, color: mlColorBlue)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ).paddingAll(8.0);
+                      }).toList(),
+                ),
               ],
             ),
           ),

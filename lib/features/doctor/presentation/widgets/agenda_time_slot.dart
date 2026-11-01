@@ -10,13 +10,7 @@ class MLDoctorAgendaTimeSlot extends StatelessWidget {
   final String endTime;
   final VoidCallback? onTap;
 
-  const MLDoctorAgendaTimeSlot({
-    super.key,
-    this.slot,
-    required this.startTime,
-    required this.endTime,
-    this.onTap,
-  });
+  const MLDoctorAgendaTimeSlot({super.key, this.slot, required this.startTime, required this.endTime, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +21,17 @@ class MLDoctorAgendaTimeSlot extends StatelessWidget {
       height: 60,
       margin: EdgeInsets.only(bottom: 8),
       decoration: boxDecorationWithRoundedCorners(
-        backgroundColor: hasAppointment ? (isDark ? mlColorDarkBlue.withValues(alpha: 0.2) : mlColorDarkBlue.withValues(alpha: 0.05)) : (isDark ? scaffoldDarkColor : Colors.grey.shade50),
+        backgroundColor:
+            hasAppointment
+                ? (isDark ? mlColorDarkBlue.withValues(alpha: 0.2) : mlColorDarkBlue.withValues(alpha: 0.05))
+                : (isDark ? scaffoldDarkColor : Colors.grey.shade50),
         borderRadius: radius(12),
-        border: Border.all(color: hasAppointment ? mlColorDarkBlue.withValues(alpha: 0.3) : (isDark ? Colors.grey.shade700 : Colors.grey.shade200)),
+        border: Border.all(
+          color:
+              hasAppointment
+                  ? mlColorDarkBlue.withValues(alpha: 0.3)
+                  : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
+        ),
       ),
       child: InkWell(
         onTap: onTap,
@@ -51,35 +53,33 @@ class MLDoctorAgendaTimeSlot extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: EdgeInsets.all(12),
-                child: hasAppointment
-                    ? Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: _getStatusColor(slot!.status!),
-                              shape: BoxShape.circle,
+                child:
+                    hasAppointment
+                        ? Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(color: _getStatusColor(slot!.status!), shape: BoxShape.circle),
                             ),
-                          ),
-                          8.width,
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(slot!.patientName.validate(), style: boldTextStyle(size: 13)),
-                              Text('${slot!.type}  •  ${slot!.notes}', style: secondaryTextStyle(size: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
-                            ],
-                          ).expand(),
-                          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                        ],
-                      )
-                    : Center(
-                        child: Text(
-                          'Disponible',
-                          style: secondaryTextStyle(size: 13, color: Colors.grey),
-                        ),
-                      ),
+                            8.width,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(slot!.patientName.validate(), style: boldTextStyle(size: 13)),
+                                Text(
+                                  '${slot!.type}  •  ${slot!.notes}',
+                                  style: secondaryTextStyle(size: 11),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ).expand(),
+                            Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                          ],
+                        )
+                        : Center(child: Text('Disponible', style: secondaryTextStyle(size: 13, color: Colors.grey))),
               ),
             ),
           ],
