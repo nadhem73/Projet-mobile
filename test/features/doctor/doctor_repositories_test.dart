@@ -179,6 +179,21 @@ void main() {
       expect(await consultations.forDoctor(benaliId, status: ConsultationStatus.inProgress), isEmpty);
     });
 
+    test('le patient ne voit que ses consultations clôturées', () async {
+      final c = await startFromAppointment();
+      await consultations.saveClinical(c.id, doctorId: benaliId, motif: 'Toux', diagnostic: 'Bronchite');
+      final notFound = throwsA(isA<AppException>().having((e) => e.code, 'code', 'not_found'));
+
+      await expectLater(consultations.forPatientById(c.id, patientId: patientId), notFound);
+
+      await consultations.close(c.id, doctorId: benaliId);
+      final seen = await consultations.forPatientById(c.id, patientId: patientId);
+      expect(seen.diagnostic, 'Bronchite');
+      expect(seen.doctorName, startsWith('Dr '));
+
+      await expectLater(consultations.forPatientById(c.id, patientId: patientId + 999), notFound);
+    });
+
     test('refuse une date de contrôle passée', () async {
       final c = await startFromAppointment();
       await consultations.saveClinical(c.id, doctorId: benaliId, motif: 'Contrôle');

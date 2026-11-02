@@ -7,6 +7,7 @@ import 'package:medilink/core/database/app_database.dart';
 import 'package:medilink/core/database/database_seeder.dart';
 import 'package:medilink/core/di/injection.dart';
 import 'package:medilink/core/state/app_store.dart';
+import 'package:medilink/features/doctor/data/models/consultation.dart';
 import 'package:medilink/features/doctor/data/models/prescription.dart';
 import 'package:medilink/features/doctor/data/repositories/consultation_repository.dart';
 import 'package:medilink/features/doctor/data/repositories/prescription_repository.dart';
@@ -163,5 +164,42 @@ void main() {
     expect(find.text('Bisoprolol'), findsOneWidget);
     expect(find.text('1 cp le matin'), findsOneWidget);
     expect(find.text('À présenter en pharmacie'), findsOneWidget);
+  });
+
+  testWidgets('patient : historique et compte rendu de ses consultations', (tester) async {
+    final patientId = await idOf(
+      "SELECT p.patient_id FROM patients p JOIN users u ON u.id = p.user_id WHERE u.email = 'patient@medilink.tn'",
+    );
+    final doctorId = await idOf(
+      "SELECT d.doctor_id FROM doctors d JOIN users u ON u.id = d.user_id WHERE u.email = 'dr.benali@medilink.tn'",
+    );
+    final consultations = getIt<ConsultationRepository>();
+    final c = await consultations.start(doctorId: doctorId, patientId: patientId);
+    await consultations.saveClinical(
+      c.id,
+      doctorId: doctorId,
+      motif: 'Toux persistante',
+      diagnostic: 'Bronchite aiguë',
+      vitals: const VitalSigns(temperature: 38.2),
+    );
+    await getIt<PrescriptionRepository>().create(
+      consultationId: c.id,
+      doctorId: doctorId,
+      items: const [PrescriptionItem(medicamentName: 'Amoxicilline', posologie: '1 g x 2', dureeTraitement: '7 jours')],
+    );
+    await consultations.close(c.id, doctorId: doctorId);
+
+    await openAndLogin(tester, 'patient@medilink.tn');
+    await tapVisible(tester, find.text('Consultations'));
+    expect(find.text('Mes consultations'), findsOneWidget);
+    expect(find.text('Dr Sami Benali'), findsOneWidget);
+    expect(find.text('Bronchite aiguë'), findsOneWidget);
+
+    await tester.tap(find.text('Bronchite aiguë'));
+    await settle(tester);
+    expect(find.text('Toux persistante'), findsOneWidget);
+    expect(find.text('38,2 °C'), findsOneWidget);
+    expect(find.text('Ordonnances (1)'), findsOneWidget);
+    expect(find.byType(PrescriptionTile), findsOneWidget);
   });
 }

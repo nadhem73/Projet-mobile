@@ -10,6 +10,7 @@ import 'package:medilink/features/doctor/data/repositories/medicament_api.dart';
 import 'package:medilink/features/doctor/data/repositories/prescription_repository.dart';
 import 'package:medilink/features/doctor/presentation/controllers/consultation_controller.dart';
 import 'package:medilink/features/doctor/presentation/controllers/consultations_controller.dart';
+import 'package:medilink/features/doctor/presentation/controllers/patient_consultations_controller.dart';
 import 'package:medilink/features/doctor/presentation/controllers/prescription_editor_controller.dart';
 import 'package:medilink/features/doctor/presentation/controllers/prescriptions_controller.dart';
 import 'package:medilink/features/doctor/presentation/screens/consultation_screen.dart';
@@ -19,13 +20,15 @@ import 'package:medilink/features/doctor/presentation/screens/doctor_dashboard_s
 import 'package:medilink/features/doctor/presentation/screens/doctor_lab_results_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_list_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_medical_record_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/patient_consultation_detail_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/patient_consultations_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/prescription_detail_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/prescription_editor_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/prescriptions_screen.dart';
 
 /// Module MÉDECIN — Membre 5.
 /// Espace médecin : agenda, consultations, dossiers patients, ordonnances.
-/// Côté patient : consultation de ses ordonnances.
+/// Côté patient : historique de ses consultations et de ses ordonnances.
 abstract final class DoctorRoutes {
   static const dashboard = AppRoutes.doctorHome;
   static const agenda = '/doctor/agenda';
@@ -37,6 +40,12 @@ abstract final class DoctorRoutes {
 
   /// Rédaction d'une ordonnance pendant la consultation [consultationId].
   static String prescriptionFor(Object consultationId) => '/doctor/consultation/$consultationId/prescription';
+
+  /// Historique des consultations du patient connecté.
+  static const patientConsultations = '/consultations';
+
+  /// Compte rendu d'une consultation clôturée, vu par le patient.
+  static String patientConsultation(Object id) => '/consultations/$id';
 
   /// Ordonnances de l'utilisateur connecté (reçues par le patient, rédigées par le médecin).
   static const patientPrescriptions = '/prescriptions';
@@ -64,7 +73,10 @@ class DoctorModule extends FeatureModule {
       ..registerFactory<PrescriptionEditorController>(
         () => PrescriptionEditorController(getIt(), getIt(), getIt(), getIt()),
       )
-      ..registerFactory<PrescriptionsController>(() => PrescriptionsController(getIt(), getIt()));
+      ..registerFactory<PrescriptionsController>(() => PrescriptionsController(getIt(), getIt()))
+      ..registerFactory<PatientConsultationsController>(
+        () => PatientConsultationsController(getIt(), getIt(), getIt()),
+      );
   }
 
   static int _id(GoRouterState state) => int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
@@ -91,6 +103,13 @@ class DoctorModule extends FeatureModule {
       builder: (_, state) => MLDoctorLabResultsScreen(patientId: state.pathParameters['id']),
     ),
     GoRoute(
+      path: DoctorRoutes.patientConsultations,
+      builder: (_, _) => const PatientConsultationsScreen(),
+      routes: [
+        GoRoute(path: ':id', builder: (_, state) => PatientConsultationDetailScreen(consultationId: _id(state))),
+      ],
+    ),
+    GoRoute(
       path: DoctorRoutes.patientPrescriptions,
       builder: (_, _) => const PrescriptionsScreen(),
       routes: [GoRoute(path: ':id', builder: (_, state) => PrescriptionDetailScreen(prescriptionId: _id(state)))],
@@ -99,6 +118,13 @@ class DoctorModule extends FeatureModule {
 
   @override
   List<ModuleShortcut> get patientShortcuts => const [
+    ModuleShortcut(
+      label: 'Consultations',
+      icon: Icons.history_rounded,
+      route: DoctorRoutes.patientConsultations,
+      color: AppColors.moduleDoctor,
+      order: 29,
+    ),
     ModuleShortcut(
       label: 'Ordonnances',
       icon: Icons.receipt_long_rounded,

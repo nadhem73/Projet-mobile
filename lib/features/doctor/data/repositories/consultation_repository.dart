@@ -117,6 +117,16 @@ class ConsultationRepository {
     return rows.map(Consultation.fromMap).toList();
   }
 
+  /// Consultation [id] vue par le patient [patientId] : elle doit lui
+  /// appartenir et être clôturée (une consultation en cours reste chez le médecin).
+  Future<Consultation> forPatientById(int id, {required int patientId}) async {
+    final consultation = await byId(id);
+    if (consultation.patientId != patientId || !consultation.isClosed) {
+      throw const AppException('Consultation introuvable.', code: 'not_found');
+    }
+    return consultation;
+  }
+
   /// Enregistre la saisie clinique d'une consultation en cours.
   Future<Consultation> saveClinical(
     int id, {
