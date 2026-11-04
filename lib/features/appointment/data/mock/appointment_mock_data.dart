@@ -7,7 +7,6 @@ import 'package:medilink/features/user/presentation/widgets/patient_selector.dar
 import 'package:medilink/features/appointment/data/models/appointment_model.dart';
 import 'package:medilink/features/appointment/data/models/book_appointment_model.dart';
 import 'package:medilink/features/appointment/data/models/doctor_model.dart';
-import 'package:medilink/features/appointment/data/models/specialist_model.dart';
 import 'package:medilink/core/utils/app_assets.dart';
 
 List<MLBookAppointmentData> mlBookAppointmentDataList() {
@@ -95,25 +94,6 @@ List<String?> mlScheduleTimeList() {
   list.add('2:00 AM - 3:00 AM');
   list.add('3:00 AM - 4:00 AM');
   list.add('4:00 AM - 5:00 AM');
-  return list;
-}
-
-List<MLSpecialistData> mlSpecialistDataDataList() {
-  List<MLSpecialistData> list = [];
-  list.add(MLSpecialistData(image: mlIcEyeSpecialist, title: 'Eye Care', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcBoneSpecialist, title: 'Bones', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcCovidSpecialist, title: 'Covid-19', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcHeartSpecialist, title: 'Heart', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcKidneySpecialist, title: 'Kiddney', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcLungsSpecialist, title: 'Lungs', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcToothSpecialist, title: 'Tooth', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcEyeSpecialist, title: 'Eye Care', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcBoneSpecialist, title: 'Bones', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcCovidSpecialist, title: 'Covid-19', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcHeartSpecialist, title: 'Heart', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcKidneySpecialist, title: 'Kiddney', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcLungsSpecialist, title: 'Lungs', subtitle: '647 Disease'));
-  list.add(MLSpecialistData(image: mlIcToothSpecialist, title: 'Tooth', subtitle: '647 Disease'));
   return list;
 }
 
