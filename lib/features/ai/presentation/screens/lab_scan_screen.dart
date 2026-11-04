@@ -1,187 +1,209 @@
 import 'package:flutter/material.dart';
-import 'package:medilink/core/theme/colors.dart';
-import 'package:medilink/core/utils/mock_data.dart';
-import 'package:medilink/features/ai/data/models/lab_scan_model.dart';
-import 'package:medilink/main.dart';
-import 'package:nb_utils/nb_utils.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:medilink/core/di/injection.dart';
+import 'package:medilink/core/theme/app_colors.dart';
+import 'package:medilink/core/theme/app_dimens.dart';
+import 'package:medilink/core/widgets/widgets.dart';
+import 'package:medilink/features/ai/ai_module.dart';
+import 'package:medilink/features/ai/presentation/controllers/bilan_scan_controller.dart';
+import 'package:medilink/features/ai/presentation/widgets/shooting_tips.dart';
 
-class MLLabScanScreen extends StatefulWidget {
-  static String tag = '/MLLabScanScreen';
-
-  const MLLabScanScreen({super.key});
+/// « Scanner un bilan » : photo (caméra / galerie) → recadrage → analyse.
+class BilanScanScreen extends StatefulWidget {
+  const BilanScanScreen({super.key});
 
   @override
-  MLLabScanScreenState createState() => MLLabScanScreenState();
+  State<BilanScanScreen> createState() => _BilanScanScreenState();
 }
 
-class MLLabScanScreenState extends State<MLLabScanScreen> {
-  List<MLLabScanData> scans = mlLabScanDataList();
+class _BilanScanScreenState extends State<BilanScanScreen> {
+  final _controller = getIt<BilanScanController>();
 
   @override
   void initState() {
     super.initState();
-    init();
-  }
-
-  Future<void> init() async {
-    //
+    _controller.addListener(_onChange);
   }
 
   @override
-  void setState(fn) {
-    if (mounted) super.setState(fn);
+  void dispose() {
+    _controller
+      ..removeListener(_onChange)
+      ..dispose();
+    super.dispose();
+  }
+
+  /// Analyse terminée → ouverture de la revue du bilan.
+  void _onChange() {
+    final id = _controller.bilanId;
+    if (_controller.step != ScanStep.done || id == null || !mounted) return;
+    if (_controller.analysedOffline) {
+      context.showInfo('Analysé sur le téléphone : vérifiez les valeurs avant de valider.');
+    }
+    _controller.reset();
+    context.pushReplacement(AiRoutes.bilan(id));
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = appStore.isDarkModeOn;
-
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: mlPrimaryColor,
-        body: Container(
-          width: context.width(),
-          decoration: boxDecorationWithRoundedCorners(
-            borderRadius: radiusOnly(topRight: 32),
-            backgroundColor: isDark ? black : white,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scanner un bilan'),
+        actions: [
+          IconButton(
+            tooltip: 'Mes bilans',
+            icon: const Icon(Icons.history_rounded),
+            onPressed: () => context.push(AiRoutes.bilans),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              8.height,
-              Row(children: [Text('Scanner un bilan', style: boldTextStyle(size: 22))]).paddingAll(16),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: context.width(),
-                        padding: EdgeInsets.all(24),
-                        decoration: boxDecorationWithRoundedCorners(
-                          backgroundColor: isDark ? scaffoldDarkColor : medicalTealUltraLight,
-                          borderRadius: radius(20),
-                          border: Border.all(color: medicalTealPrimary.withValues(alpha: 0.4), width: 1.5),
+          ListenableBuilder(
+            listenable: _controller,
+            builder:
+                (context, _) => PopupMenuButton<void>(
+                  tooltip: 'Paramètres',
+                  itemBuilder:
+                      (_) => [
+                        CheckedPopupMenuItem(
+                          checked: _controller.offlineForced,
+                          onTap: () => _controller.setOfflineForced(!_controller.offlineForced),
+                          child: const Text('OCR hors-ligne uniquement'),
                         ),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: medicalTealPrimary.withValues(alpha: 0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.document_scanner_outlined, size: 48, color: medicalTealDark),
-                            ),
-                            16.height,
-                            Text('Bilan de laboratoire', style: boldTextStyle(size: 18)),
-                            6.height,
-                            Text(
-                              'Prenez en photo de votre bilan pour en extraire\nautomatiquement les résultats (OCR)',
-                              textAlign: TextAlign.center,
-                              style: secondaryTextStyle(size: 13),
-                            ),
-                            20.height,
-                            Row(
-                              children: [
-                                AppButton(
-                                  height: 44,
-                                  color: medicalTealPrimary,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.camera_alt_outlined, color: white, size: 18),
-                                      8.width,
-                                      Text('Scanner', style: boldTextStyle(color: white, size: 14)),
-                                    ],
-                                  ),
-                                  onTap: () {
-                                    toasty(context, 'Ouverture de l\'appareil photo');
-                                  },
-                                ).expand(),
-                                12.width,
-                                AppButton(
-                                  height: 44,
-                                  color: isDark ? medicalDarkElevated : white,
-                                  elevation: 0.0,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.photo_library_outlined, color: medicalTealDark, size: 18),
-                                      8.width,
-                                      Text('Galerie', style: boldTextStyle(color: medicalTealDark, size: 14)),
-                                    ],
-                                  ),
-                                  onTap: () {
-                                    toasty(context, 'Sélection depuis la galerie');
-                                  },
-                                ).expand(),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      24.height,
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Mes bilans scannés', style: boldTextStyle(size: 18)),
-                          Text('${scans.length} résultats', style: secondaryTextStyle(size: 14)),
-                        ],
-                      ),
-                      12.height,
-                      ...scans.map(
-                        (e) => Container(
-                          margin: EdgeInsets.only(bottom: 12),
-                          padding: EdgeInsets.all(14),
-                          decoration: boxDecorationWithRoundedCorners(
-                            backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade50,
-                            borderRadius: radius(14),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(color: medicalBlueUltraLight, borderRadius: radius(10)),
-                                child: Icon(Icons.description_outlined, color: medicalBlueDark, size: 22),
-                              ),
-                              12.width,
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text((e.title).validate(), style: boldTextStyle(size: 15)),
-                                  4.height,
-                                  Text((e.date).validate(), style: secondaryTextStyle(size: 12)),
-                                ],
-                              ).expand(),
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: e.status == 'Analisé' ? healthSuccessLight : healthWarningLight,
-                                  borderRadius: radius(20),
-                                ),
-                                child: Text(
-                                  (e.status).validate(),
-                                  style: secondaryTextStyle(
-                                    size: 12,
-                                    color: e.status == 'Analisé' ? healthSuccessDark : healthWarningDark,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ).onTap(() {
-                          toasty(context, (e.title).validate());
-                        }),
-                      ),
-                      8.height,
-                    ],
-                  ),
+                      ],
                 ),
+          ),
+        ],
+      ),
+      body: ListenableBuilder(
+        listenable: _controller,
+        builder: (context, _) {
+          final c = _controller;
+          if (c.step.isBusy) return _ProgressView(step: c.step, progress: c.progress);
+          if (c.step == ScanStep.error) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                EmptyState.error(c.error ?? 'Erreur inconnue', onRetry: c.canRetry ? c.retry : null),
+                MediButton.text(
+                  label: 'Choisir une autre photo',
+                  icon: Icons.photo_library_rounded,
+                  onPressed: () => c.pick(ImageSource.gallery),
+                ),
+              ],
+            );
+          }
+          return _IdleView(controller: c);
+        },
+      ),
+    );
+  }
+}
+
+class _IdleView extends StatelessWidget {
+  const _IdleView({required this.controller});
+
+  final BilanScanController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final local = controller.offlineForced || !controller.serverConfigured;
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      children: [
+        MediCard(
+          color: AppColors.accentSurface,
+          borderColor: AppColors.accent.withValues(alpha: 0.3),
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15), shape: BoxShape.circle),
+                child: const Icon(Icons.document_scanner_rounded, size: 44, color: AppColors.accentDark),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text('Bilan de laboratoire', style: theme.textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Prenez votre bilan en photo : les valeurs sont extraites et comparées aux normes.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                children: [
+                  Expanded(
+                    child: MediButton(
+                      label: 'Caméra',
+                      icon: Icons.photo_camera_rounded,
+                      onPressed: () => controller.pick(ImageSource.camera),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: MediButton.outlined(
+                      label: 'Galerie',
+                      icon: Icons.photo_library_rounded,
+                      onPressed: () => controller.pick(ImageSource.gallery),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        const ShootingTips(),
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          children: [
+            Icon(local ? Icons.phone_android_rounded : Icons.cloud_rounded, size: 16, color: AppColors.textMuted),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                local
+                    ? 'Analyse sur le téléphone (Tesseract, hors-ligne).'
+                    : 'Analyse par le serveur MediLink ; sur le téléphone si le réseau est indisponible.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ProgressView extends StatelessWidget {
+  const _ProgressView({required this.step, required this.progress});
+
+  final ScanStep step;
+  final double? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final percent = progress == null ? null : ' ${(progress! * 100).round()} %';
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.document_scanner_rounded, size: 56, color: AppColors.accent),
+            const SizedBox(height: AppSpacing.xl),
+            Text('${step.label}${percent ?? ''}', style: theme.textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.lg),
+            LinearProgressIndicator(value: progress, minHeight: 6, borderRadius: BorderRadius.circular(3)),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              step == ScanStep.uploading
+                  ? 'L\'analyse par le serveur peut prendre jusqu\'à 90 secondes.'
+                  : 'Quelques secondes…',
+              style: theme.textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
