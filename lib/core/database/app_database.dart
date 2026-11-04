@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:medilink/core/config/app_config.dart';
 import 'package:medilink/core/database/database_seeder.dart';
+import 'package:medilink/core/database/schema/ai_schema.dart';
 import 'package:medilink/core/database/schema/appointment_schema.dart';
 import 'package:medilink/core/database/schema/doctor_schema.dart';
 import 'package:medilink/core/database/schema/insurance_schema.dart';
@@ -24,7 +25,7 @@ class AppDatabase {
   AppDatabase._(this.db);
 
   /// ⚠️ Incrémenter à chaque modification d'un fichier de schéma.
-  static const int version = 4;
+  static const int version = 5;
 
   /// Ordre important : les tables référencées doivent être créées avant.
   static const List<List<String>> _schemas = [
@@ -34,6 +35,7 @@ class AppDatabase {
     insuranceSchema,
     pharmacySchema,
     sharedSchema,
+    aiSchema,
   ];
 
   final Database db;
