@@ -379,6 +379,8 @@ class _DoctorDashboardHome extends StatelessWidget {
         'color': medicalBluePrimary,
         'route': '/doctor/medical-records',
       },
+      // Module IA : bilans de laboratoire envoyés par les patients.
+      {'label': 'Bilans reçus', 'icon': Icons.science_outlined, 'color': careCoralPrimary, 'route': '/doctor/bilans'},
     ];
 
     return Column(
