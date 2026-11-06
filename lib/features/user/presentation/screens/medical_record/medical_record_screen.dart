@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -6,8 +9,12 @@ import 'package:medilink/core/session/session_service.dart';
 import 'package:medilink/core/theme/app_colors.dart';
 import 'package:medilink/core/theme/app_dimens.dart';
 import 'package:medilink/core/widgets/widgets.dart';
+import 'package:medilink/features/user/data/ai/document_analyzer.dart';
+import 'package:medilink/features/user/data/ai/document_classifier.dart';
+import 'package:medilink/features/user/data/ai/medical_safety_checker.dart';
 import 'package:medilink/features/user/data/models/medical_file_models.dart';
 import 'package:medilink/features/user/presentation/controllers/medical_record_controller.dart';
+import 'package:medilink/features/user/presentation/widgets/ai_widgets.dart';
 import 'package:medilink/features/user/presentation/widgets/image_picking.dart';
 import 'package:medilink/features/user/presentation/widgets/medical_file_widgets.dart';
 import 'package:medilink/features/user/presentation/widgets/medical_record_view.dart';
@@ -66,14 +73,42 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> with SingleTi
   Future<void> _addDocument() async {
     final choice = await pickImage(context, title: 'Ajouter un document');
     if (choice is! PickedImage || !mounted) return;
+    final suggestion = await _analyzeDocument(choice.bytes);
+    if (!mounted) return;
     final details = await showDialog<(String, DocumentCategory)>(
       context: context,
-      builder: (_) => const _DocumentDetailsDialog(),
+      builder: (_) => _DocumentDetailsDialog(suggestion: suggestion),
     );
     if (details == null || !mounted) return;
     final error = await _controller!.addDocument(details.$1, details.$2, choice.bytes);
     if (!mounted) return;
     error == null ? context.showSuccess('Document ajouté') : context.showError(error);
+  }
+
+  /// OCR + classification IA pendant qu'un indicateur est affiché.
+  Future<DocumentSuggestion?> _analyzeDocument(Uint8List bytes) async {
+    final analyzer = getIt<DocumentAnalyzer>();
+    if (!analyzer.isAvailable) return null;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (_) => const AlertDialog(
+              content: Row(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: AppSpacing.lg),
+                  Expanded(child: Text('L\'IA lit le document…')),
+                ],
+              ),
+            ),
+      ),
+    );
+    final suggestion = await analyzer.suggest(bytes);
+    navigator.pop();
+    return suggestion;
   }
 
   Future<void> _deleteDocument(MedicalDocument d) async {
@@ -153,6 +188,15 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> with SingleTi
                       _CompletionBanner(percent: record.completion, onTap: _edit),
                       const SizedBox(height: AppSpacing.lg),
                     ],
+                    SafetyAlertsCard(
+                      forPatient: true,
+                      alerts: getIt<MedicalSafetyChecker>().check(
+                        record: record,
+                        vaccinations: controller.vaccinations,
+                        age: controller.identity?.age,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
                     MedicalRecordView(record: record, age: controller.identity?.age),
                   ],
                 ),
@@ -376,7 +420,10 @@ class _VaccinationSheetState extends State<_VaccinationSheet> {
 
 /// Titre et catégorie d'un document ajouté.
 class _DocumentDetailsDialog extends StatefulWidget {
-  const _DocumentDetailsDialog();
+  const _DocumentDetailsDialog({this.suggestion});
+
+  /// Proposition de l'IA (OCR), null si indisponible.
+  final DocumentSuggestion? suggestion;
 
   @override
   State<_DocumentDetailsDialog> createState() => _DocumentDetailsDialogState();
@@ -384,8 +431,8 @@ class _DocumentDetailsDialog extends StatefulWidget {
 
 class _DocumentDetailsDialogState extends State<_DocumentDetailsDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _title = TextEditingController();
-  DocumentCategory _category = DocumentCategory.analysis;
+  late final _title = TextEditingController(text: widget.suggestion?.title);
+  late DocumentCategory _category = widget.suggestion?.category ?? DocumentCategory.analysis;
 
   @override
   void dispose() {
@@ -401,7 +448,12 @@ class _DocumentDetailsDialogState extends State<_DocumentDetailsDialog> {
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (widget.suggestion != null) ...[
+              _SuggestionBanner(suggestion: widget.suggestion!),
+              const SizedBox(height: AppSpacing.md),
+            ],
             TextFormField(
               controller: _title,
               autofocus: true,
@@ -435,6 +487,43 @@ class _DocumentDetailsDialogState extends State<_DocumentDetailsDialog> {
           child: const Text('Ajouter'),
         ),
       ],
+    );
+  }
+}
+
+/// Explique la proposition de l'IA (catégorie, confiance, mots trouvés).
+class _SuggestionBanner extends StatelessWidget {
+  const _SuggestionBanner({required this.suggestion});
+
+  final DocumentSuggestion suggestion;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.moduleUser.withValues(alpha: 0.08),
+        borderRadius: AppRadius.card,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const AiBadge(label: 'Suggestion IA'),
+              const Spacer(),
+              Text('${suggestion.confidencePercent} %', style: theme.textTheme.labelLarge),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Catégorie détectée : ${suggestion.category.label}'
+            '${suggestion.keywords.isEmpty ? '' : '\nMots repérés : ${suggestion.keywords.join(', ')}'}',
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+      ),
     );
   }
 }
