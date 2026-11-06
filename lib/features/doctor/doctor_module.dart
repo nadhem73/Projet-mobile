@@ -1,22 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:medilink/core/modules/feature_module.dart';
 import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/theme/app_colors.dart';
+import 'package:medilink/features/doctor/data/repositories/consultation_repository.dart';
+import 'package:medilink/features/doctor/data/repositories/medicament_api.dart';
+import 'package:medilink/features/doctor/data/repositories/prescription_repository.dart';
+import 'package:medilink/features/doctor/presentation/controllers/consultation_controller.dart';
+import 'package:medilink/features/doctor/presentation/controllers/consultations_controller.dart';
+import 'package:medilink/features/doctor/presentation/controllers/patient_consultations_controller.dart';
+import 'package:medilink/features/doctor/presentation/controllers/prescription_editor_controller.dart';
+import 'package:medilink/features/doctor/presentation/controllers/prescriptions_controller.dart';
+import 'package:medilink/features/doctor/presentation/screens/consultation_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/consultations_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_consultation_detail_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_consultation_list_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_dashboard_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_lab_results_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_list_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_medical_record_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_prescription_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/prescription_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/patient_consultation_detail_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/patient_consultations_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/prescription_detail_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/prescription_editor_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/prescriptions_screen.dart';
 
 /// Module MÉDECIN — Membre 5.
 /// Espace médecin : agenda, consultations, dossiers patients, ordonnances.
-/// Côté patient : consultation de ses ordonnances.
+/// Côté patient : historique de ses consultations et de ses ordonnances.
 abstract final class DoctorRoutes {
   static const dashboard = AppRoutes.doctorHome;
   static const agenda = '/doctor/agenda';
@@ -25,11 +37,21 @@ abstract final class DoctorRoutes {
   static const patients = '/doctor/patients';
   static String patientRecord(Object patientId) => '/doctor/patient/$patientId/record';
   static String patientLabs(Object patientId) => '/doctor/patient/$patientId/labs';
-  static const newPrescription = '/doctor/prescription/new';
-  static const prescriptionTemplate = '/doctor/prescription/template';
 
-  /// Côté patient : historique de ses ordonnances.
+  /// Rédaction d'une ordonnance pendant la consultation [consultationId].
+  static String prescriptionFor(Object consultationId) => '/doctor/consultation/$consultationId/prescription';
+
+  /// Historique des consultations du patient connecté.
+  static const patientConsultations = '/consultations';
+
+  /// Compte rendu d'une consultation clôturée, vu par le patient.
+  static String patientConsultation(Object id) => '/consultations/$id';
+
+  /// Ordonnances de l'utilisateur connecté (reçues par le patient, rédigées par le médecin).
   static const patientPrescriptions = '/prescriptions';
+
+  /// Détail d'une ordonnance (patient, médecin, pharmacien, assureur).
+  static String prescription(Object id) => '/prescriptions/$id';
 }
 
 class DoctorModule extends FeatureModule {
@@ -40,17 +62,36 @@ class DoctorModule extends FeatureModule {
 
   @override
   void registerDependencies(GetIt getIt) {
-    // TODO(doctor): enregistrer ConsultationRepository, PrescriptionRepository...
+    getIt
+      // Repositories
+      ..registerLazySingleton<ConsultationRepository>(() => ConsultationRepository(getIt(), getIt(), getIt()))
+      ..registerLazySingleton<PrescriptionRepository>(() => PrescriptionRepository(getIt(), getIt(), getIt()))
+      ..registerLazySingleton<MedicamentApi>(() => MedicamentApi(http.Client()))
+      // Controllers (une instance par écran)
+      ..registerFactory<ConsultationsController>(() => ConsultationsController(getIt(), getIt()))
+      ..registerFactory<ConsultationController>(() => ConsultationController(getIt(), getIt(), getIt(), getIt()))
+      ..registerFactory<PrescriptionEditorController>(
+        () => PrescriptionEditorController(getIt(), getIt(), getIt(), getIt()),
+      )
+      ..registerFactory<PrescriptionsController>(() => PrescriptionsController(getIt(), getIt()))
+      ..registerFactory<PatientConsultationsController>(
+        () => PatientConsultationsController(getIt(), getIt(), getIt()),
+      );
   }
+
+  static int _id(GoRouterState state) => int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
 
   @override
   List<RouteBase> get routes => [
     GoRoute(path: DoctorRoutes.dashboard, builder: (_, _) => const MLDoctorDashboardScreen()),
     GoRoute(path: DoctorRoutes.agenda, builder: (_, _) => const MLDoctorAgendaScreen()),
-    GoRoute(path: DoctorRoutes.consultations, builder: (_, _) => const MLDoctorConsultationListScreen()),
+    GoRoute(path: DoctorRoutes.consultations, builder: (_, _) => const DoctorConsultationsScreen()),
     GoRoute(
       path: '/doctor/consultation/:id',
-      builder: (_, state) => MLDoctorConsultationDetailScreen(consultationId: state.pathParameters['id']),
+      builder: (_, state) => ConsultationScreen(consultationId: _id(state)),
+      routes: [
+        GoRoute(path: 'prescription', builder: (_, state) => PrescriptionEditorScreen(consultationId: _id(state))),
+      ],
     ),
     GoRoute(path: DoctorRoutes.patients, builder: (_, _) => const MLDoctorPatientListScreen()),
     GoRoute(
@@ -62,23 +103,28 @@ class DoctorModule extends FeatureModule {
       builder: (_, state) => MLDoctorLabResultsScreen(patientId: state.pathParameters['id']),
     ),
     GoRoute(
-      path: DoctorRoutes.newPrescription,
-      builder:
-          (_, state) => MLDoctorPrescriptionScreen(
-            consultationId: state.uri.queryParameters['consultationId'],
-            patientId: state.uri.queryParameters['patientId'],
-          ),
+      path: DoctorRoutes.patientConsultations,
+      builder: (_, _) => const PatientConsultationsScreen(),
+      routes: [
+        GoRoute(path: ':id', builder: (_, state) => PatientConsultationDetailScreen(consultationId: _id(state))),
+      ],
     ),
     GoRoute(
-      path: DoctorRoutes.prescriptionTemplate,
-      builder:
-          (_, state) => MLDoctorPrescriptionScreen(isTemplate: true, patientId: state.uri.queryParameters['patientId']),
+      path: DoctorRoutes.patientPrescriptions,
+      builder: (_, _) => const PrescriptionsScreen(),
+      routes: [GoRoute(path: ':id', builder: (_, state) => PrescriptionDetailScreen(prescriptionId: _id(state)))],
     ),
-    GoRoute(path: DoctorRoutes.patientPrescriptions, builder: (_, _) => const MLPrescriptionScreen()),
   ];
 
   @override
   List<ModuleShortcut> get patientShortcuts => const [
+    ModuleShortcut(
+      label: 'Consultations',
+      icon: Icons.history_rounded,
+      route: DoctorRoutes.patientConsultations,
+      color: AppColors.moduleDoctor,
+      order: 29,
+    ),
     ModuleShortcut(
       label: 'Ordonnances',
       icon: Icons.receipt_long_rounded,
