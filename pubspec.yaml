@@ -58,6 +58,8 @@ dependencies:
   sqflite_common_ffi_web: ^1.2.0
   qr_flutter: ^4.1.0
   image_picker: ^1.2.4
+  flutter_tesseract_ocr: ^0.4.31
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -85,5 +87,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/tessdata/
+    - assets/tessdata_config.json
 
 

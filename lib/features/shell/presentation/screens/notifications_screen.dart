@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:medilink/core/di/injection.dart';
 import 'package:medilink/core/notifications/notification_service.dart';
@@ -31,13 +32,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   static (IconData, Color) _style(String type) => switch (type) {
-    NotificationTypes.appointment => (Icons.calendar_month_rounded, AppColors.moduleAppointment),
-    NotificationTypes.prescription => (Icons.receipt_long_rounded, AppColors.moduleDoctor),
-    NotificationTypes.insurance => (Icons.health_and_safety_rounded, AppColors.moduleInsurance),
-    NotificationTypes.pharmacy => (Icons.local_pharmacy_rounded, AppColors.modulePharmacy),
-    NotificationTypes.account => (Icons.manage_accounts_rounded, AppColors.primary),
+    NotificationTypes.appointment => (
+      Icons.calendar_month_rounded,
+      AppColors.moduleAppointment,
+    ),
+    NotificationTypes.prescription => (
+      Icons.receipt_long_rounded,
+      AppColors.moduleDoctor,
+    ),
+    NotificationTypes.insurance => (
+      Icons.health_and_safety_rounded,
+      AppColors.moduleInsurance,
+    ),
+    NotificationTypes.pharmacy => (
+      Icons.local_pharmacy_rounded,
+      AppColors.modulePharmacy,
+    ),
+    NotificationTypes.account => (
+      Icons.manage_accounts_rounded,
+      AppColors.primary,
+    ),
     NotificationTypes.security => (Icons.lock_rounded, AppColors.error),
-    NotificationTypes.medicalRecord => (Icons.folder_shared_rounded, AppColors.info),
+    NotificationTypes.medicalRecord => (
+      Icons.folder_shared_rounded,
+      AppColors.info,
+    ),
     _ => (Icons.notifications_rounded, AppColors.accent),
   };
 
@@ -58,13 +77,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: FutureBuilder(
         future: _items,
         builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) return const LoadingView();
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const LoadingView();
+          }
           final items = snapshot.data ?? const [];
           if (items.isEmpty) {
             return const EmptyState(
               icon: Icons.notifications_off_outlined,
               title: 'Aucune notification',
-              message: 'Vous serez prévenu ici de vos rendez-vous, ordonnances et de l\'activité de votre compte.',
+              message:
+                  'Vous serez prévenu ici de vos rendez-vous, ordonnances et de l\'activité de votre compte.',
             );
           }
           return RefreshIndicator(
@@ -88,7 +110,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(AppSpacing.sm),
-                        decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
                         child: Icon(icon, color: color, size: 20),
                       ),
                       const SizedBox(width: AppSpacing.md),
@@ -98,12 +123,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           children: [
                             Row(
                               children: [
-                                Expanded(child: Text(n.title, style: theme.textTheme.titleSmall)),
+                                Expanded(
+                                  child: Text(
+                                    n.title,
+                                    style: theme.textTheme.titleSmall,
+                                  ),
+                                ),
                                 if (!n.isRead)
                                   Container(
                                     width: 8,
                                     height: 8,
-                                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                                    decoration: BoxDecoration(
+                                      color: color,
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
                               ],
                             ),
@@ -112,7 +145,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               Text(n.body!, style: theme.textTheme.bodyMedium),
                             ],
                             const SizedBox(height: AppSpacing.xs),
-                            Text(_when(n.createdAt), style: theme.textTheme.bodySmall),
+                            Text(
+                              _when(n.createdAt),
+                              style: theme.textTheme.bodySmall,
+                            ),
+                            if (n.type == NotificationTypes.insurance &&
+                                n.payload?['claimId'] is int)
+                              TextButton.icon(
+                                onPressed:
+                                    () => context.push(
+                                      '/insurance/claim/${n.payload!['claimId']}',
+                                    ),
+                                icon: const Icon(Icons.open_in_new, size: 16),
+                                label: const Text('Voir le dossier'),
+                              ),
                           ],
                         ),
                       ),

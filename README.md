@@ -51,7 +51,67 @@ Les comptes **médecin, pharmacien et assureur** créés depuis l'application so
 leur validation par un administrateur. Le patient de démo a rendez-vous avec Dr Benali et Dr Trabelsi :
 eux seuls peuvent consulter son dossier médical.
 
-> La cible principale est **Android**. SQLite (`sqflite`) ne fonctionne pas sur le Web.
+> La cible principale est **Android**. La démo Web utilise SQLite via WebAssembly.
+
+## Module assurance
+
+Depuis le tableau de bord patient, ouvrez **Assurance** pour enregistrer un contrat
+(organisme, numéro et taux déclaré). Le **simulateur de reste à charge** prépare le
+budget sans créer de demande : montant des soins × taux déclaré, arrondi au millime.
+Il ne tient pas compte des plafonds ou exclusions et ne garantit pas la couverture.
+
+Une demande peut comporter une date de soins, des photos de justificatifs et un lien
+vers une consultation ou une ordonnance appartenant au patient. **Mon dossier médical**
+permet de joindre une copie d'un document existant : sa suppression ultérieure dans le
+dossier médical ne supprime pas la pièce déjà déposée dans la demande.
+
+**Lire la facture** analyse la première image avec Tesseract, localement, puis propose
+le total et la date. Le patient doit les vérifier avant validation. La saisie manuelle
+reste disponible si la lecture échoue. JPEG, PNG et WebP : 3 Mo par image, 5 images et
+6 Mo maximum par dossier. Aucun document n'est transmis à un service d'OCR externe.
+
+Depuis le compte assureur, le tableau de bord affiche les contrats dont le nom de
+l'organisme correspond à celui de l'assureur et les demandes associées. Recherche par
+adhérent, numéro de contrat ou dossier, filtres par statut, et actualisation sont disponibles.
+**Ouvrir le dossier** donne accès aux pièces agrandissables, à l'historique et à la prochaine étape.
+L'assureur peut demander des pièces, approuver avec un montant retenu, refuser avec un
+motif obligatoire, puis confirmer un paiement effectué hors de MediLink. Un écart
+entre montant retenu et estimation nécessite un motif. Un complément en attente bloque
+l'approbation jusqu'à la réponse du patient. Aucun paiement n'est exécuté par l'application.
+
+Le patient peut compléter une demande encore en attente. Chaque soumission, complément,
+demande de pièces et décision produit une notification destinée aux comptes concernés,
+avec un lien vers le dossier. Les contrôles d'accès du repository s'appliquent également
+aux liens directs : patient propriétaire ou assureur de l'organisme uniquement. Les
+notes cliniques des consultations ne sont pas exposées à l'assureur.
+
+Pour essayer le parcours sur une même installation, créez un contrat **CNAM** avec
+`patient@medilink.tn`, ajoutez une demande, puis connectez-vous avec
+`assurance@medilink.tn` (mot de passe de démo `Medilink123`). Les données sont
+stockées localement dans SQLite : elles ne sont pas partagées entre appareils ni
+transmises à un organisme externe. La vérification réelle des contrats, les accords
+préalables officiels et les paiements réels nécessitent un service distant.
+
+**Aucune migration :** tables, colonnes, index et `AppDatabase.version` (3) inchangés.
+Le champ TEXT existant `insurance_claims.document_path` contient désormais un dossier
+JSON préfixé `medilink-dossier:v1:` : images en base64, date, consignes et événements.
+Les anciens chemins simples sont conservés et signalés dans le détail ; une nouvelle
+copie de l'image est nécessaire pour les afficher sur toutes les plateformes. Les
+notifications utilisent la table existante et sont écrites dans la même transaction que
+la décision. Un dossier illisible n'est jamais écrasé silencieusement. Cette convention
+locale devra être prise en compte si un backend ou un export est ajouté ultérieurement.
+
+OCR : `flutter_tesseract_ocr` pour Android/iOS, Tesseract.js 6.0.1 + core 6.0.0 pour le
+Web. Les moteurs Web et modèles linguistiques sont livrés avec l'application, avec
+leurs licences dans `web/ocr/` et `assets/tessdata/`. La référence Xcode `tessdata` inclut
+les modèles dans le bundle iOS. L'OCR ajoute environ 23 Mo de fichiers sources ; le Web
+charge uniquement le moteur nécessaire à la première lecture. La configuration native
+doit être validée sur un appareil Android/iOS avant livraison.
+
+Validation : `flutter test test/features/insurance`, `flutter analyze`, `flutter build web`.
+Le test navigateur optionnel `node tool/verify_insurance_ocr.cjs` utilise Chrome et un
+paquet `playwright-core` installé séparément (`PLAYWRIGHT_CORE_PATH` peut désigner son
+dossier). Il lit une facture synthétique et vérifie qu'aucune requête OCR externe n'est faite.
 
 ---
 

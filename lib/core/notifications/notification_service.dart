@@ -43,7 +43,10 @@ class AppNotification {
     type: map['type'] as String,
     title: map['title'] as String,
     body: map['body'] as String?,
-    payload: map['payload'] == null ? null : jsonDecode(map['payload'] as String) as Map<String, dynamic>,
+    payload:
+        map['payload'] == null
+            ? null
+            : jsonDecode(map['payload'] as String) as Map<String, dynamic>,
     isRead: (map['is_read'] as int) == 1,
     createdAt: DateTime.parse('${map['created_at']}Z').toLocal(),
   );
@@ -65,6 +68,9 @@ class NotificationService extends ChangeNotifier {
   NotificationService(this._database);
 
   final AppDatabase _database;
+
+  /// Call after a module atomically commits an operation and its notifications.
+  void refreshAfterTransaction() => notifyListeners();
 
   Future<int> notify({
     required int userId,
