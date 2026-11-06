@@ -7,7 +7,7 @@ import 'package:medilink/core/theme/app_colors.dart';
 import 'package:medilink/core/theme/app_dimens.dart';
 import 'package:medilink/core/widgets/widgets.dart';
 import 'package:medilink/features/appointment/appointment_module.dart';
-import 'package:medilink/features/appointment/presentation/screens/rendez_vous_screen.dart';
+import 'package:medilink/features/appointment/presentation/screens/my_appointments_screen.dart';
 import 'package:medilink/features/user/data/models/medical_record.dart';
 import 'package:medilink/features/user/data/repositories/medical_record_repository.dart';
 import 'package:medilink/features/user/presentation/screens/medical_record/medical_record_screen.dart';
@@ -38,7 +38,7 @@ class _PatientPanelScreenState extends State<PatientPanelScreen> {
         index: _index,
         children: [
           _PatientHomeTab(onOpenTab: _open, hiddenRoutes: _tabRoutes),
-          const MLRendezVousScreen(),
+          const MyAppointmentsScreen(),
           const MedicalRecordScreen(),
           const ProfileScreen(),
         ],
