@@ -7,8 +7,8 @@ import 'package:nb_utils/nb_utils.dart';
 import 'package:medilink/features/doctor/presentation/widgets/doctor_bottom_nav_bar.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/consultations_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_patient_list_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/prescriptions_screen.dart';
+import 'package:medilink/features/user/presentation/screens/doctor/doctor_patients_records_screen.dart';
 import 'package:medilink/core/theme/colors.dart';
 import 'package:medilink/core/utils/mock_data.dart';
 import 'package:medilink/main.dart';
@@ -28,7 +28,8 @@ class MLDoctorDashboardScreenState extends State<MLDoctorDashboardScreen> {
     _DoctorDashboardHome(onNavigateToTab: (index) {}),
     MLDoctorAgendaScreen(),
     const DoctorConsultationsScreen(),
-    MLDoctorPatientListScreen(),
+    // Vrais patients (rendez-vous) + accès contrôlé au dossier médical (module User).
+    const DoctorPatientsRecordsScreen(),
     const PrescriptionsScreen(embedded: true),
   ];
 
