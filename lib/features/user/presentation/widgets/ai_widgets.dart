@@ -144,7 +144,12 @@ class _AiSummaryCardState extends State<AiSummaryCard> {
   final _service = getIt<MedicalSummaryService>();
   Future<AiMedicalSummary>? _summary;
 
-  void _generate() => setState(() => _summary = _service.summarize(widget.file));
+  void _generate() {
+    final summary = _service.summarize(widget.file);
+    setState(() {
+      _summary = summary;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
