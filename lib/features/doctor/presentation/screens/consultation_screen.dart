@@ -1,5 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:medilink/core/notifications/notification_service.dart';
+import 'package:medilink/core/session/session_service.dart';
+import 'package:medilink/features/doctor/presentation/widgets/consultation_timer.dart';
 import 'package:intl/intl.dart';
 import 'package:medilink/core/di/injection.dart';
 import 'package:medilink/core/theme/app_colors.dart';
@@ -34,17 +40,94 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   final _weight = TextEditingController();
   DateTime? _followUp;
 
+  /// Minuteur de la consultation en cours (rafraîchi chaque seconde).
+  Timer? _ticker;
+  bool _warned = false;
+
+  /// Consultations dont l'alerte « 30 min » a déjà été donnée (pas de doublon
+  /// si le médecin ferme puis rouvre l'écran).
+  static final Set<String> _alerted = {};
+
   @override
   void initState() {
     super.initState();
-    _controller.load(widget.consultationId).then((_) => _fill());
+    _controller.load(widget.consultationId).then((_) {
+      _fill();
+      _startTicker();
+    });
     for (final c in [_height, _weight]) {
       c.addListener(() => setState(() {}));
     }
   }
 
+  Duration? get _elapsed {
+    final start = _controller.consultation?.startTime;
+    return start == null ? null : DateTime.now().difference(start);
+  }
+
+  void _startTicker() {
+    final c = _controller.consultation;
+    if (!mounted || c == null || !c.isInProgress || c.startTime == null) return;
+    // Ouverture d'une consultation déjà avancée : pas d'avertissement « 5 min » en retard.
+    _warned = _elapsed! >= ConsultationDuration.warning;
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+    _tick();
+  }
+
+  void _tick() {
+    final c = _controller.consultation;
+    if (!mounted || c == null || !c.isInProgress) {
+      _ticker?.cancel();
+      return;
+    }
+    setState(() {});
+    final phase = ConsultationDuration.phaseOf(_elapsed!);
+    if (phase == ConsultationTimePhase.warning && !_warned) {
+      _warned = true;
+      context.showInfo('Plus que 5 minutes avant la fin de la consultation.');
+    } else if (phase == ConsultationTimePhase.over && _alerted.add('${c.id}@${c.startTime}')) {
+      _alertMaxDuration(c);
+    }
+  }
+
+  /// 30 minutes écoulées : vibration + son, notification (cloche) et alerte à l'écran.
+  Future<void> _alertMaxDuration(Consultation c) async {
+    HapticFeedback.vibrate();
+    SystemSound.play(SystemSoundType.alert);
+    final user = getIt<SessionService>().currentUser;
+    if (user != null) {
+      await getIt<NotificationService>().notify(
+        userId: user.userId,
+        type: NotificationTypes.system,
+        title: 'Durée maximale de consultation atteinte',
+        body: 'La consultation avec ${c.patientName} dure depuis 30 minutes.',
+        payload: {'consultationId': c.id},
+      );
+    }
+    if (!mounted) return;
+    final closeNow = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            icon: const Icon(Icons.alarm_on_rounded, color: AppColors.error, size: 36),
+            title: const Text('30 minutes écoulées'),
+            content: Text(
+              'La consultation avec ${c.patientName} a atteint sa durée maximale de 30 minutes. '
+              'Pensez à la clôturer pour ne pas retarder le patient suivant.',
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Continuer')),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Clôturer maintenant')),
+            ],
+          ),
+    );
+    if (closeNow == true && mounted) await _close();
+  }
+
   @override
   void dispose() {
+    _ticker?.cancel();
     _controller.dispose();
     for (final c in [_motif, _diagnostic, _observation, _bloodPressure, _temperature, _height, _weight]) {
       c.dispose();
@@ -218,6 +301,10 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         _PatientHeader(consultation: c),
+        if (editable && _elapsed != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          ConsultationTimerBar(elapsed: _elapsed!),
+        ],
         if (allergies.isNotEmpty) ...[const SizedBox(height: AppSpacing.md), _AllergyBanner(allergies: allergies)],
         const SizedBox(height: AppSpacing.xl),
         const SectionHeader(title: 'Constantes'),
