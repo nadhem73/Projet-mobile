@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medilink/core/theme/app_colors.dart';
+import 'package:medilink/features/insurance/data/insurance_dossier.dart';
 
 String? requiredText(String? value) =>
     value == null || value.trim().isEmpty ? 'Champ obligatoire.' : null;
@@ -7,8 +8,13 @@ String money(Object? value) => '${(value as num).toStringAsFixed(3)} TND';
 String statusLabel(Object? status) => switch (status) {
   'ACTIVE' => 'Actif',
   'EXPIRED' => 'Expiré',
+  'NOT_STARTED' => 'À venir',
   'SUSPENDED' => 'Suspendu',
   'SUBMITTED' => 'À traiter',
+  'WITHDRAWN' => 'Retirée',
+  'WAITING_DOCUMENTS' => 'Pièces attendues',
+  'REVIEW_COMPLEMENT' => 'Complément à vérifier',
+  'UNREADABLE' => 'Dossier illisible',
   'APPROVED' => 'Approuvée',
   'REJECTED' => 'Refusée',
   'PAID' => 'Payée',
@@ -352,9 +358,15 @@ class ContractCard extends StatelessWidget {
     super.key,
     required this.contract,
     this.showPatient = false,
+    this.onEdit,
+    this.onDelete,
+    this.onToggle,
   });
   final Map<String, Object?> contract;
   final bool showPatient;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final VoidCallback? onToggle;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -402,7 +414,16 @@ class ContractCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _StatusTag(contract['status']),
+              _StatusTag(
+                contract['status'] == 'ACTIVE' && !contractIsUsable(contract)
+                    ? (DateTime.tryParse(
+                              '${contract['start_date']}',
+                            )?.isAfter(DateTime.now()) ??
+                            false
+                        ? 'NOT_STARTED'
+                        : 'EXPIRED')
+                    : contract['status'],
+              ),
             ],
           ),
           if (showPatient) ...[
@@ -428,6 +449,52 @@ class ContractCard extends StatelessWidget {
               ),
             ),
           ),
+          if (contract['start_date'] != null || contract['end_date'] != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text(
+                'Validité : ${contract['start_date'] ?? 'début non précisé'} → ${contract['end_date'] ?? 'fin non précisée'}',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          if (onToggle != null) ...[
+            const SizedBox(height: 12),
+            if (contract['insurer_available'] == 0)
+              Text(
+                'Aucun assureur actif correspondant sur cette installation. Vérifiez le nom de l’organisme ; le traitement local sera en attente.',
+                style: theme.textTheme.bodySmall,
+              ),
+            if (onEdit == null)
+              Text(
+                'Conditions conservées : un dossier est lié à ce contrat.',
+                style: theme.textTheme.bodySmall,
+              ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (onEdit != null)
+                  TextButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Modifier'),
+                  ),
+                if (onDelete != null)
+                  TextButton.icon(
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Supprimer'),
+                  ),
+                TextButton.icon(
+                  onPressed: onToggle,
+                  icon: const Icon(Icons.pause_circle_outline),
+                  label: Text(
+                    contract['status'] == 'ACTIVE' ? 'Désactiver' : 'Réactiver',
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -449,7 +516,7 @@ class ClaimCard extends StatelessWidget {
     final theme = Theme.of(context);
     final amount = (claim['amount'] as num).toDouble();
     final estimate = amount * (claim['coverage_rate'] as num).toDouble();
-    final status = claim['status'];
+    final status = insuranceClaimState(claim);
     final date = '${claim['submitted_at']}';
     return Container(
       margin: const EdgeInsets.only(top: 14),
@@ -497,7 +564,7 @@ class ClaimCard extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 4),
-          if (status != 'REJECTED')
+          if (status != 'REJECTED' && status != 'WITHDRAWN')
             Text(
               '${status == 'APPROVED' || status == 'PAID' ? 'Montant retenu' : 'Estimation indicative'} : ${money(claim['reimbursed_amount'] ?? estimate)}',
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -505,6 +572,14 @@ class ClaimCard extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 8),
+          if ((claim['possible_duplicates'] as List?)?.isNotEmpty ?? false)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                'À vérifier : frais similaires aux dossiers ${(claim['possible_duplicates'] as List).map((id) => '#$id').join(', ')}. Cela ne prouve pas un doublon.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
           Text(
             'Déposée le ${date.length >= 10 ? date.substring(0, 10) : date}',
             style: theme.textTheme.bodySmall,

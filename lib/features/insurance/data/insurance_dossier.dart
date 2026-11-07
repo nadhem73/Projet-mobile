@@ -10,6 +10,8 @@ class InsuranceDossier {
     this.careDate,
     this.requestedDocuments,
     this.legacyPath,
+    this.withdrawn = false,
+    this.complementReceived = false,
     List<InsuranceAttachment>? attachments,
     List<Map<String, dynamic>>? events,
   }) : attachments = attachments ?? [],
@@ -19,6 +21,8 @@ class InsuranceDossier {
   String? careDate;
   String? requestedDocuments;
   String? legacyPath;
+  bool withdrawn;
+  bool complementReceived;
   final List<InsuranceAttachment> attachments;
   final List<Map<String, dynamic>> events;
 
@@ -33,6 +37,8 @@ class InsuranceDossier {
         careDate: json['careDate'] as String?,
         requestedDocuments: json['requestedDocuments'] as String?,
         legacyPath: json['legacyPath'] as String?,
+        withdrawn: json['withdrawn'] as bool? ?? false,
+        complementReceived: json['complementReceived'] as bool? ?? false,
         attachments:
             (json['attachments'] as List)
                 .map((e) => InsuranceAttachment.fromJson(e))
@@ -66,9 +72,29 @@ class InsuranceDossier {
         'careDate': careDate,
         'requestedDocuments': requestedDocuments,
         'legacyPath': legacyPath,
+        'withdrawn': withdrawn,
+        'complementReceived': complementReceived,
         'attachments': attachments.map((a) => a.toJson()).toList(),
         'events': events,
       });
+}
+
+/// Derived presentation state; the existing SQL status constraint is unchanged.
+String insuranceClaimState(Map<String, Object?> claim) {
+  final status = claim['status'] as String;
+  if (status != 'SUBMITTED') return status;
+  try {
+    final dossier = InsuranceDossier.decode(claim['document_path']);
+    if (dossier.withdrawn) return 'WITHDRAWN';
+    if (dossier.requestedDocuments != null) {
+      return dossier.complementReceived
+          ? 'REVIEW_COMPLEMENT'
+          : 'WAITING_DOCUMENTS';
+    }
+  } on AppException {
+    return 'UNREADABLE';
+  }
+  return status;
 }
 
 class InsuranceAttachment {

@@ -58,6 +58,59 @@ void main() {
     );
   }
 
+  test('similar expense hints stay scoped and exclude withdrawals', () async {
+    final first = await repo.addContract(
+      company: 'CNAM',
+      policyNumber: 'DUP-A',
+      coverageRate: .7,
+    );
+    final second = await repo.addContract(
+      company: 'Unknown mutual',
+      policyNumber: 'DUP-B',
+      coverageRate: .5,
+    );
+    final contracts = await repo.patientContracts();
+    expect(
+      contracts.firstWhere(
+        (c) => c['contract_id'] == first,
+      )['insurer_available'],
+      1,
+    );
+    expect(
+      contracts.firstWhere(
+        (c) => c['contract_id'] == second,
+      )['insurer_available'],
+      0,
+    );
+    final a = await repo.submitClaim(
+      contractId: first,
+      amount: 100,
+      careDate: DateTime(2025, 1, 10),
+    );
+    final b = await repo.submitClaim(
+      contractId: second,
+      amount: 100,
+      careDate: DateTime(2025, 1, 10),
+    );
+    expect((await repo.claim(a))['possible_duplicates'], [b]);
+    // An insurer must not learn that a dossier exists at another company.
+    await openInsurer();
+    expect((await repo.claim(a))['possible_duplicates'], isEmpty);
+    await session.open(patient);
+    await repo.withdrawClaim(b, 'Saisie en double');
+    expect((await repo.claim(a))['possible_duplicates'], isEmpty);
+    final noDate = await repo.submitClaim(contractId: first, amount: 100);
+    expect((await repo.claim(noDate))['possible_duplicates'], isEmpty);
+    // A malformed legacy record does not make the entire list inaccessible.
+    await database.db.update(
+      'insurance_claims',
+      {'status': 'APPROVED', 'document_path': '${InsuranceDossier.prefix}bad'},
+      where: 'claim_id = ?',
+      whereArgs: [noDate],
+    );
+    expect(await repo.patientClaims(), hasLength(3));
+  });
+
   test(
     'patient creates contract and claim; insurer records approval and payment',
     () async {
@@ -225,6 +278,11 @@ void main() {
         repo.changeClaimStatus(id, 'APPROVED', approvedAmount: 60),
         throwsA(isA<AppException>()),
       );
+      await repo.reviewComplement(
+        id,
+        accepted: true,
+        note: 'Facture vérifiée.',
+      );
       await repo.changeClaimStatus(
         id,
         'APPROVED',
@@ -241,6 +299,7 @@ void main() {
         'SUBMITTED',
         'DOCUMENTS_REQUESTED',
         'COMPLEMENT',
+        'COMPLEMENT_ACCEPTED',
         'APPROVED',
         'PAID',
       ]);
@@ -249,7 +308,7 @@ void main() {
         (await notifier.forUser(
           patient.userId,
         )).where((n) => n.type == NotificationTypes.insurance),
-        hasLength(3),
+        hasLength(4),
       );
       expect(signals, greaterThanOrEqualTo(5));
       expect(
@@ -358,6 +417,262 @@ void main() {
         ),
         throwsA(isA<AppException>()),
       );
+    },
+  );
+
+  test(
+    'contract CRUD preserves linked history and rejects foreign callers',
+    () async {
+      final before = await database.db.rawQuery(
+        "SELECT name, sql FROM sqlite_master ORDER BY name",
+      );
+      final id = await repo.addContract(
+        company: 'CNAM',
+        policyNumber: 'CRUD',
+        coverageRate: .7,
+      );
+      await repo.updateContract(
+        id,
+        company: 'CNAM',
+        policyNumber: 'CORRECTED',
+        coverageRate: .8,
+        startDate: DateTime(2020),
+        endDate: DateTime(2099),
+      );
+      expect(
+        (await repo.patientContracts()).single['policy_number'],
+        'CORRECTED',
+      );
+      await expectLater(
+        repo.updateContract(
+          id,
+          company: 'CNAM',
+          policyNumber: 'X',
+          coverageRate: .8,
+          startDate: DateTime(2025),
+          endDate: DateTime(2024),
+        ),
+        throwsA(isA<AppException>()),
+      );
+      final duplicate = await repo.addContract(
+        company: 'CNAM',
+        policyNumber: 'OTHER',
+        coverageRate: .7,
+      );
+      await expectLater(
+        repo.updateContract(
+          duplicate,
+          company: 'cnam',
+          policyNumber: 'corrected',
+          coverageRate: .8,
+        ),
+        throwsA(isA<AppException>()),
+      );
+      await repo.deleteContract(duplicate);
+      expect(await repo.patientContracts(), hasLength(1));
+      final claim = await repo.submitClaim(contractId: id, amount: 100);
+      await expectLater(repo.deleteContract(id), throwsA(isA<AppException>()));
+      await expectLater(
+        repo.updateContract(
+          id,
+          company: 'STAR',
+          policyNumber: 'CHANGED',
+          coverageRate: 1,
+        ),
+        throwsA(isA<AppException>()),
+      );
+      await repo.setContractActive(id, false);
+      await expectLater(
+        repo.submitClaim(contractId: id, amount: 10),
+        throwsA(isA<AppException>()),
+      );
+      expect((await repo.claim(claim))['coverage_rate'], .8);
+      await openInsurer();
+      await expectLater(repo.deleteContract(id), throwsA(isA<AppException>()));
+      await expectLater(
+        repo.setContractActive(id, true),
+        throwsA(isA<AppException>()),
+      );
+      // Deactivation does not stop an existing dossier from being decided.
+      await repo.changeClaimStatus(claim, 'APPROVED');
+      expect((await repo.claim(claim))['reimbursed_amount'], 80);
+      await session.open(patient);
+      await repo.setContractActive(id, true);
+      expect((await repo.patientContracts()).single['status'], 'ACTIVE');
+      await session.open(
+        const CurrentUser(
+          userId: 99,
+          role: UserRole.patient,
+          nom: '',
+          prenom: '',
+          email: '',
+          patientId: 999,
+        ),
+      );
+      await expectLater(
+        repo.updateContract(
+          id,
+          company: 'STAR',
+          policyNumber: 'X',
+          coverageRate: .5,
+        ),
+        throwsA(isA<AppException>()),
+      );
+      await expectLater(repo.deleteContract(id), throwsA(isA<AppException>()));
+      await expectLater(
+        repo.setContractActive(id, false),
+        throwsA(isA<AppException>()),
+      );
+      expect(
+        await database.db.rawQuery(
+          "SELECT name, sql FROM sqlite_master ORDER BY name",
+        ),
+        before,
+      );
+    },
+  );
+
+  test(
+    'correction and withdrawal keep history and block later decisions',
+    () async {
+      final contract = await repo.addContract(
+        company: 'CNAM',
+        policyNumber: 'WITHDRAW',
+        coverageRate: .7,
+        startDate: DateTime(2020),
+      );
+      final id = await repo.submitClaim(contractId: contract, amount: 100);
+      await repo.correctClaim(
+        id,
+        amount: 80,
+        careDate: DateTime(2025, 1, 10),
+        reason: 'Erreur de saisie',
+      );
+      var row = await repo.claim(id);
+      expect(row['amount'], 80);
+      expect(
+        InsuranceDossier.decode(row['document_path']).events.last['note'],
+        contains('100'),
+      );
+      await expectLater(
+        repo.correctClaim(id, amount: double.nan, reason: 'Erreur'),
+        throwsA(isA<AppException>()),
+      );
+      await expectLater(
+        repo.correctClaim(
+          id,
+          amount: 10,
+          careDate: DateTime(2019),
+          reason: 'Erreur',
+        ),
+        throwsA(isA<AppException>()),
+      );
+      await openInsurer();
+      await expectLater(
+        repo.withdrawClaim(id, 'Erreur'),
+        throwsA(isA<AppException>()),
+      );
+      await repo.requestDocuments(id, 'Facture');
+      await session.open(patient);
+      await repo.withdrawClaim(id, 'Mauvais contrat');
+      row = await repo.claim(id);
+      expect(
+        row['status'],
+        'SUBMITTED',
+      ); // Existing SQLite constraint is unchanged.
+      expect(insuranceClaimState(row), 'WITHDRAWN');
+      expect(
+        InsuranceDossier.decode(row['document_path']).events.last['action'],
+        'WITHDRAWN',
+      );
+      await expectLater(
+        repo.correctClaim(id, amount: 10, reason: 'Trop tard'),
+        throwsA(isA<AppException>()),
+      );
+      await expectLater(
+        repo.complementClaim(id, attachments: [], note: 'Trop tard'),
+        throwsA(isA<AppException>()),
+      );
+      await expectLater(
+        repo.deleteContract(contract),
+        throwsA(isA<AppException>()),
+      );
+      await openInsurer();
+      for (final status in ['APPROVED', 'REJECTED', 'PAID']) {
+        await expectLater(
+          repo.changeClaimStatus(id, status, reason: 'Test'),
+          throwsA(isA<AppException>()),
+        );
+      }
+      await expectLater(
+        repo.requestDocuments(id, 'Facture'),
+        throwsA(isA<AppException>()),
+      );
+      await session.open(patient);
+      final approved = await repo.submitClaim(contractId: contract, amount: 20);
+      await openInsurer();
+      await repo.changeClaimStatus(approved, 'APPROVED');
+      await session.open(patient);
+      await expectLater(
+        repo.withdrawClaim(approved, 'Trop tard'),
+        throwsA(isA<AppException>()),
+      );
+      await expectLater(
+        repo.correctClaim(approved, amount: 10, reason: 'Trop tard'),
+        throwsA(isA<AppException>()),
+      );
+    },
+  );
+
+  test(
+    'text reply needs explicit insurer review, with retry and scoped access',
+    () async {
+      final contract = await repo.addContract(
+        company: 'CNAM',
+        policyNumber: 'REVIEW',
+        coverageRate: .7,
+      );
+      final id = await repo.submitClaim(contractId: contract, amount: 100);
+      await openInsurer();
+      await repo.requestDocuments(id, 'Facture lisible');
+      expect(insuranceClaimState(await repo.claim(id)), 'WAITING_DOCUMENTS');
+      await session.open(patient);
+      await repo.complementClaim(
+        id,
+        attachments: [],
+        note: 'Je la remettrai demain.',
+      );
+      expect(insuranceClaimState(await repo.claim(id)), 'REVIEW_COMPLEMENT');
+      await expectLater(
+        repo.reviewComplement(id, accepted: true, note: 'Test'),
+        throwsA(isA<AppException>()),
+      );
+      await openInsurer();
+      await expectLater(
+        repo.changeClaimStatus(id, 'APPROVED'),
+        throwsA(isA<AppException>()),
+      );
+      await repo.reviewComplement(
+        id,
+        accepted: false,
+        note: 'Facture toujours attendue',
+      );
+      expect(insuranceClaimState(await repo.claim(id)), 'WAITING_DOCUMENTS');
+      await session.open(patient);
+      await repo.complementClaim(
+        id,
+        attachments: [],
+        note: 'Remise au guichet.',
+      );
+      await openInsurer();
+      await repo.reviewComplement(
+        id,
+        accepted: true,
+        note: 'Copie reçue et vérifiée.',
+      );
+      expect(insuranceClaimState(await repo.claim(id)), 'SUBMITTED');
+      await repo.changeClaimStatus(id, 'APPROVED');
+      expect((await repo.claim(id))['status'], 'APPROVED');
     },
   );
 }

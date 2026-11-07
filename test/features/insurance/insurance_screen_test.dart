@@ -226,6 +226,13 @@ void main() {
       router.go('/insurer/dashboard');
       await tester.pumpAndSettle();
       await tap('Ouvrir le dossier');
+      expect(find.text('Approuver'), findsNothing);
+      await tap('Valider le complément');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Résultat de la vérification'),
+        'Facture remise au guichet et vérifiée.',
+      );
+      await tap('Confirmer');
       await tap('Approuver');
       await tester.enterText(
         find.widgetWithText(TextField, 'Montant retenu (TND)'),

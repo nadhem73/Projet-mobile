@@ -6,6 +6,7 @@ import 'package:medilink/core/widgets/widgets.dart';
 import 'package:medilink/features/insurance/data/insurance_dossier.dart';
 import 'package:medilink/features/insurance/data/insurance_repository.dart';
 import 'insurance_forms.dart';
+import 'insurance_contract_form.dart';
 import 'insurance_widgets.dart';
 
 class InsuranceClaimScreen extends StatefulWidget {
@@ -77,9 +78,12 @@ class _InsuranceClaimScreenState extends State<InsuranceClaimScreen> {
           return EmptyState.error(e.message, onRetry: refresh);
         }
         final patient = repo.isPatient;
-        final status = claim['status'];
+        final status = dossier.withdrawn ? 'WITHDRAWN' : claim['status'];
         final theme = Theme.of(context);
         final next = switch (status) {
+          'WITHDRAWN' => 'Demande retirée par le patient. Historique conservé.',
+          'SUBMITTED' when dossier.complementReceived =>
+            'Réponse reçue : le complément doit être vérifié par l’assureur.',
           'SUBMITTED' when dossier.requestedDocuments != null =>
             patient
                 ? 'À vous de compléter le dossier'
@@ -271,11 +275,43 @@ class _InsuranceClaimScreenState extends State<InsuranceClaimScreen> {
                             label: const Text('Compléter mon dossier'),
                           ),
                         ),
+                      if (patient && status == 'SUBMITTED')
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () => action(claim, 'CORRECTED'),
+                              icon: const Icon(Icons.edit_outlined),
+                              label: const Text('Corriger les informations'),
+                            ),
+                            TextButton.icon(
+                              onPressed: () => action(claim, 'WITHDRAWN'),
+                              icon: const Icon(Icons.undo),
+                              label: const Text('Retirer ma demande'),
+                            ),
+                          ],
+                        ),
                       if (!patient && status == 'SUBMITTED')
                         Wrap(
                           spacing: 12,
                           runSpacing: 12,
                           children: [
+                            if (dossier.complementReceived) ...[
+                              TextButton(
+                                onPressed:
+                                    () => action(claim, 'COMPLEMENT_ACCEPTED'),
+                                child: const Text('Valider le complément'),
+                              ),
+                              TextButton(
+                                onPressed:
+                                    () => action(
+                                      claim,
+                                      'COMPLEMENT_INSUFFICIENT',
+                                    ),
+                                child: const Text('Complément insuffisant'),
+                              ),
+                            ],
                             if (dossier.requestedDocuments == null) ...[
                               InsuranceMotion(
                                 child: FilledButton.icon(
@@ -338,7 +374,10 @@ class _TimelineEvent extends StatelessWidget {
     final label = switch (event['action']) {
       'SUBMITTED' => 'Demande déposée',
       'DOCUMENTS_REQUESTED' => 'Complément demandé',
-      'COMPLEMENT' => 'Dossier complété',
+      'COMPLEMENT' => 'Réponse du patient',
+      'COMPLEMENT_ACCEPTED' => 'Complément vérifié',
+      'CORRECTED' => 'Informations corrigées',
+      'WITHDRAWN' => 'Demande retirée',
       'APPROVED' => 'Demande approuvée',
       'REJECTED' => 'Demande refusée',
       'PAID' => 'Paiement enregistré',
@@ -401,8 +440,11 @@ class _DecisionFormState extends State<_DecisionForm> {
   late final amount = TextEditingController(
     text: insuranceEstimate(
       widget.claim['amount'] as num,
-      widget.claim['coverage_rate'] as num,
+      widget.action == 'CORRECTED' ? 1 : widget.claim['coverage_rate'] as num,
     ).toStringAsFixed(3),
+  );
+  late final date = TextEditingController(
+    text: InsuranceDossier.decode(widget.claim['document_path']).careDate,
   );
   List<InsuranceAttachment> attachments = [];
   bool busy = false;
@@ -411,8 +453,11 @@ class _DecisionFormState extends State<_DecisionForm> {
   void dispose() {
     note.dispose();
     amount.dispose();
+    date.dispose();
     super.dispose();
   }
+
+  String? _validateCorrectionDate() => validateInsuranceDate(date.text);
 
   Future<void> save() async {
     setState(() {
@@ -422,6 +467,26 @@ class _DecisionFormState extends State<_DecisionForm> {
     try {
       final id = widget.claim['claim_id'] as int;
       switch (widget.action) {
+        case 'WITHDRAWN':
+          await widget.repo.withdrawClaim(id, note.text);
+        case 'CORRECTED':
+          final invalidDate = _validateCorrectionDate();
+          if (invalidDate != null) throw AppException(invalidDate);
+          await widget.repo.correctClaim(
+            id,
+            amount:
+                double.tryParse(amount.text.replaceAll(',', '.')) ?? double.nan,
+            careDate: DateTime.tryParse(date.text.trim()),
+            reason: note.text,
+          );
+        case 'COMPLEMENT_ACCEPTED':
+        case 'COMPLEMENT_INSUFFICIENT':
+          await widget.repo.reviewComplement(
+            id,
+            accepted: widget.action == 'COMPLEMENT_ACCEPTED',
+            note: note.text,
+          );
+
         case 'DOCUMENTS_REQUESTED':
           await widget.repo.requestDocuments(id, note.text);
         case 'COMPLEMENT':
@@ -457,6 +522,10 @@ class _DecisionFormState extends State<_DecisionForm> {
   @override
   Widget build(BuildContext context) {
     final title = switch (widget.action) {
+      'WITHDRAWN' => 'Retirer ma demande',
+      'CORRECTED' => 'Corriger les informations',
+      'COMPLEMENT_ACCEPTED' => 'Valider le complément',
+      'COMPLEMENT_INSUFFICIENT' => 'Complément insuffisant',
       'APPROVED' => 'Approuver la demande',
       'REJECTED' => 'Refuser la demande',
       'DOCUMENTS_REQUESTED' => 'Demander des pièces',
@@ -475,6 +544,44 @@ class _DecisionFormState extends State<_DecisionForm> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (widget.action == 'WITHDRAWN') ...[
+                  const Text(
+                    'Le dossier restera consultable, mais ne pourra plus être traité. Vous pourrez créer une nouvelle demande si nécessaire.',
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (widget.action == 'CORRECTED') ...[
+                  const Text(
+                    'La correction et les anciennes valeurs seront conservées dans l’historique. Pour changer de contrat ou de soin lié, retirez cette demande puis créez-en une nouvelle.',
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: amount,
+                    enabled: !busy,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Frais corrigés (TND)',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: date,
+                    enabled: !busy,
+                    decoration: const InputDecoration(
+                      labelText: 'Date des soins (facultatif)',
+                      hintText: 'AAAA-MM-JJ',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (widget.action == 'COMPLEMENT_ACCEPTED') ...[
+                  const Text(
+                    'Confirmez que la réponse et les pièces répondent à votre demande. Cette vérification ne vaut pas approbation du remboursement.',
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 if (widget.action == 'APPROVED') ...[
                   const Text(
                     'Vérifiez les justificatifs et le taux déclaré avant de retenir un montant.',
@@ -508,6 +615,10 @@ class _DecisionFormState extends State<_DecisionForm> {
                     labelText: switch (widget.action) {
                       'DOCUMENTS_REQUESTED' => 'Pièces attendues et consignes',
                       'COMPLEMENT' => 'Votre réponse',
+                      'WITHDRAWN' => 'Motif du retrait',
+                      'CORRECTED' => 'Motif de la correction',
+                      'COMPLEMENT_INSUFFICIENT' => 'Pièces encore attendues',
+                      'COMPLEMENT_ACCEPTED' => 'Résultat de la vérification',
                       'PAID' => 'Référence du paiement (facultatif)',
                       _ => 'Motif de la décision',
                     },

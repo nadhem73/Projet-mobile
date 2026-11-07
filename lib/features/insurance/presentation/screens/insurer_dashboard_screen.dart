@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medilink/features/insurance/data/insurance_dossier.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medilink/core/di/injection.dart';
 import 'package:medilink/core/navigation/app_routes.dart';
@@ -105,7 +106,15 @@ class _InsurerDashboardScreenState extends State<InsurerDashboardScreen> {
     List<Map<String, Object?>> contracts,
     List<Map<String, Object?>> claims,
   ) {
-    final pending = claims.where((c) => c['status'] == 'SUBMITTED').length;
+    final pending =
+        claims
+            .where(
+              (c) => [
+                'SUBMITTED',
+                'REVIEW_COMPLEMENT',
+              ].contains(insuranceClaimState(c)),
+            )
+            .length;
     bool matches(Map<String, Object?> row) =>
         '${row['prenom']} ${row['nom']} ${row['policy_number']} ${row['claim_id'] ?? ''}'
             .toLowerCase()
@@ -113,7 +122,9 @@ class _InsurerDashboardScreenState extends State<InsurerDashboardScreen> {
     final filteredClaims =
         claims
             .where(
-              (c) => (filter == 'ALL' || c['status'] == filter) && matches(c),
+              (c) =>
+                  (filter == 'ALL' || insuranceClaimState(c) == filter) &&
+                  matches(c),
             )
             .toList();
     final filteredContracts = contracts.where(matches).toList();
@@ -166,6 +177,9 @@ class _InsurerDashboardScreenState extends State<InsurerDashboardScreen> {
             for (final status in [
               'ALL',
               'SUBMITTED',
+              'WAITING_DOCUMENTS',
+              'REVIEW_COMPLEMENT',
+              'WITHDRAWN',
               'APPROVED',
               'REJECTED',
               'PAID',

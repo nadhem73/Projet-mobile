@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medilink/features/insurance/data/insurance_dossier.dart';
 import 'insurance_forms.dart';
+import 'insurance_contract_form.dart';
 import 'package:medilink/core/di/injection.dart';
 import 'package:medilink/core/error/app_exception.dart';
 import 'package:medilink/core/widgets/widgets.dart';
@@ -16,21 +17,11 @@ class InsuranceHomeScreen extends StatefulWidget {
 
 class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> {
   final repo = getIt<InsuranceRepository>();
-  final List<TextEditingController> _controllers = [];
   late Future<List<List<Map<String, Object?>>>> data;
-
-  TextEditingController controller([String? text]) {
-    final value = TextEditingController(text: text);
-    _controllers.add(value);
-    return value;
-  }
 
   @override
   void dispose() {
     repo.changes.removeListener(refresh);
-    for (final value in _controllers) {
-      value.dispose();
-    }
     super.dispose();
   }
 
@@ -47,104 +38,12 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> {
     });
   }
 
-  Future<void> addContract() async {
-    final company = controller();
-    final policy = controller();
-    final rate = controller('70');
-    final form = GlobalKey<FormState>();
-    final result = await showDialog<bool>(
+  Future<void> addContract([Map<String, Object?>? contract]) async {
+    await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            constraints: const BoxConstraints(maxWidth: 480),
-            title: const Text('Ajouter un contrat'),
-            content: Form(
-              key: form,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Gardez vos informations de couverture à portée de main.',
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: company,
-                      decoration: const InputDecoration(
-                        labelText: 'Organisme (ex. CNAM)',
-                      ),
-                      validator: requiredText,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: policy,
-                      decoration: const InputDecoration(
-                        labelText: 'Numéro de contrat',
-                      ),
-                      validator: requiredText,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: rate,
-                      decoration: const InputDecoration(
-                        labelText: 'Taux estimé (%)',
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (v) {
-                        final n = double.tryParse(
-                          (v ?? '').replaceAll(',', '.'),
-                        );
-                        return n == null || !n.isFinite || n < 0 || n > 100
-                            ? 'Saisissez un taux entre 0 et 100.'
-                            : null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Informations déclarées par vos soins. Le taux est indicatif et doit être vérifié auprès de votre organisme.',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              InsuranceMotion(
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Annuler'),
-                ),
-              ),
-              InsuranceMotion(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(140, 48),
-                  ),
-                  onPressed: () {
-                    if (form.currentState!.validate()) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  child: const Text('Enregistrer'),
-                ),
-              ),
-            ],
-          ),
+      barrierDismissible: false,
+      builder: (_) => InsuranceContractForm(repo: repo, contract: contract),
     );
-    if (result == true) {
-      try {
-        await repo.addContract(
-          company: company.text,
-          policyNumber: policy.text,
-          coverageRate: double.parse(rate.text.replaceAll(',', '.')) / 100,
-        );
-        if (mounted) {
-          context.showSuccess('Contrat enregistré.');
-          refresh();
-        }
-      } on AppException catch (e) {
-        if (mounted) context.showError(e.message);
-      }
-    }
   }
 
   Future<void> submit(List<Map<String, Object?>> contracts) async {
@@ -159,6 +58,56 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> {
       builder: (_) => InsuranceClaimForm(repo: repo, contracts: eligible),
     );
     if (saved == true && mounted) context.showSuccess('Demande enregistrée.');
+  }
+
+  Future<void> manageContract(
+    Map<String, Object?> contract, {
+    bool delete = false,
+  }) async {
+    final activate = contract['status'] != 'ACTIVE';
+    final label =
+        delete
+            ? 'Supprimer le contrat'
+            : activate
+            ? 'Réactiver le contrat'
+            : 'Désactiver le contrat';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(label),
+            content: Text(
+              delete
+                  ? 'Supprimer définitivement le contrat ${contract['policy_number']} sans demande liée ?'
+                  : activate
+                  ? 'Le contrat sera de nouveau proposé si ses dates sont valides. Cela ne vaut pas validation par l’organisme.'
+                  : 'Ce contrat ne sera plus proposé pour de nouvelles demandes. Les dossiers existants et leur traitement seront conservés.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Annuler'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Confirmer'),
+              ),
+            ],
+          ),
+    );
+    if (confirmed != true) return;
+    try {
+      final id = contract['contract_id'] as int;
+      if (delete) {
+        await repo.deleteContract(id);
+      } else {
+        await repo.setContractActive(id, activate);
+      }
+    } on AppException catch (e) {
+      if (mounted) context.showError(e.message);
+    } catch (_) {
+      if (mounted) context.showError('Impossible d’enregistrer. Réessayez.');
+    }
   }
 
   @override
@@ -177,7 +126,15 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> {
         final contracts = snapshot.data![0];
         final claims = snapshot.data![1];
         final pending =
-            claims.where((claim) => claim['status'] == 'SUBMITTED').length;
+            claims
+                .where(
+                  (claim) => [
+                    'SUBMITTED',
+                    'WAITING_DOCUMENTS',
+                    'REVIEW_COMPLEMENT',
+                  ].contains(insuranceClaimState(claim)),
+                )
+                .length;
         final theme = Theme.of(context);
         return RefreshIndicator(
           onRefresh: () async {
@@ -211,7 +168,7 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> {
                                 'Vos informations de couverture en un coup d’œil.',
                             action: InsuranceMotion(
                               child: TextButton.icon(
-                                onPressed: addContract,
+                                onPressed: () => addContract(),
                                 icon: const Icon(Icons.add_rounded),
                                 label: const Text('Ajouter'),
                               ),
@@ -226,7 +183,21 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> {
                             )
                           else
                             for (final contract in contracts)
-                              ContractCard(contract: contract),
+                              ContractCard(
+                                contract: contract,
+                                onEdit:
+                                    (contract['claim_count'] as num) == 0
+                                        ? () => addContract(contract)
+                                        : null,
+                                onDelete:
+                                    (contract['claim_count'] as num) == 0
+                                        ? () => manageContract(
+                                          contract,
+                                          delete: true,
+                                        )
+                                        : null,
+                                onToggle: () => manageContract(contract),
+                              ),
                           const SizedBox(height: 32),
                           InsuranceSectionHeading(
                             eyebrow: 'Suivi de vos soins',
