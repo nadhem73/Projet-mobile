@@ -13,6 +13,7 @@ import 'package:medilink/features/user/data/ai/medical_safety_checker.dart';
 import 'package:medilink/features/user/data/models/medical_file_models.dart';
 import 'package:medilink/features/user/data/repositories/medical_access_repository.dart';
 import 'package:medilink/features/user/presentation/widgets/ai_widgets.dart';
+import 'package:medilink/features/user/presentation/screens/doctor/patient_documents_tab.dart';
 import 'package:medilink/features/user/presentation/widgets/medical_file_widgets.dart';
 import 'package:medilink/features/user/presentation/widgets/medical_record_view.dart';
 import 'package:medilink/features/user/user_module.dart';
@@ -215,10 +216,8 @@ class _DoctorPatientRecordScreenState extends State<DoctorPatientRecordScreen> {
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   children: [VaccinationList(vaccinations: file.vaccinations)],
                 ),
-                ListView(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  children: [DocumentGrid(documents: file.documents)],
-                ),
+                // Bilans scannés (module IA) + pièces jointes du patient.
+                PatientDocumentsTab(patientId: widget.patientId, documents: file.documents),
               ],
             ),
           ),

@@ -16,6 +16,7 @@ import 'package:medilink/features/ai/presentation/controllers/bilan_history_cont
 import 'package:medilink/features/ai/presentation/controllers/bilan_review_controller.dart';
 import 'package:medilink/features/ai/presentation/controllers/bilan_scan_controller.dart';
 import 'package:medilink/features/ai/presentation/controllers/doctor_bilans_controller.dart';
+import 'package:medilink/features/ai/presentation/controllers/patient_record_bilans_controller.dart';
 import 'package:medilink/features/ai/presentation/screens/ai_assistant_screen.dart';
 import 'package:medilink/features/ai/presentation/screens/bilan_evolution_screen.dart';
 import 'package:medilink/features/ai/presentation/screens/bilan_history_screen.dart';
@@ -24,6 +25,7 @@ import 'package:medilink/features/ai/presentation/screens/bot_screen.dart';
 import 'package:medilink/features/ai/presentation/screens/doctor_bilan_screen.dart';
 import 'package:medilink/features/ai/presentation/screens/doctor_bilans_screen.dart';
 import 'package:medilink/features/ai/presentation/screens/lab_scan_screen.dart';
+import 'package:medilink/features/ai/presentation/screens/patient_record_bilans.dart';
 
 /// Module IA — partagé / à attribuer.
 /// Analyse des bilans (OCR serveur ou Tesseract hors-ligne) + assistant LLM/RAG.
@@ -46,6 +48,9 @@ abstract final class AiRoutes {
   /// Côté médecin (préfixe /doctor/ : réservé au rôle médecin par le routeur).
   static const doctorBilans = '/doctor/bilans';
   static String doctorBilan(Object id) => '/doctor/bilans/$id';
+
+  /// Bilan validé d'un patient, ouvert depuis son dossier médical (onglet Documents).
+  static String patientRecordBilan(Object patientId, Object bilanId) => '/doctor/dossier/$patientId/bilans/$bilanId';
 }
 
 class AiModule extends FeatureModule {
@@ -73,7 +78,8 @@ class AiModule extends FeatureModule {
       ..registerFactory<BilanHistoryController>(() => BilanHistoryController(getIt(), getIt(), getIt(), getIt()))
       ..registerFactory<BilanEvolutionController>(() => BilanEvolutionController(getIt(), getIt()))
       ..registerFactory<DoctorBilansController>(() => DoctorBilansController(getIt(), getIt()))
-      ..registerFactory<DoctorBilanController>(() => DoctorBilanController(getIt(), getIt()));
+      ..registerFactory<DoctorBilanController>(() => DoctorBilanController(getIt(), getIt()))
+      ..registerFactory<PatientRecordBilansController>(() => PatientRecordBilansController(getIt(), getIt(), getIt()));
   }
 
   @override
@@ -97,6 +103,14 @@ class AiModule extends FeatureModule {
       path: AiRoutes.doctorBilans,
       builder: (_, _) => const DoctorBilansScreen(),
       routes: [GoRoute(path: ':id', builder: (_, state) => DoctorBilanScreen(bilanId: state.pathParameters['id']!))],
+    ),
+    GoRoute(
+      path: '/doctor/dossier/:patientId/bilans/:bilanId',
+      builder:
+          (_, state) => PatientRecordBilanScreen(
+            patientId: int.parse(state.pathParameters['patientId']!),
+            bilanId: state.pathParameters['bilanId']!,
+          ),
     ),
   ];
 

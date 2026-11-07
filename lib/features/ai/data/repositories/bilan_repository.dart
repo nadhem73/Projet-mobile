@@ -224,6 +224,22 @@ class BilanRepository {
   Future<ScanBilan> byIdForDoctor(String id, {required int doctorId}) =>
       _load('b.bilan_id = ? AND b.doctor_id = ? AND b.status = ?', [id, doctorId, BilanStatus.confirmed.value]);
 
+  /// Bilan validé du patient, ouvert par un médecin depuis son dossier médical
+  /// (l'accès au dossier est vérifié par l'appelant).
+  Future<ScanBilan> byIdForPatientRecord(String id, {required int patientId}) =>
+      _load('b.bilan_id = ? AND b.patient_id = ? AND b.status = ?', [id, patientId, BilanStatus.confirmed.value]);
+
+  /// Tous les bilans validés du patient, du plus récent au plus ancien (onglet
+  /// « Documents » du dossier vu par le médecin). Les bilans non encore vérifiés
+  /// par le patient sont exclus : leurs valeurs OCR peuvent être fausses.
+  Future<List<BilanSummary>> confirmedForPatient(int patientId) async =>
+      (await _page(
+        'b.patient_id = ? AND b.status = ?',
+        [patientId, BilanStatus.confirmed.value],
+        page: 0,
+        size: 200,
+      )).content;
+
   static const _bilanSelect = '''
       SELECT b.*,
              CASE WHEN du.id IS NULL THEN NULL ELSE 'Dr ' || du.prenom || ' ' || du.nom END AS doctor_name,
