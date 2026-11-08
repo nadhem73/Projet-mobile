@@ -51,9 +51,7 @@ Les comptes **médecin, pharmacien et assureur** créés depuis l'application so
 leur validation par un administrateur. Le patient de démo a rendez-vous avec Dr Benali et Dr Trabelsi :
 eux seuls peuvent consulter son dossier médical.
 
-> La cible principale est **Android**. SQLite (`sqflite`) ne fonctionne pas sur le Web.
-
----
+> La cible principale est **Android**. La démo Web utilise SQLite via WebAssembly.
 
 ## Équipe et modules
 
@@ -64,7 +62,7 @@ Chaque membre est responsable d'un dossier `lib/features/<module>/` et de son fi
 |---|---|---|---|
 | **User** | `features/user/` + `features/shell/` | Membre 1 | Comptes et sécurité (5 rôles, validation admin), profils, proches, dossier médical, panel patient, notifications |
 | **Rendez-vous** | `features/appointment/` | Membre 2 | Recherche de médecins, disponibilités, réservation, annulation |
-| **Assurance** | `features/insurance/` | Membre 3 | Contrats (CNAM, mutuelles), prise en charge, remboursements |
+| **Assurance** | [`features/insurance/`](lib/features/insurance/README.md) | Membre 3 | Contrats (CNAM, mutuelles), prise en charge, remboursements |
 | **Pharmacie** | `features/pharmacy/` | Membre 4 | Catalogue médicaments (PostgreSQL), commandes, rappels |
 | **Médecin** | `features/doctor/` | Membre 5 | Agenda, consultations, ordonnances (+ vue patient des ordonnances) |
 | **IA** | `features/ai/` | Partagé | OCR Tesseract des bilans, assistant LLM/RAG |

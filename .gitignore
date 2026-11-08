@@ -51,3 +51,5 @@ android/build/
 # Bases SQLite locales
 *.db
 *.db-journal
+# Widget Preview related
+.widget_preview/
