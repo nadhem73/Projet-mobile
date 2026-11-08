@@ -6,6 +6,7 @@ import 'package:medilink/core/database/schema/appointment_schema.dart';
 import 'package:medilink/core/database/schema/doctor_schema.dart';
 import 'package:medilink/core/database/schema/insurance_schema.dart';
 import 'package:medilink/core/database/schema/pharmacy_schema.dart';
+import 'package:medilink/core/database/schema/pharmacy_pharmacien_schema.dart';
 import 'package:medilink/core/database/schema/shared_schema.dart';
 import 'package:medilink/core/database/schema/user_schema.dart';
 import 'package:path/path.dart' as p;
@@ -25,7 +26,7 @@ class AppDatabase {
   AppDatabase._(this.db);
 
   /// ⚠️ Incrémenter à chaque modification d'un fichier de schéma.
-  static const int version = 5;
+  static const int version = 7;
 
   /// Ordre important : les tables référencées doivent être créées avant.
   static const List<List<String>> _schemas = [
@@ -34,6 +35,7 @@ class AppDatabase {
     doctorSchema,
     insuranceSchema,
     pharmacySchema,
+    pharmacyPharmacienSchema,
     sharedSchema,
     aiSchema,
   ];

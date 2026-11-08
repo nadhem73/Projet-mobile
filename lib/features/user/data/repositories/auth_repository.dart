@@ -70,7 +70,7 @@ class AuthRepository {
     }
 
     if (!_hasher.verify(password, u['password_hash'] as String)) {
-      final attempts = (u['failed_attempts'] as int) + 1;
+      final attempts = ((u['failed_attempts'] as int?) ?? 0) + 1;
       if (attempts >= maxFailedAttempts) {
         await _db.update(
           UserTables.users,
@@ -87,7 +87,7 @@ class AuthRepository {
       throw _invalidCredentials;
     }
 
-    switch (u['status'] as String) {
+    switch ((u['status'] as String?) ?? AccountStatus.active) {
       case AccountStatus.pending:
         throw const AppException(
           'Votre compte est en attente de validation par un administrateur. '
@@ -104,7 +104,7 @@ class AuthRepository {
         throw const AppException('Votre compte est suspendu. Contactez l\'administrateur.', code: 'suspended');
     }
 
-    if ((u['failed_attempts'] as int) > 0 || u['locked_until'] != null) {
+    if (((u['failed_attempts'] as int?) ?? 0) > 0 || u['locked_until'] != null) {
       await _db.update(
         UserTables.users,
         {'failed_attempts': 0, 'locked_until': null},

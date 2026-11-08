@@ -32,6 +32,7 @@ class CurrentUser {
   final int? patientId;
   final int? doctorId;
   final int? pharmacistId;
+  int? get pharmacyId => pharmacistId;
   final int? insurerId;
 
   /// Spécialité (médecins uniquement).
