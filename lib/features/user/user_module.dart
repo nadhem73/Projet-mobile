@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:medilink/core/modules/feature_module.dart';
 import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/session/session_service.dart';
 import 'package:medilink/core/session/user_role.dart';
 import 'package:medilink/core/theme/app_colors.dart';
+import 'package:medilink/features/user/data/ai/document_analyzer.dart';
+import 'package:medilink/features/user/data/ai/document_classifier.dart';
+import 'package:medilink/features/user/data/ai/medical_safety_checker.dart';
+import 'package:medilink/features/user/data/ai/medical_summary_service.dart';
 import 'package:medilink/features/user/data/repositories/admin_repository.dart';
 import 'package:medilink/features/user/data/repositories/auth_repository.dart';
 import 'package:medilink/features/user/data/repositories/dependent_repository.dart';
@@ -34,6 +39,8 @@ import 'package:medilink/features/user/presentation/screens/profile/profile_scre
 /// Module USER — Membre 1.
 /// Comptes et sécurité (5 rôles, validation des professionnels par un
 /// administrateur), profils, proches, dossier médical et accès des médecins.
+/// IA : alertes allergie ↔ traitement, classement automatique des documents
+/// (OCR) et synthèse clinique du dossier pour le médecin (Claude).
 abstract final class UserRoutes {
   // Authentification
   static const login = AppRoutes.login;
@@ -76,6 +83,11 @@ class UserModule extends FeatureModule {
       ..registerLazySingleton<DependentRepository>(() => DependentRepository(getIt()))
       ..registerLazySingleton<AdminRepository>(() => AdminRepository(getIt(), getIt()))
       ..registerLazySingleton<UserAvatarStore>(() => UserAvatarStore(getIt()))
+      // IA : règles de sécurité, classement des documents (OCR), synthèse LLM
+      ..registerLazySingleton<MedicalSafetyChecker>(() => const MedicalSafetyChecker())
+      ..registerLazySingleton<DocumentClassifier>(() => const DocumentClassifier())
+      ..registerLazySingleton<DocumentAnalyzer>(() => DocumentAnalyzer(getIt(), getIt()))
+      ..registerLazySingleton<MedicalSummaryService>(() => MedicalSummaryService(http.Client(), checker: getIt()))
       // Controllers (une instance par écran)
       ..registerFactory<AuthController>(() => AuthController(getIt(), getIt()))
       ..registerFactory<ProfileController>(

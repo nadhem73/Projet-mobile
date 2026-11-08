@@ -19,7 +19,7 @@ Le module permet à un **patient** de déclarer un contrat d'assurance, estimer 
 | Rôles | Patient et assureur |
 
 **Question possible : « Avez-vous changé les tables ? »**  
-Non : aucune table, colonne ou structure d'index n'a été ajoutée ou modifiée pour ces fonctionnalités. La version de la base reste **3**. En revanche, quand l'utilisateur utilise le module, l'application ajoute et met à jour des **données** dans les tables existantes. La section [Base de données](#6-base-de-données-et-absence-de-migration) détaille ce choix.
+Le module Assurance n'a ajouté ni modifié de table, de colonne ou d'index pour ces fonctionnalités. Depuis l'intégration de `main`, la base commune est en **version 6** pour les évolutions des autres modules. Les actions Assurance ajoutent et mettent à jour des **données** dans les tables existantes. La section [Base de données](#6-base-de-données-et-absence-de-migration) détaille ce choix.
 
 ## 2. Démontrer le parcours complet
 
@@ -150,7 +150,9 @@ La colonne texte existante `insurance_claims.document_path` contient un dossier 
 
 Le codage et le décodage sont dans `InsuranceDossier.encode()` et `InsuranceDossier.decode()` : [`insurance_dossier.dart`](data/insurance_dossier.dart). Les anciens chemins simples sont conservés. Pour afficher une ancienne pièce dont seul le chemin est connu, le patient doit en joindre une copie. Si un dossier au format actuel est illisible, le module renvoie une erreur au lieu de l'écraser silencieusement.
 
-Une **transaction SQLite** enregistre ensemble une action et les notifications associées : elles sont validées ou annulées ensemble. La version de la base reste `3` dans [`app_database.dart`](../../core/database/app_database.dart). Le test `dossier lifecycle, evidence snapshot, notifications and unchanged schema` compare les définitions SQLite avant et après le parcours.
+Une **transaction SQLite** enregistre ensemble une action et les notifications associées : elles sont validées ou annulées ensemble. La version commune est `6` dans [`app_database.dart`](../../core/database/app_database.dart), à la suite des changements intégrés depuis `main`. Le test `dossier lifecycle, evidence snapshot, notifications and unchanged schema` compare les définitions SQLite avant et après le parcours Assurance.
+
+**Attention aux données existantes :** la procédure de mise à jour commune détruit et recrée actuellement les tables lors d'un changement de version. Une base locale antérieure, y compris ses contrats et demandes, sera donc effacée au premier lancement avec la version 6. Sauvegardez-la avant la mise à jour ; une migration conservant les données doit être définie avec l'équipe responsable de la base commune.
 
 **MySQL est-il nécessaire ?** Non. Ce module utilise la base **SQLite locale** existante. Le fichier PostgreSQL des médicaments appartient au périmètre pharmacie et n'est pas nécessaire à ce parcours d'assurance.
 

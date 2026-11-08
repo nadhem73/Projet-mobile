@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>MediLink utilise l'appareil photo pour scanner vos bilans de laboratoire.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MediLink accède à vos photos pour importer un bilan de laboratoire.</string>
 </dict>
 </plist>

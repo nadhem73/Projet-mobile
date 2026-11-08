@@ -317,7 +317,10 @@ void main() {
         ),
         before,
       );
-      expect(AppDatabase.version, 3);
+      expect(
+        (await database.db.rawQuery('PRAGMA user_version')).single.values.single,
+        AppDatabase.version,
+      );
       await expectLater(
         repo.complementClaim(id, attachments: [], note: 'trop tard'),
         throwsA(isA<AppException>()),

@@ -5,6 +5,15 @@ abstract final class DoctorTables {
   static const consultations = 'consultations';
   static const prescriptions = 'prescriptions';
   static const prescriptionItems = 'prescription_items';
+
+  /// Plages où le médecin n'est pas disponible (réunion, pause…) : aucun rendez-vous possible.
+  static const blockedSlots = 'doctor_blocked_slots';
+}
+
+/// Statuts possibles d'une consultation (colonne `consultations.status`).
+abstract final class ConsultationStatus {
+  static const inProgress = 'IN_PROGRESS';
+  static const closed = 'CLOSED';
 }
 
 const List<String> doctorSchema = [
@@ -14,6 +23,8 @@ const List<String> doctorSchema = [
     appointment_id  INTEGER UNIQUE REFERENCES appointments(appointment_id) ON DELETE SET NULL,
     doctor_id       INTEGER NOT NULL REFERENCES doctors(doctor_id),
     patient_id      INTEGER NOT NULL REFERENCES patients(patient_id) ON DELETE CASCADE,
+    motif           TEXT,    -- motif de consultation
+    diagnostic      TEXT,
     blood_pressure  TEXT,    -- ex. "12/8"
     temperature     REAL,    -- °C
     height          REAL,    -- cm
@@ -52,6 +63,21 @@ const List<String> doctorSchema = [
     voie_administration  TEXT
   )
   ''',
+  // Indisponibilités du médecin : les patients ne peuvent pas réserver sur ces plages.
+  '''
+  CREATE TABLE doctor_blocked_slots (
+    blocked_slot_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    doctor_id       INTEGER NOT NULL REFERENCES doctors(doctor_id) ON DELETE CASCADE,
+    title           TEXT NOT NULL,   -- ex. "Réunion de service"
+    start_time      TEXT NOT NULL,   -- 2026-11-10T09:00:00 (heure locale)
+    end_time        TEXT NOT NULL,
+    note            TEXT,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    CHECK (end_time > start_time)
+  )
+  ''',
+  'CREATE INDEX idx_blocked_slots_doctor ON doctor_blocked_slots(doctor_id, start_time)',
   'CREATE INDEX idx_consultations_patient ON consultations(patient_id)',
+  'CREATE INDEX idx_consultations_doctor ON consultations(doctor_id, status)',
   'CREATE INDEX idx_prescriptions_patient ON prescriptions(patient_id)',
 ];

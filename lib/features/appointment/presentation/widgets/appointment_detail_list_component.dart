@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:medilink/main.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:medilink/features/appointment/data/models/appointment_model.dart';
-import 'package:medilink/features/appointment/presentation/screens/appointment_detail_screen.dart';
 import 'package:medilink/core/theme/colors.dart';
 import 'package:medilink/core/utils/mock_data.dart';
 import 'package:medilink/core/utils/app_strings.dart';
@@ -122,9 +121,7 @@ class MLAppointmentDetailListComponentState extends State<MLAppointmentDetailLis
                                     4.width,
                                     Icon(Icons.arrow_forward, color: mlPrimaryColor, size: 16),
                                   ],
-                                ).onTap(() {
-                                  MLAppointmentDetailScreen().launch(context);
-                                }).expand(),
+                                ).expand(),
                               ],
                             ).paddingOnly(right: 16.0, left: 16.0),
                             16.height,
