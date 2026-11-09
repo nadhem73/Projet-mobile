@@ -65,12 +65,59 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
     // 1. Charger les médicaments et le stock
     await refreshStockData();
 
-    // 2. Initialiser Text-To-Speech
+    // 2. Initialiser Text-To-Speech avec le moteur Google TTS haute fidélité
     try {
+      // Activer explicitement le moteur Google Text-To-Speech
+      final engines = await _flutterTts.getEngines;
+      if (engines is List && engines.contains('com.google.android.tts')) {
+        await _flutterTts.setEngine('com.google.android.tts');
+      }
+
       await _flutterTts.setLanguage('fr-FR');
-      await _flutterTts.setSpeechRate(0.5);
+
+      // Sélectionner la meilleure voix Google neuronale / HD en français
+      try {
+        final dynamic voices = await _flutterTts.getVoices;
+        if (voices is List) {
+          Map<String, String>? bestVoice;
+          for (final v in voices) {
+            if (v is Map) {
+              final locale = (v['locale'] ?? '').toString();
+              final name = (v['name'] ?? '').toString().toLowerCase();
+              if (locale.startsWith('fr') || locale.contains('FR')) {
+                // Voix neuronales Google (WaveNet / Neural / HD)
+                if (name.contains('neural') ||
+                    name.contains('network') ||
+                    name.contains('vda') ||
+                    name.contains('frd') ||
+                    name.contains('frc') ||
+                    name.contains('fr-fr-x')) {
+                  bestVoice = {
+                    'name': (v['name'] ?? '').toString(),
+                    'locale': locale,
+                  };
+                  break;
+                }
+                bestVoice ??= {
+                  'name': (v['name'] ?? '').toString(),
+                  'locale': locale,
+                };
+              }
+            }
+          }
+          if (bestVoice != null) {
+            await _flutterTts.setVoice(bestVoice);
+            debugPrint('[VoiceAssistant] Voix Google sélectionnée: ${bestVoice['name']}');
+          }
+        }
+      } catch (voiceError) {
+        debugPrint('[VoiceAssistant] Voix par défaut conservée: $voiceError');
+      }
+
+      // Cadence et tonalité naturelles (voix humaine chaleureuse)
+      await _flutterTts.setSpeechRate(0.48);
       await _flutterTts.setVolume(1.0);
-      await _flutterTts.setPitch(1.0);
+      await _flutterTts.setPitch(1.02);
       _flutterTts.setStartHandler(() {
         _isSpeaking = true;
         notifyListeners();
