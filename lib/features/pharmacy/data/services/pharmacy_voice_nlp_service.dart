@@ -50,6 +50,7 @@ class VoiceParseResult {
   final String? newLocation;
   final double confidence;
   final String spokenResponse;
+  final String? confirmationPrompt;
   final String? actionDetails;
   final List<PharmacyStockItem>? listResults;
 
@@ -64,9 +65,17 @@ class VoiceParseResult {
     this.newLocation,
     this.confidence = 0.0,
     required this.spokenResponse,
+    this.confirmationPrompt,
     this.actionDetails,
     this.listResults,
   });
+
+  bool get requiresConfirmation =>
+      intent == VoiceIntentType.updatePrice ||
+      intent == VoiceIntentType.updateLocation ||
+      intent == VoiceIntentType.setStockQuantity ||
+      intent == VoiceIntentType.adjustStockDecrement ||
+      intent == VoiceIntentType.adjustStockIncrement;
 }
 
 /// Service NLP intelligent pour analyser les commandes vocales du pharmacien
@@ -130,6 +139,7 @@ class PharmacyVoiceNLPService {
           newPrice: newPrice,
           confidence: target.score,
           spokenResponse: 'Prix de ${target.medicineName} mis à $priceFormatted DT.',
+          confirmationPrompt: 'Confirmez-vous le nouveau prix de ${target.medicineName} à $priceFormatted DT ?',
           actionDetails: '$oldPriceFormatted → $priceFormatted DT',
         );
       }
@@ -150,6 +160,7 @@ class PharmacyVoiceNLPService {
           newLocation: newLoc,
           confidence: target.score,
           spokenResponse: '${target.medicineName} placé au $newLoc.',
+          confirmationPrompt: 'Confirmez-vous le déplacement de ${target.medicineName} vers $newLoc ?',
           actionDetails: '$oldLoc → $newLoc',
         );
       }
@@ -170,6 +181,7 @@ class PharmacyVoiceNLPService {
           quantity: qty,
           confidence: target.score,
           spokenResponse: 'Stock de ${target.medicineName} réglé à $qty boîtes.',
+          confirmationPrompt: 'Confirmez-vous le réglage du stock de ${target.medicineName} à $qty boîtes ?',
           actionDetails: '$oldQty → $qty boîtes',
         );
       }
@@ -272,6 +284,10 @@ class PharmacyVoiceNLPService {
             ? 'Stock de ${target.medicineName} décrémenté de $qty. Il reste $newQty boîtes.'
             : '$qty boîte${qty > 1 ? 's ajoutées' : ' ajoutée'} au stock de ${target.medicineName}. Total : $newQty unités.';
 
+        final confirmMsg = isDecrement
+            ? 'Confirmez-vous le retrait de $qty boîte${qty > 1 ? "s" : ""} de ${target.medicineName} ?'
+            : 'Confirmez-vous l\'ajout de $qty boîte${qty > 1 ? "s" : ""} de ${target.medicineName} ?';
+
         return VoiceParseResult(
           intent: isDecrement
               ? VoiceIntentType.adjustStockDecrement
@@ -283,6 +299,7 @@ class PharmacyVoiceNLPService {
           quantity: qty,
           confidence: target.score,
           spokenResponse: speech,
+          confirmationPrompt: confirmMsg,
           actionDetails: '$currentQty → $newQty boîtes',
         );
       }
@@ -479,6 +496,33 @@ class PharmacyVoiceNLPService {
         text.contains('reception') ||
         text.contains('livraison') ||
         text.contains('plus');
+  }
+
+  static bool isAffirmative(String text) {
+    final norm = _normalize(text);
+    return norm == 'oui' ||
+        norm.startsWith('oui ') ||
+        norm.endsWith(' oui') ||
+        norm.contains('confirme') ||
+        norm.contains('valide') ||
+        norm.contains('d accord') ||
+        norm.contains('daccord') ||
+        norm.contains('ok') ||
+        norm.contains('vas y') ||
+        norm.contains('applique') ||
+        norm.contains('enregistre');
+  }
+
+  static bool isNegative(String text) {
+    final norm = _normalize(text);
+    return norm == 'non' ||
+        norm.startsWith('non ') ||
+        norm.endsWith(' non') ||
+        norm.contains('annule') ||
+        norm.contains('stop') ||
+        norm.contains('refuse') ||
+        norm.contains('laisse') ||
+        norm.contains('pas maintenant');
   }
 
   static bool _isLocationQuery(String text) {

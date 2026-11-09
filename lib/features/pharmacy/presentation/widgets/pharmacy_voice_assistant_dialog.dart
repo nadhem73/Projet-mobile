@@ -319,8 +319,14 @@ class _PharmacyVoiceAssistantDialogState
                     const SizedBox(height: 16),
                   ],
 
-                  // Action Result Card (when an intent was processed)
-                  if (ctrl.lastResult != null) ...[
+                  // Action en attente de confirmation
+                  if (ctrl.hasPendingAction) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _buildPendingConfirmationCard(context, ctrl.pendingAction!, ctrl),
+                    ),
+                    const SizedBox(height: 16),
+                  ] else if (ctrl.lastResult != null) ...[
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: _buildResultCard(context, ctrl.lastResult!, ctrl),
@@ -469,6 +475,93 @@ class _PharmacyVoiceAssistantDialogState
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPendingConfirmationCard(
+    BuildContext context,
+    PendingStockAction pending,
+    PharmacyVoiceAssistantController ctrl,
+  ) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.shade700, width: 1.5),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade700,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.help_outline_rounded, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Confirmation requise',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber.shade900,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'Dites "Oui" ou "Non"',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            pending.confirmationQuestion,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red.shade700,
+                    side: BorderSide(color: Colors.red.shade300),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                  label: const Text('Annuler'),
+                  onPressed: () => ctrl.cancelPendingAction(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(Icons.check_rounded, size: 18),
+                  label: const Text('Confirmer'),
+                  onPressed: () => ctrl.confirmPendingAction(),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

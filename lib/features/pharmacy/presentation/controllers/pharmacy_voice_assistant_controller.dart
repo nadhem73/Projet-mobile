@@ -7,6 +7,25 @@ import '../../data/repositories/medicine_repository.dart';
 import '../../data/repositories/stock_repository.dart';
 import '../../data/services/pharmacy_voice_nlp_service.dart';
 
+/// Action de modification en attente de confirmation explicite du pharmacien.
+class PendingStockAction {
+  final VoiceParseResult parsedResult;
+  final PharmacyStock currentStock;
+  final PharmacyStock updatedStock;
+  final String confirmationQuestion;
+  final String confirmationSpoken;
+  final String successSpoken;
+
+  const PendingStockAction({
+    required this.parsedResult,
+    required this.currentStock,
+    required this.updatedStock,
+    required this.confirmationQuestion,
+    required this.confirmationSpoken,
+    required this.successSpoken,
+  });
+}
+
 class PharmacyVoiceAssistantController extends ChangeNotifier {
   PharmacyVoiceAssistantController({
     required this.pharmacyId,
@@ -46,6 +65,9 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
   // Support Undo
   PharmacyStock? _undoStock;
 
+  // Action en attente de confirmation
+  PendingStockAction? _pendingAction;
+
   // Getters
   bool get isListening => _isListening;
   bool get isProcessing => _isProcessing;
@@ -56,6 +78,8 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
   String? get speechError => _speechError;
   VoiceParseResult? get lastResult => _lastResult;
   bool get canUndo => _undoStock != null;
+  PendingStockAction? get pendingAction => _pendingAction;
+  bool get hasPendingAction => _pendingAction != null;
 
   /// Initialise les moteurs de voix et charge le stock de l'officine
   Future<void> initialize() async {
@@ -218,9 +242,9 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
         },
         listenOptions: stt.SpeechListenOptions(
           localeId: 'fr_FR',
-          listenFor: const Duration(seconds: 15),
-          pauseFor: const Duration(seconds: 3),
-          cancelOnError: true,
+          listenFor: const Duration(seconds: 45), // Écoute prolongée (45s)
+          pauseFor: const Duration(seconds: 7),   // Tolérance aux pauses de parole (7s)
+          cancelOnError: false,
           partialResults: true,
         ),
       );
@@ -246,48 +270,58 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
 
   /// Traite la commande vocale (ou saisie manuelle)
   Future<void> processCommand(String text) async {
-    if (text.trim().isEmpty) return;
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
 
     _isProcessing = true;
-    _voiceTranscript = text;
+    _voiceTranscript = trimmed;
     _speechError = null;
     notifyListeners();
 
     try {
-      // Analyse NLP
+      // 1. Si une action était en attente d'accord du pharmacien
+      if (_pendingAction != null) {
+        if (PharmacyVoiceNLPService.isAffirmative(trimmed)) {
+          await confirmPendingAction();
+          return;
+        } else if (PharmacyVoiceNLPService.isNegative(trimmed)) {
+          await cancelPendingAction();
+          return;
+        }
+      }
+
+      // 2. Analyse NLP de la commande
       final result = _nlpService.parseCommand(
-        voiceInput: text,
+        voiceInput: trimmed,
         currentStockItems: _stockItems,
         allCatalogMedicines: _allMedicines,
       );
 
       _lastResult = result;
 
-      // Exécution des actions directes sur le stock
-      if (result.matchedItem != null) {
+      // 3. Si l'action modifie le stock/prix/emplacement : DEMANDER CONFIRMATION AVANT MODIFICATION
+      if (result.requiresConfirmation && result.matchedItem != null) {
         final currentStock = result.matchedItem!.stock;
         final currentQty = currentStock.quantity;
-        PharmacyStock? updatedStock;
+        PharmacyStock? proposedStock;
+        final confirmPrompt = result.confirmationPrompt ?? 'Voulez-vous valider cette action ?';
+        final successSpeech = result.spokenResponse;
 
         switch (result.intent) {
           case VoiceIntentType.adjustStockDecrement:
             final change = result.quantity ?? 1;
             final newQty = (currentQty - change).clamp(0, 999999);
-            if (newQty != currentQty) {
-              _undoStock = currentStock;
-              updatedStock = currentStock.copyWith(
-                quantity: newQty,
-                inStock: newQty > 0,
-                updatedAt: DateTime.now(),
-              );
-            }
+            proposedStock = currentStock.copyWith(
+              quantity: newQty,
+              inStock: newQty > 0,
+              updatedAt: DateTime.now(),
+            );
             break;
 
           case VoiceIntentType.adjustStockIncrement:
             final change = result.quantity ?? 1;
             final newQty = currentQty + change;
-            _undoStock = currentStock;
-            updatedStock = currentStock.copyWith(
+            proposedStock = currentStock.copyWith(
               quantity: newQty,
               inStock: newQty > 0,
               updatedAt: DateTime.now(),
@@ -296,20 +330,16 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
 
           case VoiceIntentType.setStockQuantity:
             final newQty = (result.quantity ?? 0).clamp(0, 999999);
-            if (newQty != currentQty) {
-              _undoStock = currentStock;
-              updatedStock = currentStock.copyWith(
-                quantity: newQty,
-                inStock: newQty > 0,
-                updatedAt: DateTime.now(),
-              );
-            }
+            proposedStock = currentStock.copyWith(
+              quantity: newQty,
+              inStock: newQty > 0,
+              updatedAt: DateTime.now(),
+            );
             break;
 
           case VoiceIntentType.updatePrice:
             if (result.newPrice != null) {
-              _undoStock = currentStock;
-              updatedStock = currentStock.copyWith(
+              proposedStock = currentStock.copyWith(
                 customPrice: result.newPrice!,
                 updatedAt: DateTime.now(),
               );
@@ -318,8 +348,7 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
 
           case VoiceIntentType.updateLocation:
             if (result.newLocation != null) {
-              _undoStock = currentStock;
-              updatedStock = currentStock.copyWith(
+              proposedStock = currentStock.copyWith(
                 shelfLocation: result.newLocation!,
                 updatedAt: DateTime.now(),
               );
@@ -330,13 +359,25 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
             break;
         }
 
-        if (updatedStock != null) {
-          await _stockRepository.update(updatedStock);
-          await refreshStockData();
+        if (proposedStock != null) {
+          _pendingAction = PendingStockAction(
+            parsedResult: result,
+            currentStock: currentStock,
+            updatedStock: proposedStock,
+            confirmationQuestion: confirmPrompt,
+            confirmationSpoken: confirmPrompt,
+            successSpoken: successSpeech,
+          );
+
+          if (_isTtsEnabled) {
+            await speak(confirmPrompt);
+          }
+          return;
         }
       }
 
-      // Synthèse vocale de la réponse
+      // 4. Pour les requêtes de consultation (stock, prix, emplacement, ruptures...)
+      _pendingAction = null;
       if (_isTtsEnabled && result.spokenResponse.isNotEmpty) {
         await speak(result.spokenResponse);
       }
@@ -346,6 +387,35 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
       _isProcessing = false;
       notifyListeners();
     }
+  }
+
+  /// Confirme et applique définitivement l'action en attente
+  Future<void> confirmPendingAction() async {
+    if (_pendingAction == null) return;
+
+    final action = _pendingAction!;
+    _pendingAction = null;
+
+    _undoStock = action.currentStock;
+    await _stockRepository.update(action.updatedStock);
+    await refreshStockData();
+
+    if (_isTtsEnabled) {
+      await speak(action.successSpoken);
+    }
+    notifyListeners();
+  }
+
+  /// Annule l'action en attente sans rien modifier
+  Future<void> cancelPendingAction() async {
+    if (_pendingAction == null) return;
+    _pendingAction = null;
+
+    const cancelMsg = 'Modification annulée.';
+    if (_isTtsEnabled) {
+      await speak(cancelMsg);
+    }
+    notifyListeners();
   }
 
   /// Annule la dernière action effectuée sur le stock (Undo)
