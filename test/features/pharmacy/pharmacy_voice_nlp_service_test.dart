@@ -100,6 +100,29 @@ void main() {
           updatedAt: now,
         ),
       ),
+      PharmacyStockItem(
+        medicine: Medicine(
+          medicineId: 105,
+          name: 'Doliprane 500 mg',
+          dci: 'Paracétamol',
+          forme: 'Comprimé',
+          price: 3.100,
+          prescriptionRequired: false,
+          createdAt: now,
+        ),
+        stock: PharmacyStock(
+          stockId: 5,
+          pharmacyId: 1,
+          medicineId: 105,
+          inStock: true,
+          quantity: 25,
+          shelfLocation: 'Rayon A-03',
+          customPrice: 3.200,
+          expirationDate: now.add(const Duration(days: 350)),
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ),
     ];
   });
 
@@ -228,6 +251,19 @@ void main() {
       expect(res.newPrice, 5.0);
       expect(res.matchedItem?.stock.stockId, 1);
       expect(res.spokenResponse, contains('Prix de Doliprane 1000 mg mis à 5.000 DT'));
+    });
+
+    test('Modification de prix avec dosage et forme spécifiques (change le prix le doliprane 500mg comprime a 8 dinars)', () {
+      final res = service.parseCommand(
+        voiceInput: 'change le prix le doliprane 500mg comprime a 8 dinars',
+        currentStockItems: testItems,
+      );
+
+      expect(res.intent, VoiceIntentType.updatePrice);
+      expect(res.newPrice, 8.0);
+      expect(res.matchedItem?.stock.stockId, 5); // Must match 500 mg, NOT 1000 mg!
+      expect(res.matchedItem?.medicineName, 'Doliprane 500 mg');
+      expect(res.spokenResponse, contains('Prix de Doliprane 500 mg mis à 8.000 DT'));
     });
 
     test('Modification d\'emplacement (updateLocation)', () {

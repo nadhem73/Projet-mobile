@@ -113,7 +113,7 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
     final color = UserRole.pharmacist.color;
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         heroTag: 'voice_assistant_fab',
         onPressed: () => PharmacyVoiceAssistantDialog.show(
           context,
@@ -121,12 +121,10 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
         ),
         backgroundColor: color,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.mic_rounded),
-        label: const Text(
-          'Assistant vocal',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 4,
+        shape: const CircleBorder(),
+        elevation: 6,
+        tooltip: 'Assistant vocal',
+        child: const Icon(Icons.mic_rounded, size: 26),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: NavigationBar(

@@ -22,6 +22,17 @@ class PharmacyStockItem {
   bool get isExpiringSoon => stock.isExpiringSoon(3);
   DateTime? get expirationDate => stock.expirationDate;
   String? get dci => medicine.dci;
+  String? get dosage => medicine.dosage;
+  String? get forme => medicine.forme;
+  String? get presentation => medicine.presentation;
+
+  /// Label complet pour la recherche NLP (nom + dosage + forme + présentation)
+  String get fullSearchLabel => [
+        medicine.name,
+        medicine.dosage,
+        medicine.forme,
+        medicine.presentation,
+      ].where((s) => s != null && s.isNotEmpty).join(' ');
 }
 
 enum VoiceIntentType {
@@ -123,33 +134,55 @@ class PharmacyVoiceNLPService {
 
     // 1. Modification du prix ("change le prix du doliprane à 5 DT", "mets le prix à 12.5 dt")
     if (_isPriceUpdateQuery(normalized)) {
-      final newPrice = _extractNewPrice(normalized);
-      final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
-      if (target != null && newPrice != null) {
-        final priceFormatted = newPrice.toStringAsFixed(3);
-        final oldPriceFormatted = target.item != null
-            ? target.item!.effectivePrice.toStringAsFixed(3)
-            : (target.nationalMedicine?.price.toStringAsFixed(3) ?? '0.000');
-        return VoiceParseResult(
-          intent: VoiceIntentType.updatePrice,
-          rawQuery: query,
-          matchedMedicineName: target.medicineName,
-          matchedItem: target.item,
-          matchedNationalMedicine: target.nationalMedicine,
-          newPrice: newPrice,
-          confidence: target.score,
-          spokenResponse: 'Prix de ${target.medicineName} mis à $priceFormatted DT.',
-          confirmationPrompt: 'Confirmez-vous le nouveau prix de ${target.medicineName} à $priceFormatted DT ?',
-          actionDetails: '$oldPriceFormatted → $priceFormatted DT',
+      final priceDetails = _extractNewPriceDetails(normalized);
+      if (priceDetails != null) {
+        final queryWithoutPrice = normalized
+            .replaceAll(priceDetails.phrase, ' ')
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+        final target = _extractMedicineMatch(
+          queryWithoutPrice,
+          currentStockItems,
+          allCatalogMedicines,
         );
+        if (target != null) {
+          final newPrice = priceDetails.value;
+          final priceFormatted = newPrice.toStringAsFixed(3);
+          final oldPriceFormatted = target.item != null
+              ? target.item!.effectivePrice.toStringAsFixed(3)
+              : (target.nationalMedicine?.price.toStringAsFixed(3) ?? '0.000');
+          return VoiceParseResult(
+            intent: VoiceIntentType.updatePrice,
+            rawQuery: query,
+            matchedMedicineName: target.medicineName,
+            matchedItem: target.item,
+            matchedNationalMedicine: target.nationalMedicine,
+            newPrice: newPrice,
+            confidence: target.score,
+            spokenResponse: 'Prix de ${target.medicineName} mis à $priceFormatted DT.',
+            confirmationPrompt: 'Confirmez-vous le nouveau prix de ${target.medicineName} à $priceFormatted DT ?',
+            actionDetails: '$oldPriceFormatted → $priceFormatted DT',
+          );
+        }
       }
     }
 
     // 2. Modification de l'emplacement ("déplace doliprane au Rayon B", "mets spasfon au tiroir 2")
     if (_isLocationUpdateQuery(normalized)) {
-      final newLoc = _extractNewLocation(query);
-      final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
-      if (target != null && newLoc != null) {
+      final locDetails = _extractNewLocationDetails(normalized);
+      final queryWithoutLoc = locDetails != null
+          ? normalized
+              .replaceAll(locDetails.phrase, ' ')
+              .replaceAll(RegExp(r'\s+'), ' ')
+              .trim()
+          : normalized;
+      final target = _extractMedicineMatch(
+        queryWithoutLoc,
+        currentStockItems,
+        allCatalogMedicines,
+      );
+      if (target != null && locDetails != null) {
+        final newLoc = locDetails.value;
         final oldLoc = target.item?.shelfLocation ?? 'Non assigné';
         return VoiceParseResult(
           intent: VoiceIntentType.updateLocation,
@@ -168,9 +201,20 @@ class PharmacyVoiceNLPService {
 
     // 3. Réglage direct du stock ("mets le stock de doliprane à 20", "fixe le stock à 15")
     if (_isSetStockQuery(normalized)) {
-      final qty = _extractQuantity(normalized);
-      final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
-      if (target != null && target.item != null && qty != null) {
+      final qtyDetails = _extractQuantityDetails(normalized);
+      final queryWithoutQty = qtyDetails != null
+          ? normalized
+              .replaceAll(qtyDetails.phrase, ' ')
+              .replaceAll(RegExp(r'\s+'), ' ')
+              .trim()
+          : normalized;
+      final target = _extractMedicineMatch(
+        queryWithoutQty,
+        currentStockItems,
+        allCatalogMedicines,
+      );
+      if (target != null && target.item != null && qtyDetails != null) {
+        final qty = qtyDetails.value;
         final oldQty = target.item!.quantity;
         return VoiceParseResult(
           intent: VoiceIntentType.setStockQuantity,
@@ -268,12 +312,23 @@ class PharmacyVoiceNLPService {
     }
 
     // 7. Détection d'ajustement de stock (décrément / incrément)
-    final qty = _extractQuantity(normalized) ?? 1;
     final isDecrement = _isDecrementQuery(normalized);
     final isIncrement = _isIncrementQuery(normalized);
 
     if (isDecrement || isIncrement) {
-      final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
+      final qtyDetails = _extractQuantityDetails(normalized);
+      final qty = qtyDetails?.value ?? 1;
+      final queryWithoutQty = qtyDetails != null
+          ? normalized
+              .replaceAll(qtyDetails.phrase, ' ')
+              .replaceAll(RegExp(r'\s+'), ' ')
+              .trim()
+          : normalized;
+      final target = _extractMedicineMatch(
+        queryWithoutQty,
+        currentStockItems,
+        allCatalogMedicines,
+      );
       if (target != null && target.item != null) {
         final currentQty = target.item!.quantity;
         final newQty = isDecrement
@@ -543,32 +598,83 @@ class PharmacyVoiceNLPService {
         text.contains('valeur');
   }
 
-  static double? _extractNewPrice(String text) {
-    // 1. Chercher un chiffre numérique avec décimale optionnelle : "5 dt", "5.500", "à 12.5 dt"
-    final regex = RegExp(
-      r'(?:a|à|=|de|prix|fixe|mets|mettre)?\s*(\d+(?:[.,]\d+)?)\s*(?:dt|dinars?|millimes?)?',
+  static _ExtractedValue<double>? _extractNewPriceDetails(String text) {
+    // 1. Suffixe explicite en devise : "8 dinars", "8 dt", "12.500 dt", "a 8 dinars"
+    final currencyRegex = RegExp(
+      r'(?:(?:a|à|=|de|vers|pour)\s+)?(\d+(?:[.,]\d+)?)\s*(?:dt|dinars?|millimes?)\b',
       caseSensitive: false,
     );
-    for (final match in regex.allMatches(text)) {
-      final numStr = match.group(1);
-      if (numStr != null && numStr.isNotEmpty) {
+    final curMatch = currencyRegex.firstMatch(text);
+    if (curMatch != null) {
+      final numStr = curMatch.group(1);
+      if (numStr != null) {
         final parsed = double.tryParse(numStr.replaceAll(',', '.'));
         if (parsed != null && parsed > 0) {
-          return parsed;
+          return _ExtractedValue(value: parsed, phrase: curMatch.group(0)!);
         }
       }
     }
 
-    // 2. Mots de chiffres français
+    // 2. Mots de chiffres français avec devise : "cinq dinars", "huit dt"
     for (final entry in _numberWords.entries) {
-      if (text.contains(entry.key)) {
-        return entry.value.toDouble();
+      final wordCurrencyRegex = RegExp(
+        '(?:(?:a|à|=|de|vers|pour)\\s+)?(${entry.key})\\s*(?:dt|dinars?|millimes?)\\b',
+        caseSensitive: false,
+      );
+      final match = wordCurrencyRegex.firstMatch(text);
+      if (match != null) {
+        return _ExtractedValue(value: entry.value.toDouble(), phrase: match.group(0)!);
       }
     }
+
+    // 3. Préposition d'attribution explicite suivie d'un chiffre NON-dosage (ex: "à 8", "au prix de 12")
+    final prepRegex = RegExp(
+      r'(?:(?:au\s+prix\s+de|nouveau\s+prix\s+de|prix\s*(?:a|à|de)|fixe\s*(?:a|à)|mets\s*(?:a|à)|passe\s*(?:a|à)|\ba|\bà)\s*)(\d+(?:[.,]\d+)?)(?!\s*(?:mg|g|ml|mcg|ui|cp|comprime|gelule|sachet|flacon|ampoule|boite|boites|unite|unites))\b',
+      caseSensitive: false,
+    );
+    final prepMatch = prepRegex.firstMatch(text);
+    if (prepMatch != null) {
+      final numStr = prepMatch.group(1);
+      if (numStr != null) {
+        final parsed = double.tryParse(numStr.replaceAll(',', '.'));
+        if (parsed != null && parsed > 0) {
+          return _ExtractedValue(value: parsed, phrase: prepMatch.group(0)!);
+        }
+      }
+    }
+
+    // 4. Mots de chiffres français après préposition d'attribution : "à huit", "prix à cinq"
+    for (final entry in _numberWords.entries) {
+      final prepWordRegex = RegExp(
+        '(?:(?:au\\s+prix\\s+de|prix\\s*(?:a|à|de)|\\ba|\\bà)\\s+)(${entry.key})\\b',
+        caseSensitive: false,
+      );
+      final match = prepWordRegex.firstMatch(text);
+      if (match != null) {
+        return _ExtractedValue(value: entry.value.toDouble(), phrase: match.group(0)!);
+      }
+    }
+
+    // 5. Repli : chiffre numérique isolé en fin de phrase qui n'est pas un dosage
+    final fallbackRegex = RegExp(
+      r'\b(\d+(?:[.,]\d+)?)\s*(?:dt|dinars?|millimes?)?$',
+      caseSensitive: false,
+    );
+    final fallbackMatch = fallbackRegex.firstMatch(text);
+    if (fallbackMatch != null) {
+      final numStr = fallbackMatch.group(1);
+      if (numStr != null) {
+        final parsed = double.tryParse(numStr.replaceAll(',', '.'));
+        if (parsed != null && parsed > 0) {
+          return _ExtractedValue(value: parsed, phrase: fallbackMatch.group(0)!);
+        }
+      }
+    }
+
     return null;
   }
 
-  static String? _extractNewLocation(String text) {
+  static _ExtractedValue<String>? _extractNewLocationDetails(String text) {
     final match = RegExp(
       r'(?:au|dans|en|vers|a|sur)?\s*((?:rayon|etagere|tiroir|armoire|bac|frigo|comptoir|zone)\s*[a-z0-9\-]+(?:\s*(?:etagere|tiroir|bac|niveau|case)\s*[a-z0-9\-]+)?)',
       caseSensitive: false,
@@ -576,24 +682,74 @@ class PharmacyVoiceNLPService {
 
     if (match != null) {
       final rawLoc = match.group(1)!.trim();
-      return rawLoc
+      final formatted = rawLoc
           .split(' ')
           .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
           .join(' ');
+      return _ExtractedValue(value: formatted, phrase: match.group(0)!);
     }
     return null;
   }
 
-  static int? _extractQuantity(String text) {
-    final digitMatch = RegExp(r'\b(\d+)\b').firstMatch(text);
-    if (digitMatch != null) {
-      return int.tryParse(digitMatch.group(1)!);
-    }
-    for (final entry in _numberWords.entries) {
-      if (RegExp('\\b${entry.key}\\b').hasMatch(text)) {
-        return entry.value;
+  static _ExtractedValue<int>? _extractQuantityDetails(String text) {
+    // 1. Chiffre avec mot d'unité : "15 boîtes", "10 unités", "3 flacons"
+    final unitMatch = RegExp(
+      r'\b(\d+)\s*(?:boites?|unites?|flacons?|sachets?|ampoules?|tubes?)\b',
+      caseSensitive: false,
+    ).firstMatch(text);
+    if (unitMatch != null) {
+      final val = int.tryParse(unitMatch.group(1)!);
+      if (val != null) {
+        return _ExtractedValue(value: val, phrase: unitMatch.group(0)!);
       }
     }
+
+    // 2. Chiffre précédé d'une action/préposition (sans unité de dosage)
+    final actionMatch = RegExp(
+      r'(?:(?:stock\s*(?:a|à|=)|regle\s*(?:a|à)|fixe\s*(?:a|à)|ajoute|enleve|retire|vendu|consomme|recu)\s*)(\d+)(?!\s*(?:mg|g|ml|mcg|ui|cp))\b',
+      caseSensitive: false,
+    ).firstMatch(text);
+    if (actionMatch != null) {
+      final val = int.tryParse(actionMatch.group(1)!);
+      if (val != null) {
+        return _ExtractedValue(value: val, phrase: actionMatch.group(0)!);
+      }
+    }
+
+    // 3. Mots français avec mot d'unité
+    for (final entry in _numberWords.entries) {
+      final wordUnitMatch = RegExp(
+        '\\b(${entry.key})\\s*(?:boites?|unites?|flacons?|sachets?)\\b',
+        caseSensitive: false,
+      ).firstMatch(text);
+      if (wordUnitMatch != null) {
+        return _ExtractedValue(value: entry.value, phrase: wordUnitMatch.group(0)!);
+      }
+    }
+
+    // 4. Mots français précédés d'une action
+    for (final entry in _numberWords.entries) {
+      final wordActionMatch = RegExp(
+        '(?:(?:stock\\s*(?:a|à|=)|ajoute|enleve|retire|vendu|recu)\\s+)(${entry.key})\\b',
+        caseSensitive: false,
+      ).firstMatch(text);
+      if (wordActionMatch != null) {
+        return _ExtractedValue(value: entry.value, phrase: wordActionMatch.group(0)!);
+      }
+    }
+
+    // 5. Chiffre isolé NON-dosage (ex: "mets le stock à 15")
+    final isolatedMatch = RegExp(
+      r'(?:(?:a|à)\s+)?\b(\d+)\b(?!\s*(?:mg|g|ml|mcg|ui|cp))\s*$',
+      caseSensitive: false,
+    ).firstMatch(text);
+    if (isolatedMatch != null) {
+      final val = int.tryParse(isolatedMatch.group(1)!);
+      if (val != null) {
+        return _ExtractedValue(value: val, phrase: isolatedMatch.group(0)!);
+      }
+    }
+
     return null;
   }
 
@@ -615,6 +771,9 @@ class PharmacyVoiceNLPService {
     s = s.replaceAll(RegExp(r'[ùûü]'), 'u');
     s = s.replaceAll(RegExp(r'[ç]'), 'c');
     s = s.replaceAll(RegExp(r"[^\w\s\d]"), ' ');
+    // Séparer les chiffres collés aux unités (ex: 500mg -> 500 mg, 1g -> 1 g)
+    s = s.replaceAllMapped(RegExp(r'(\d+)([a-zA-Z]+)'), (m) => '${m[1]} ${m[2]}');
+    s = s.replaceAllMapped(RegExp(r'([a-zA-Z]+)(\d+)'), (m) => '${m[1]} ${m[2]}');
     return s.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
@@ -630,21 +789,20 @@ class PharmacyVoiceNLPService {
       'reste', 'il', 'est', 'ce', 'qu', 'on', 'a', 'ou', 'se', 'trouve',
       'emplacement', 'rayon', 'prix', 'coute', 'decremente', 'enleve',
       'retire', 'vendu', 'ajoute', 'recu', 'generique', 'substitut',
-      'remplace', 's\'il', 'vous', 'plait', 'donne', 'moi', 'le', 'la', 'les',
+      'remplace', 's il', 'vous', 'plait', 'donne', 'moi', 'le', 'la', 'les',
       'du', 'des', 'dans', 'notre', 'officine', 'pharmacie', 'change',
       'changer', 'mets', 'mettre', 'fixe', 'fixer', 'modifie', 'modifier',
       'regle', 'regler', 'ajuste', 'ajuster', 'deplace', 'deplacer', 'range',
       'ranger', 'place', 'placer', 'dt', 'dinar', 'dinars', 'millimes',
       'nouveau', 'nouvel', 'vers', 'sur', 'tiroir', 'etagere', 'armoire',
-      'bac', 'frigo', 'zone', 'comptoir'
+      'bac', 'frigo', 'zone', 'comptoir', 'j', 'je', 'ai', 'as', 'avons',
+      'avez', 'ont', 'tu', 'elle', 'nous', 'ils', 'elles', 'pour', 'avec',
+      'par', 'd', 'l', 'un', 'une', 'au', 'aux'
     ];
     for (final word in stopWords) {
       cleanedQuery = cleanedQuery.replaceAll(RegExp('\\b$word\\b'), ' ');
     }
-    cleanedQuery = cleanedQuery.replaceAll(RegExp(r'\b\d+\b'), ' ');
-    for (final numKey in _numberWords.keys) {
-      cleanedQuery = cleanedQuery.replaceAll(RegExp('\\b$numKey\\b'), ' ');
-    }
+    // Ne pas supprimer les chiffres pour préserver le dosage (ex: 500, 1000)
     cleanedQuery = cleanedQuery.replaceAll(RegExp(r'\s+'), ' ').trim();
 
     if (cleanedQuery.isEmpty) return null;
@@ -653,8 +811,13 @@ class PharmacyVoiceNLPService {
     double bestScore = 0.0;
 
     for (final item in currentStockItems) {
+      // Score on full label (name + dosage + forme + présentation) AND name alone —
+      // keep whichever is higher so short queries still match by name only.
+      final fullNorm = _normalize(item.fullSearchLabel);
       final nameNorm = _normalize(item.medicineName);
-      final score = _calculateSimilarity(cleanedQuery, nameNorm);
+      final scoreFull = _calculateSimilarity(cleanedQuery, fullNorm);
+      final scoreName = _calculateSimilarity(cleanedQuery, nameNorm);
+      final score = scoreFull > scoreName ? scoreFull : scoreName;
       if (score > bestScore) {
         bestScore = score;
         bestTarget = _MatchedTarget(
@@ -668,8 +831,15 @@ class PharmacyVoiceNLPService {
 
     if (bestScore < 0.55 && allCatalogMedicines != null) {
       for (final med in allCatalogMedicines) {
+        // Also match catalog medicines by full label
+        final fullLabel = [med.name, med.dosage, med.forme, med.presentation]
+            .where((s) => s != null && s.isNotEmpty)
+            .join(' ');
+        final fullNorm = _normalize(fullLabel);
         final nameNorm = _normalize(med.name);
-        final score = _calculateSimilarity(cleanedQuery, nameNorm);
+        final scoreFull = _calculateSimilarity(cleanedQuery, fullNorm);
+        final scoreName = _calculateSimilarity(cleanedQuery, nameNorm);
+        final score = scoreFull > scoreName ? scoreFull : scoreName;
         if (score > bestScore) {
           bestScore = score;
           bestTarget = _MatchedTarget(
@@ -687,28 +857,54 @@ class PharmacyVoiceNLPService {
 
   double _calculateSimilarity(String query, String target) {
     if (query == target) return 1.0;
-    if (target.contains(query)) return 0.90;
+    if (target.contains(query)) return 0.95;
 
-    final queryWords = query.split(' ').where((w) => w.length > 2).toList();
-    final targetWords = target.split(' ').where((w) => w.length > 2).toList();
+    const medicalTokens = {'mg', 'g', 'ml', 'l', 'ui', 'cp', 'fl', 'b'};
+    final queryWords = query
+        .split(' ')
+        .where((w) =>
+            w.isNotEmpty &&
+            (w.length > 2 ||
+                medicalTokens.contains(w) ||
+                RegExp(r'^\d+$').hasMatch(w)))
+        .toList();
+    final targetWords = target.split(' ').where((w) => w.isNotEmpty).toList();
 
+    if (queryWords.isEmpty || targetWords.isEmpty) return 0.0;
+
+    double totalScore = 0.0;
     for (final qw in queryWords) {
+      double bestWordScore = 0.0;
       for (final tw in targetWords) {
-        if (tw.startsWith(qw) || qw.startsWith(tw)) {
-          return 0.85;
+        if (qw == tw) {
+          bestWordScore = 1.0;
+          break;
         }
-        final dist = _levenshtein(qw, tw);
-        final maxLen = math.max(qw.length, tw.length);
-        if (maxLen > 0 && (dist / maxLen) <= 0.30) {
-          return 0.80;
+
+        // Chiffres numériques (dosage ex: 500 vs 1000)
+        final isNumQ = RegExp(r'^\d+$').hasMatch(qw);
+        final isNumT = RegExp(r'^\d+$').hasMatch(tw);
+        if (isNumQ && isNumT) {
+          continue;
+        }
+
+        if (tw.startsWith(qw) || qw.startsWith(tw)) {
+          if (qw.length >= 3 && tw.length >= 3) {
+            bestWordScore = math.max(bestWordScore, 0.90);
+          }
+        } else if (qw.length >= 4 && tw.length >= 4) {
+          final dist = _levenshtein(qw, tw);
+          final maxLen = math.max(qw.length, tw.length);
+          if (maxLen > 0 && (dist / maxLen) <= 0.25) {
+            bestWordScore = math.max(bestWordScore, 0.85);
+          }
         }
       }
+      totalScore += bestWordScore;
     }
 
-    final overallDist = _levenshtein(query, target);
-    final maxLen = math.max(query.length, target.length);
-    if (maxLen == 0) return 1.0;
-    return (1.0 - (overallDist / maxLen)).clamp(0.0, 1.0);
+    final coverage = totalScore / queryWords.length;
+    return coverage.clamp(0.0, 1.0);
   }
 
   int _levenshtein(String s, String t) {
@@ -752,4 +948,14 @@ class _MatchedTarget {
 
   String? get dci => item?.dci ?? nationalMedicine?.dci;
   int? get medicineId => item?.medicineId ?? nationalMedicine?.medicineId;
+}
+
+class _ExtractedValue<T> {
+  final T value;
+  final String phrase;
+
+  const _ExtractedValue({
+    required this.value,
+    required this.phrase,
+  });
 }
