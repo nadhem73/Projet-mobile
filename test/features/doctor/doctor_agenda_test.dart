@@ -144,9 +144,21 @@ void main() {
       await settle(tester);
     }
 
+    /// Liste de la page (en ignorant le défilement interne des champs multi-lignes).
+    Finder pageScrollable() =>
+        find.byElementPredicate((e) {
+          if (e.widget is! Scrollable) return false;
+          var inField = false;
+          e.visitAncestorElements((a) {
+            inField = a.widget is EditableText;
+            return !inField;
+          });
+          return !inField;
+        }).last;
+
     Future<void> tapVisible(WidgetTester tester, Finder finder) async {
       if (finder.evaluate().isEmpty) {
-        await tester.scrollUntilVisible(finder, 200, scrollable: find.byType(Scrollable).last);
+        await tester.scrollUntilVisible(finder, 200, scrollable: pageScrollable());
       }
       await tester.ensureVisible(finder);
       await settle(tester);

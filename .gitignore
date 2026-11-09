@@ -51,5 +51,6 @@ android/build/
 # Bases SQLite locales
 *.db
 *.db-journal
-# Widget Preview related
-.widget_preview/
+
+# Clé API du LLM (assistant d'orientation) : propre à chaque développeur, ne jamais commiter
+llm.json

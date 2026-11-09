@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:nb_utils/nb_utils.dart';
-import 'package:medilink/features/pharmacy/presentation/widgets/pharmacy_categories.dart';
-import 'package:medilink/core/theme/colors.dart';
-import 'package:medilink/core/utils/ui_helpers.dart';
+import 'package:go_router/go_router.dart';
+import 'package:medilink/core/theme/app_dimens.dart';
 import 'package:medilink/core/utils/app_assets.dart';
+import 'package:medilink/core/utils/ui_helpers.dart';
+import 'package:medilink/features/pharmacy/pharmacy_module.dart';
+import 'package:medilink/features/pharmacy/presentation/widgets/pharmacy_categories.dart';
+import 'package:nb_utils/nb_utils.dart';
 
+/// Écran principal du module Pharmacie côté patient.
+/// Harmonisé avec les écrans Rendez-vous, Dossier médical et Panel patient de MediLink.
 class MLOnlinePharmacyScreen extends StatefulWidget {
-  static String tag = '/MLOnlinePharmacyScreen';
+  static const String tag = '/MLOnlinePharmacyScreen';
 
   const MLOnlinePharmacyScreen({super.key});
 
@@ -15,100 +19,87 @@ class MLOnlinePharmacyScreen extends StatefulWidget {
 }
 
 class MLOnlinePharmacyScreenState extends State<MLOnlinePharmacyScreen> {
-  PageController controller = PageController(viewportFraction: 0.8, initialPage: 0);
-  List<String> slides = <String>[mlIcPharmacySlide3, mlIcPharmacySlide1, mlIcPharmacySlide2, mlIcPharmacySlide4];
+  final PageController _pageController = PageController(viewportFraction: 0.9, initialPage: 0);
+  final List<String> _slides = [
+    mlIcPharmacySlide3,
+    mlIcPharmacySlide1,
+    mlIcPharmacySlide2,
+    mlIcPharmacySlide4,
+  ];
 
   @override
-  void initState() {
-    super.initState();
-    init();
-  }
-
-  Future<void> init() async {
-    //
-  }
-
-  @override
-  void setState(fn) {
-    if (mounted) super.setState(fn);
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: mlPrimaryColor,
-        body: CustomScrollView(
-          slivers: <Widget>[
-            SliverAppBar(
-              automaticallyImplyLeading: false,
-              expandedHeight: 450,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  color: mlPrimaryColor,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          mlBackToPreviousWidget(context, white),
-                          8.width,
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Your Location',
-                                style: secondaryTextStyle(size: 12, color: white.withValues(alpha: 0.5)),
-                              ),
-                              4.height,
-                              Text('35 St Martin\'s St West end', style: boldTextStyle(size: 14, color: white)),
-                            ],
-                          ),
-                        ],
-                      ).paddingAll(16.0),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Online', style: boldTextStyle(size: 26, color: white)),
-                              Text('Pharmacy', style: boldTextStyle(size: 26, color: white)),
-                            ],
-                          ).expand(),
-                          Icon(Icons.search, color: white, size: 24),
-                          8.width,
-                          Icon(Icons.shopping_bag_outlined, color: white, size: 24),
-                        ],
-                      ).paddingAll(16.0),
-                      8.height,
-                      SizedBox(
-                        height: 180,
-                        width: context.width(),
-                        child: PageView(
-                          controller: controller,
-                          children:
-                              slides.map((e) {
-                                return commonCachedNetworkImage(
-                                  e.validate(),
-                                  fit: BoxFit.cover,
-                                ).cornerRadiusWithClipRRect(12.0).paddingRight(16.0);
-                              }).toList(),
-                        ),
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Pharmacies & Médicaments',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Tunis, Tunisie • Position GPS',
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            tooltip: 'Recherche médicament',
+            onPressed: () => context.push(PharmacyRoutes.finder),
+          ),
+          IconButton(
+            icon: const Icon(Icons.near_me_rounded),
+            tooltip: 'Trouver une pharmacie',
+            onPressed: () => context.push(PharmacyRoutes.finder),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              height: 170,
+              width: context.width(),
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _slides.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                    child: ClipRRect(
+                      borderRadius: AppRadius.card,
+                      child: commonCachedNetworkImage(
+                        _slides[index].validate(),
+                        fit: BoxFit.cover,
                       ),
-                      16.height,
-                      DotIndicator(
-                        pageController: controller,
-                        pages: slides,
-                        unselectedIndicatorColor: white.withValues(alpha: 0.5),
-                      ),
-                      16.height,
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             ),
-            SliverToBoxAdapter(child: MLPharmacyCategoriesComponent()),
+            const SizedBox(height: AppSpacing.md),
+            Center(
+              child: DotIndicator(
+                pageController: _pageController,
+                pages: _slides,
+                indicatorColor: theme.colorScheme.primary,
+                unselectedIndicatorColor: theme.colorScheme.primary.withValues(alpha: 0.25),
+              ),
+            ),
+            const MLPharmacyCategoriesComponent(),
           ],
         ),
       ),
