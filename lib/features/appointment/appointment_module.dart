@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:medilink/core/modules/feature_module.dart';
 import 'package:medilink/core/theme/app_colors.dart';
 import 'package:medilink/features/appointment/data/repositories/appointment_repository.dart';
 import 'package:medilink/features/appointment/data/repositories/doctor_search_repository.dart';
+import 'package:medilink/features/appointment/data/services/appointment_suggestion_service.dart';
+import 'package:medilink/features/appointment/data/services/llm_orientation_service.dart';
+import 'package:medilink/features/appointment/data/services/orientation_engine.dart';
+import 'package:medilink/features/appointment/data/services/symptom_analyzer.dart';
 import 'package:medilink/features/appointment/presentation/controllers/appointment_detail_controller.dart';
 import 'package:medilink/features/appointment/presentation/controllers/booking_controller.dart';
 import 'package:medilink/features/appointment/presentation/controllers/doctor_agenda_controller.dart';
 import 'package:medilink/features/appointment/presentation/controllers/doctor_search_controller.dart';
 import 'package:medilink/features/appointment/presentation/controllers/my_appointments_controller.dart';
+import 'package:medilink/features/appointment/presentation/controllers/orientation_assistant_controller.dart';
 import 'package:medilink/features/appointment/presentation/screens/appointment_detail_screen.dart';
 import 'package:medilink/features/appointment/presentation/screens/doctor_agenda_screen.dart';
 import 'package:medilink/features/appointment/presentation/screens/doctor_booking_screen.dart';
 import 'package:medilink/features/appointment/presentation/screens/doctor_search_screen.dart';
 import 'package:medilink/features/appointment/presentation/screens/my_appointments_screen.dart';
+import 'package:medilink/features/appointment/presentation/screens/orientation_assistant_screen.dart';
 
 /// Module RENDEZ-VOUS — Membre 2.
 /// Recherche de médecins, disponibilités, réservation, suivi et annulation.
@@ -29,6 +36,9 @@ abstract final class AppointmentRoutes {
 
   /// Fiche d'un médecin + prise de rendez-vous.
   static String doctor(int doctorId) => '$doctors/$doctorId';
+
+  /// Assistant d'orientation par IA (symptômes → spécialité → rendez-vous).
+  static const orientation = '/orientation';
 
   /// Agenda du médecin (semaine). Le préfixe /doctor/ le réserve aux médecins.
   static const doctorAgenda = '/doctor/rendez-vous';
@@ -46,10 +56,16 @@ class AppointmentModule extends FeatureModule {
       // Repositories
       ..registerLazySingleton(() => DoctorSearchRepository(getIt()))
       ..registerLazySingleton(() => AppointmentRepository(getIt(), getIt(), getIt()))
+      // Assistant d'orientation (IA)
+      ..registerLazySingleton(() => const SymptomAnalyzer())
+      ..registerLazySingleton(() => LlmOrientationService(http.Client()))
+      ..registerLazySingleton(() => OrientationEngine(getIt(), getIt<LlmOrientationService>()))
+      ..registerLazySingleton(() => AppointmentSuggestionService(getIt(), getIt()))
       // Controllers (une instance par écran)
       ..registerFactory(() => MyAppointmentsController(getIt(), getIt()))
       ..registerFactory(() => DoctorSearchController(getIt()))
       ..registerFactory(() => DoctorAgendaController(getIt(), getIt()))
+      ..registerFactory(() => OrientationAssistantController(getIt(), getIt(), getIt(), getIt(), getIt()))
       ..registerFactoryParam<BookingController, int, void>(
         (doctorId, _) => BookingController(getIt(), getIt(), getIt(), doctorId),
       )
@@ -65,6 +81,7 @@ class AppointmentModule extends FeatureModule {
       path: '${AppointmentRoutes.list}/:appointmentId',
       builder: (_, state) => AppointmentDetailScreen(appointmentId: int.parse(state.pathParameters['appointmentId']!)),
     ),
+    GoRoute(path: AppointmentRoutes.orientation, builder: (_, _) => const OrientationAssistantScreen()),
     GoRoute(path: AppointmentRoutes.doctorAgenda, builder: (_, _) => const DoctorAgendaScreen()),
     GoRoute(path: AppointmentRoutes.doctors, builder: (_, _) => const DoctorSearchScreen()),
     GoRoute(
@@ -88,6 +105,14 @@ class AppointmentModule extends FeatureModule {
       route: AppointmentRoutes.doctors,
       color: AppColors.moduleAppointment,
       order: 11,
+    ),
+    ModuleShortcut(
+      label: 'Quel médecin consulter ?',
+      icon: Icons.auto_awesome_rounded,
+      route: AppointmentRoutes.orientation,
+      color: AppColors.moduleAppointment,
+      description: 'Assistant IA',
+      order: 12,
     ),
   ];
 
