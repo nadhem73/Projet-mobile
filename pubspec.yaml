@@ -65,6 +65,7 @@ dependencies:
   fl_chart: ^1.3.0
   connectivity_plus: ^7.3.2
   path_provider: ^2.1.6
+  model_viewer_plus: ^1.10.0
 
 dev_dependencies:
   flutter_test:
@@ -93,6 +94,7 @@ flutter:
   assets:
     - assets/images/
     - assets/tessdata/
+    - assets/models/holo/
     - assets/tessdata_config.json
 
 

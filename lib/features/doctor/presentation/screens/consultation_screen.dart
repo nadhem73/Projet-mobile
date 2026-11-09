@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:medilink/core/notifications/notification_service.dart';
 import 'package:medilink/core/session/session_service.dart';
 import 'package:medilink/features/doctor/presentation/widgets/consultation_timer.dart';
+import 'package:medilink/features/doctor/presentation/widgets/patient_hologram.dart';
 import 'package:intl/intl.dart';
 import 'package:medilink/core/di/injection.dart';
 import 'package:medilink/core/theme/app_colors.dart';
@@ -296,11 +297,16 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
     final theme = Theme.of(context);
     final bmi = VitalSigns(height: _parse(_height), weight: _parse(_weight)).bmi;
     final allergies = _controller.record?.allergyList ?? const <String>[];
+    final gender = _controller.record?.gender;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         _PatientHeader(consultation: c),
+        if (PatientHologram.supports(gender)) ...[
+          const SizedBox(height: AppSpacing.md),
+          PatientHologram(gender: gender!),
+        ],
         if (editable && _elapsed != null) ...[
           const SizedBox(height: AppSpacing.md),
           ConsultationTimerBar(elapsed: _elapsed!),
