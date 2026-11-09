@@ -9,9 +9,13 @@ import 'package:medilink/core/theme/app_colors.dart';
 import 'package:medilink/core/theme/app_dimens.dart';
 import 'package:medilink/core/widgets/widgets.dart';
 import 'package:medilink/features/pharmacy/pharmacy_module.dart';
+import 'package:medilink/features/pharmacy/data/repositories/medicine_repository.dart';
+import 'package:medilink/features/pharmacy/data/repositories/stock_repository.dart';
 import 'package:medilink/features/pharmacy/presentation/controllers/pharmacy_dashboard_controller.dart';
+import 'package:medilink/features/pharmacy/presentation/controllers/pharmacy_voice_assistant_controller.dart';
 import 'package:medilink/features/pharmacy/presentation/screens/medicine_catalog_screen.dart';
 import 'package:medilink/features/pharmacy/presentation/screens/pharmacy_profile_screen.dart';
+import 'package:medilink/features/pharmacy/presentation/widgets/pharmacy_voice_assistant_dialog.dart';
 import 'package:medilink/features/user/presentation/widgets/user_avatar.dart';
 
 /// Tableau de bord moderne du pharmacien titulaire d'officine.
@@ -25,6 +29,7 @@ class PharmacyDashboardScreen extends StatefulWidget {
 
 class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
   late PharmacyDashboardController _controller;
+  late PharmacyVoiceAssistantController _voiceController;
   int _navIndex = 0;
 
   @override
@@ -32,11 +37,21 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
     super.initState();
     _controller = GetIt.I<PharmacyDashboardController>();
     _controller.load();
+
+    // Instancier l'assistant vocal directement (pas dans GetIt: état local par screen)
+    final session = GetIt.I<SessionService>();
+    final pharmacyId = session.currentUser?.pharmacyId ?? 1;
+    _voiceController = PharmacyVoiceAssistantController(
+      pharmacyId: pharmacyId,
+      stockRepository: GetIt.I<StockRepository>(),
+      medicineRepository: GetIt.I<MedicineRepository>(),
+    );
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _voiceController.dispose();
     super.dispose();
   }
 
@@ -98,6 +113,22 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
     final color = UserRole.pharmacist.color;
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'voice_assistant_fab',
+        onPressed: () => PharmacyVoiceAssistantDialog.show(
+          context,
+          controller: _voiceController,
+        ),
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.mic_rounded),
+        label: const Text(
+          'Assistant vocal',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 4,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _navIndex,
         onDestinationSelected: _handleNavSelect,
