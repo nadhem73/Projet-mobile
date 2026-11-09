@@ -94,5 +94,6 @@ flutter:
     - assets/images/
     - assets/tessdata/
     - assets/tessdata_config.json
+    - lib/features/insurance/tool/demo_config/
 
 

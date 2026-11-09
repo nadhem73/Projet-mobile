@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -16,9 +17,61 @@ import 'package:medilink/features/insurance/presentation/screens/insurance_expla
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+class _DemoConfigBundle extends CachingAssetBundle {
+  _DemoConfigBundle(this.content);
+  final String? content;
+
+  @override
+  Future<ByteData> load(String key) async {
+    if (content == null) throw FlutterError('Missing asset');
+    return ByteData.sublistView(Uint8List.fromList(utf8.encode(content!)));
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
+
+  test(
+    'direct mode loads the ignored local asset and handles a missing key',
+    () async {
+      final service = InsuranceExplanationService(
+        configAssets: _DemoConfigBundle('local-demo-key\n'),
+        client: MockClient((request) async {
+          expect(request.headers['authorization'], 'Bearer local-demo-key');
+          return http.Response(
+            jsonEncode({
+              'choices': [
+                {
+                  'message': {'content': 'Explication'},
+                },
+              ],
+            }),
+            200,
+          );
+        }),
+      );
+      expect(
+        await service.explain({'status': 'SUBMITTED', 'amount_tnd': 120}),
+        'Explication',
+      );
+      service.dispose();
+      final missing = InsuranceExplanationService(
+        configAssets: _DemoConfigBundle(null),
+      );
+      await expectLater(
+        missing.explain({'status': 'SUBMITTED', 'amount_tnd': 120}),
+        throwsA(
+          isA<AppException>().having(
+            (e) => e.message,
+            'message',
+            contains('Clé Groq absente'),
+          ),
+        ),
+      );
+      missing.dispose();
+    },
+  );
 
   test(
     'direct Groq requests handle the three tasks without forwarding identity',

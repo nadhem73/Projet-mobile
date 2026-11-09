@@ -70,7 +70,7 @@ flutter pub get
 flutter run
 ```
 
-L'IA nécessite une configuration locale distincte, décrite dans [Configuration Groq](#12-assistant-groq--configuration-de-démonstration), ainsi qu'une connexion Internet. Les autres fonctions démarrent avec `flutter run`.
+L'IA nécessite une clé locale et une connexion Internet, décrites dans [Configuration Groq](#12-assistant-groq--configuration-de-démonstration). L'application démarre avec `flutter run`.
 
 Utiliser une seule installation de l'application pour les deux comptes :
 
@@ -323,7 +323,7 @@ Les offres, tarifs et garanties ne sont pas réels. Ce prototype ne vérifie pas
 
 ## 12. Assistant Groq : configuration de démonstration
 
-L'application appelle Groq directement en HTTPS. Chaque développeur prépare une clé de démonstration locale dans `lib/features/insurance/tool/.env`, avec la ligne `GROQ_API_KEY=sa_cle`, puis lance `python lib/features/insurance/tool/prepare_groq_demo.py` à la racine du projet. Il démarre ensuite l'application avec `flutter run --dart-define-from-file=lib/features/insurance/tool/groq_demo_config.json`. Ces fichiers locaux sont ignorés par Git. La commande Python ne doit être répétée que si la clé change.
+L'application appelle Groq directement en HTTPS. Chaque développeur crée le fichier local `lib/features/insurance/tool/demo_config/groq_key.txt`, y colle uniquement sa clé de démonstration, puis lance `flutter run`. Ce fichier est ignoré par Git et est inclus automatiquement dans la compilation. Après changement de clé, arrêter complètement l'application puis la relancer avec `flutter run`. Sans clé, l'application démarre et les autres fonctions restent disponibles, mais l'IA affiche un message de configuration.
 
 **La clé est intégrée à l'application compilée.** Toute personne ayant accès à cette version peut la récupérer et consommer le quota Groq. Utiliser une clé dédiée à la démonstration et la révoquer après usage. Pour permettre à toute l'équipe d'utiliser uniquement `flutter run` sans distribuer de clé, il faut un backend authentifié qui conserve la clé côté serveur.
 

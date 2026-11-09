@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:medilink/core/error/app_exception.dart';
 import 'insurance_comparator.dart';
@@ -46,12 +47,17 @@ class InsuranceExplanationService {
     http.Client? client,
     String? url,
     String? apiKey,
+    AssetBundle? configAssets,
   }) : _client = client ?? http.Client(),
        _url = url,
-       _apiKey = apiKey ?? const String.fromEnvironment('GROQ_API_KEY');
+       _apiKey = apiKey ?? const String.fromEnvironment('GROQ_API_KEY'),
+       _useLocalConfig = apiKey == null,
+       _configAssets = configAssets ?? rootBundle;
   final http.Client _client;
   final String? _url;
   final String _apiKey;
+  final bool _useLocalConfig;
+  final AssetBundle _configAssets;
 
   Future<String> explain(Map<String, Object?> facts) async {
     if (_url == null) return _explainDirect(facts);
@@ -115,9 +121,20 @@ class InsuranceExplanationService {
   }
 
   Future<String> _explainDirect(Map<String, Object?> facts) async {
-    if (_apiKey.isEmpty) {
+    var key = _apiKey;
+    if (key.isEmpty && _useLocalConfig) {
+      try {
+        key =
+            (await _configAssets.loadString(
+              'lib/features/insurance/tool/demo_config/groq_key.txt',
+            )).trim();
+      } catch (_) {
+        // The optional file is not included when this developer has no key.
+      }
+    }
+    if (key.isEmpty) {
       throw const AppException(
-        'Clé Groq absente. Recompilez la démonstration avec la configuration locale.',
+        'Clé Groq absente. Ajoutez-la dans tool/demo_config/groq_key.txt puis redémarrez l’application.',
       );
     }
     const baseRules =
@@ -202,7 +219,7 @@ class InsuranceExplanationService {
             Uri.https('api.groq.com', '/openai/v1/chat/completions'),
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer $_apiKey',
+              'Authorization': 'Bearer $key',
             },
             body: jsonEncode({
               'model': const String.fromEnvironment(
