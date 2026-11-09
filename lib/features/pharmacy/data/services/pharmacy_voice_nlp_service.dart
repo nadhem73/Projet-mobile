@@ -13,7 +13,16 @@ class PharmacyStockItem {
   });
 
   int get medicineId => medicine.medicineId ?? stock.medicineId;
-  String get medicineName => medicine.name;
+  String get medicineName {
+    final normName = medicine.name.toLowerCase();
+    if (medicine.dosage != null && medicine.dosage!.trim().isNotEmpty) {
+      final d = medicine.dosage!.trim();
+      if (!normName.contains(d.toLowerCase())) {
+        return '${medicine.name} $d';
+      }
+    }
+    return medicine.name;
+  }
   int get quantity => stock.quantity;
   String? get shelfLocation => stock.shelfLocation;
   double get effectivePrice => stock.effectivePrice(medicine.price);
@@ -842,8 +851,16 @@ class PharmacyVoiceNLPService {
         final score = scoreFull > scoreName ? scoreFull : scoreName;
         if (score > bestScore) {
           bestScore = score;
+          final normName = med.name.toLowerCase();
+          String catalogName = med.name;
+          if (med.dosage != null && med.dosage!.trim().isNotEmpty) {
+            final d = med.dosage!.trim();
+            if (!normName.contains(d.toLowerCase())) {
+              catalogName = '${med.name} $d';
+            }
+          }
           bestTarget = _MatchedTarget(
-            medicineName: med.name,
+            medicineName: catalogName,
             item: null,
             nationalMedicine: med,
             score: score,
