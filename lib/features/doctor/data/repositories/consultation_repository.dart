@@ -71,6 +71,15 @@ class ConsultationRepository {
   }
 
   /// Consultation [id]. Avec [doctorId], vérifie qu'elle appartient à ce médecin.
+  /// Consultation liée au rendez-vous [appointmentId] chez ce médecin, ou null si elle n'a pas été démarrée.
+  Future<Consultation?> forAppointment(int appointmentId, {required int doctorId}) async {
+    final rows = await _database.db.rawQuery('$_select WHERE c.appointment_id = ? AND c.doctor_id = ?', [
+      appointmentId,
+      doctorId,
+    ]);
+    return rows.isEmpty ? null : Consultation.fromMap(rows.first);
+  }
+
   Future<Consultation> byId(int id, {int? doctorId}) async {
     final rows = await _database.db.rawQuery('$_select WHERE c.consultation_id = ?', [id]);
     if (rows.isEmpty) throw const AppException('Consultation introuvable.', code: 'not_found');

@@ -5,17 +5,20 @@ import 'package:http/http.dart' as http;
 import 'package:medilink/core/modules/feature_module.dart';
 import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/theme/app_colors.dart';
+import 'package:medilink/features/doctor/data/repositories/blocked_slot_repository.dart';
 import 'package:medilink/features/doctor/data/repositories/consultation_repository.dart';
 import 'package:medilink/features/doctor/data/repositories/medicament_api.dart';
 import 'package:medilink/features/doctor/data/repositories/prescription_repository.dart';
 import 'package:medilink/features/doctor/presentation/controllers/consultation_controller.dart';
+import 'package:medilink/features/doctor/presentation/controllers/doctor_appointment_detail_controller.dart';
 import 'package:medilink/features/doctor/presentation/controllers/consultations_controller.dart';
 import 'package:medilink/features/doctor/presentation/controllers/patient_consultations_controller.dart';
 import 'package:medilink/features/doctor/presentation/controllers/prescription_editor_controller.dart';
 import 'package:medilink/features/doctor/presentation/controllers/prescriptions_controller.dart';
 import 'package:medilink/features/doctor/presentation/screens/consultation_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/doctor_appointment_detail_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/consultations_screen.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_tab.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_dashboard_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_lab_results_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_list_screen.dart';
@@ -34,6 +37,9 @@ abstract final class DoctorRoutes {
   static const agenda = '/doctor/agenda';
   static const consultations = '/doctor/consultations';
   static String consultation(Object id) => '/doctor/consultation/$id';
+
+  /// Détail d'un rendez-vous de l'agenda (côté médecin).
+  static String appointment(Object id) => '/doctor/appointment/$id';
   static const patients = '/doctor/patients';
   static String patientRecord(Object patientId) => '/doctor/patient/$patientId/record';
   static String patientLabs(Object patientId) => '/doctor/patient/$patientId/labs';
@@ -67,9 +73,13 @@ class DoctorModule extends FeatureModule {
       ..registerLazySingleton<ConsultationRepository>(() => ConsultationRepository(getIt(), getIt(), getIt()))
       ..registerLazySingleton<PrescriptionRepository>(() => PrescriptionRepository(getIt(), getIt(), getIt()))
       ..registerLazySingleton<MedicamentApi>(() => MedicamentApi(http.Client()))
+      ..registerLazySingleton<BlockedSlotRepository>(() => BlockedSlotRepository(getIt()))
       // Controllers (une instance par écran)
       ..registerFactory<ConsultationsController>(() => ConsultationsController(getIt(), getIt()))
       ..registerFactory<ConsultationController>(() => ConsultationController(getIt(), getIt(), getIt(), getIt()))
+      ..registerFactory<DoctorAppointmentDetailController>(
+        () => DoctorAppointmentDetailController(getIt(), getIt(), getIt(), getIt()),
+      )
       ..registerFactory<PrescriptionEditorController>(
         () => PrescriptionEditorController(getIt(), getIt(), getIt(), getIt()),
       )
@@ -84,7 +94,11 @@ class DoctorModule extends FeatureModule {
   @override
   List<RouteBase> get routes => [
     GoRoute(path: DoctorRoutes.dashboard, builder: (_, _) => const MLDoctorDashboardScreen()),
-    GoRoute(path: DoctorRoutes.agenda, builder: (_, _) => const MLDoctorAgendaScreen()),
+    GoRoute(path: DoctorRoutes.agenda, builder: (_, _) => const DoctorAgendaTab()),
+    GoRoute(
+      path: '/doctor/appointment/:id',
+      builder: (_, state) => DoctorAppointmentDetailScreen(appointmentId: _id(state)),
+    ),
     GoRoute(path: DoctorRoutes.consultations, builder: (_, _) => const DoctorConsultationsScreen()),
     GoRoute(
       path: '/doctor/consultation/:id',

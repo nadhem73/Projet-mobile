@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:medilink/core/database/app_database.dart';
 import 'package:medilink/core/database/schema/appointment_schema.dart';
+import 'package:medilink/core/database/schema/doctor_schema.dart';
 import 'package:medilink/core/error/app_exception.dart';
 import 'package:medilink/core/notifications/notification_service.dart';
 import 'package:medilink/features/appointment/data/models/appointment.dart';
@@ -100,17 +101,32 @@ class AppointmentRepository {
   // ---------------------------------------------------------------------------
 
   /// Heures encore réservables chez ce médecin pour ce jour :
-  /// horaires de travail, moins les créneaux déjà pris, moins les heures déjà passées.
+  /// horaires de travail, moins les créneaux déjà pris, moins les indisponibilités
+  /// du médecin (réunion, pause…), moins les heures déjà passées.
   Future<List<DateTime>> availableSlots(int doctorId, DateTime day) async {
     final doctor = await _doctors.byId(doctorId);
     if (doctor == null) return const [];
 
     final taken = await _takenSlots(doctorId, day);
+    final dayStart = DateTime(day.year, day.month, day.day);
+    final blocked = await _blockedRanges(doctorId, dayStart, dayStart.add(const Duration(days: 1)));
     final now = _clock();
     return doctor.workingHours
         .slotsFor(day, slotLength: slotLength)
         .where((slot) => slot.isAfter(now) && !taken.contains(Appointment.formatDateTime(slot)))
+        .where((slot) => !blocked.any((b) => b.$1.isBefore(slot.add(slotLength)) && b.$2.isAfter(slot)))
         .toList();
+  }
+
+  /// Indisponibilités du médecin (table du module Médecin) qui chevauchent [from, to).
+  Future<List<(DateTime, DateTime)>> _blockedRanges(int doctorId, DateTime from, DateTime to) async {
+    final rows = await _database.db.query(
+      DoctorTables.blockedSlots,
+      columns: ['start_time', 'end_time'],
+      where: 'doctor_id = ? AND start_time < ? AND end_time > ?',
+      whereArgs: [doctorId, Appointment.formatDateTime(to), Appointment.formatDateTime(from)],
+    );
+    return [for (final r in rows) (DateTime.parse(r['start_time'] as String), DateTime.parse(r['end_time'] as String))];
   }
 
   Future<Set<String>> _takenSlots(int doctorId, DateTime day) async {
@@ -147,6 +163,9 @@ class AppointmentRepository {
     }
     if (!doctor.workingHours.slotsFor(slot, slotLength: slotLength).contains(slot)) {
       throw const AppException('Ce créneau ne fait pas partie des horaires du médecin.', code: 'slot_closed');
+    }
+    if ((await _blockedRanges(doctorId, slot, slot.add(slotLength))).isNotEmpty) {
+      throw const AppException("Le médecin n'est pas disponible à cette heure-là.", code: 'slot_blocked');
     }
 
     final key = Appointment.formatDateTime(slot);

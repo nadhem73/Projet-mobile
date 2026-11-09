@@ -62,15 +62,37 @@ void main() {
     await settle(tester);
   }
 
-  Future<void> tapVisible(WidgetTester tester, Finder finder) async {
-    // Les listes paresseuses ne construisent pas les éléments hors écran.
+  /// Liste de la page (en ignorant le défilement interne des champs multi-lignes).
+  Finder pageScrollable() =>
+      find.byElementPredicate((e) {
+        if (e.widget is! Scrollable) return false;
+        var inField = false;
+        e.visitAncestorElements((a) {
+          inField = a.widget is EditableText;
+          return !inField;
+        });
+        return !inField;
+      }).last;
+
+  /// Les listes paresseuses ne construisent pas les éléments hors écran.
+  Future<void> scrollTo(WidgetTester tester, Finder finder) async {
     if (finder.evaluate().isEmpty) {
-      await tester.scrollUntilVisible(finder, 200, scrollable: find.byType(Scrollable).last);
+      await tester.scrollUntilVisible(finder, 200, scrollable: pageScrollable());
     }
     await tester.ensureVisible(finder);
     await settle(tester);
+  }
+
+  Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+    await scrollTo(tester, finder);
     await tester.tap(finder);
     await settle(tester);
+  }
+
+  Future<void> enterVisible(WidgetTester tester, String label, String text) async {
+    final field = find.widgetWithText(TextFormField, label);
+    await scrollTo(tester, field);
+    await tester.enterText(field, text);
   }
 
   /// Ignore les débordements des écrans hérités du template (police de test).
@@ -98,8 +120,8 @@ void main() {
       await tapVisible(tester, find.text('Démarrer la consultation'));
 
       expect(find.text('Allergies : Pénicilline'), findsOneWidget);
-      await tester.enterText(find.widgetWithText(TextFormField, 'Motif de consultation'), 'Palpitations');
-      await tester.enterText(find.widgetWithText(TextFormField, 'Température'), '37,5');
+      await enterVisible(tester, 'Température', '37,5');
+      await enterVisible(tester, 'Motif de consultation', 'Palpitations');
 
       // Rédaction de l'ordonnance (API médicaments injoignable en test : saisie libre).
       await tapVisible(tester, find.widgetWithText(TextButton, 'Nouvelle'));

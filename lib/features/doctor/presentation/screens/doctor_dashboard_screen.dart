@@ -5,7 +5,11 @@ import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/session/session_service.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:medilink/features/doctor/presentation/widgets/doctor_bottom_nav_bar.dart';
-import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_screen.dart';
+import 'package:intl/intl.dart';
+import 'package:medilink/features/appointment/data/models/appointment.dart';
+import 'package:medilink/features/appointment/data/repositories/appointment_repository.dart';
+import 'package:medilink/features/appointment/presentation/widgets/appointment_card.dart';
+import 'package:medilink/features/doctor/presentation/screens/doctor_agenda_tab.dart';
 import 'package:medilink/features/doctor/presentation/screens/consultations_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/prescriptions_screen.dart';
 import 'package:medilink/features/user/presentation/screens/doctor/doctor_patients_records_screen.dart';
@@ -26,7 +30,8 @@ class MLDoctorDashboardScreenState extends State<MLDoctorDashboardScreen> {
   int currentWidget = 0;
   List<Widget> widgets = [
     _DoctorDashboardHome(onNavigateToTab: (index) {}),
-    MLDoctorAgendaScreen(),
+    // Agenda réel (module Rendez-vous) ; toucher un rendez-vous ouvre la consultation.
+    const DoctorAgendaTab(),
     const DoctorConsultationsScreen(),
     // Vrais patients (rendez-vous) + accès contrôlé au dossier médical (module User).
     const DoctorPatientsRecordsScreen(),
@@ -81,7 +86,6 @@ class _DoctorDashboardHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = appStore.isDarkModeOn;
-    final agendaList = mlDoctorAgendaDataList().where((e) => e.date == '2026-09-28').toList();
     final consultationList =
         mlDoctorConsultationDataList().where((e) => e.status == 'Programmé' || e.status == 'En cours').toList();
     mlDoctorPatientSummaryDataList();
@@ -106,7 +110,7 @@ class _DoctorDashboardHome extends StatelessWidget {
                   children: [
                     _buildStatsRow(context, isDark),
                     24.height,
-                    _buildTodayAgenda(context, isDark, agendaList),
+                    _TodayAgenda(isDark: isDark, onSeeAll: () => onNavigateToTab(1)),
                     24.height,
                     _buildUpcomingConsultations(context, isDark, consultationList),
                     24.height,
@@ -207,84 +211,6 @@ class _DoctorDashboardHome extends StatelessWidget {
             ).expand();
           }).toList(),
     );
-  }
-
-  Widget _buildTodayAgenda(BuildContext context, bool isDark, List agendaList) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Agenda du jour', style: boldTextStyle(size: 18)),
-            TextButton(
-              onPressed: () {
-                onNavigateToTab(1);
-              },
-              child: Text('Voir tout', style: boldTextStyle(size: 13, color: mlColorDarkBlue)),
-            ),
-          ],
-        ),
-        12.height,
-        ...agendaList.map((e) => _buildAgendaItem(context, isDark, e)),
-      ],
-    );
-  }
-
-  Widget _buildAgendaItem(BuildContext context, bool isDark, MLDoctorAgendaData e) {
-    Color statusColor;
-    switch (e.status) {
-      case 'Confirmé':
-        statusColor = medicalTealPrimary;
-        break;
-      case 'En attente':
-        statusColor = healthWarning;
-        break;
-      case 'Annulé':
-        statusColor = healthError;
-        break;
-      default:
-        statusColor = Colors.grey;
-    }
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      padding: EdgeInsets.all(12),
-      decoration: boxDecorationWithRoundedCorners(
-        backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade50,
-        borderRadius: radius(12),
-        border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Container(width: 4, height: 50, decoration: BoxDecoration(color: statusColor, borderRadius: radius(2))),
-          12.width,
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text('${e.startTime} - ${e.endTime}', style: boldTextStyle(size: 13)),
-                  8.width,
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: radius(4)),
-                    child: Text(e.status.validate(), style: boldTextStyle(size: 10, color: statusColor)),
-                  ),
-                ],
-              ),
-              4.height,
-              Text(e.patientName.validate(), style: boldTextStyle(size: 14)),
-              2.height,
-              Text('${e.type}  •  ${e.notes}', style: secondaryTextStyle(size: 12)),
-            ],
-          ).expand(),
-          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-        ],
-      ),
-    ).onTap(() {
-      // Navigate to consultation detail
-    });
   }
 
   Widget _buildUpcomingConsultations(BuildContext context, bool isDark, List consultationList) {
@@ -431,5 +357,112 @@ class _DoctorDashboardHome extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// « Agenda du jour » : rendez-vous non annulés du médecin connecté pour aujourd'hui
+/// (base SQLite, module Rendez-vous). Se recharge quand un rendez-vous change.
+class _TodayAgenda extends StatefulWidget {
+  const _TodayAgenda({required this.isDark, required this.onSeeAll});
+
+  final bool isDark;
+  final VoidCallback onSeeAll;
+
+  @override
+  State<_TodayAgenda> createState() => _TodayAgendaState();
+}
+
+class _TodayAgendaState extends State<_TodayAgenda> {
+  final _repository = getIt<AppointmentRepository>();
+  List<Appointment>? _appointments;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository.changes.addListener(_load);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _repository.changes.removeListener(_load);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final doctorId = getIt<SessionService>().currentUser?.doctorId;
+    if (doctorId == null) return;
+    final list = await _repository.forDoctorOnDay(doctorId, DateTime.now());
+    if (mounted) setState(() => _appointments = list);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final list = _appointments;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Agenda du jour', style: boldTextStyle(size: 18)),
+            TextButton(
+              onPressed: widget.onSeeAll,
+              child: Text('Voir tout', style: boldTextStyle(size: 13, color: mlColorDarkBlue)),
+            ),
+          ],
+        ),
+        12.height,
+        if (list == null)
+          const Center(child: CircularProgressIndicator())
+        else if (list.isEmpty)
+          Text('Aucun rendez-vous aujourd\'hui.', style: secondaryTextStyle(size: 13))
+        else
+          ...list.map(_item),
+      ],
+    );
+  }
+
+  Widget _item(Appointment a) {
+    final time = DateFormat('HH:mm');
+    final end = a.dateTime.add(AppointmentRepository.slotLength);
+    final color = a.status.color;
+    final isDark = widget.isDark;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all(12),
+      decoration: boxDecorationWithRoundedCorners(
+        backgroundColor: isDark ? scaffoldDarkColor : Colors.grey.shade50,
+        borderRadius: radius(12),
+        border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(width: 4, height: 50, decoration: BoxDecoration(color: color, borderRadius: radius(2))),
+          12.width,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text('${time.format(a.dateTime)} - ${time.format(end)}', style: boldTextStyle(size: 13)),
+                  8.width,
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: radius(4)),
+                    child: Text(a.status.label, style: boldTextStyle(size: 10, color: color)),
+                  ),
+                ],
+              ),
+              4.height,
+              Text(a.patientName, style: boldTextStyle(size: 14)),
+              if (a.reason != null) ...[2.height, Text(a.reason!, style: secondaryTextStyle(size: 12))],
+            ],
+          ).expand(),
+          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+        ],
+      ),
+    ).onTap(() => AppointmentConsultation.showDetail(context, a));
   }
 }

@@ -68,6 +68,7 @@ dependencies:
   path_provider: ^2.1.6
   speech_to_text: ^7.5.0
   flutter_tts: ^4.2.5
+  model_viewer_plus: ^1.10.0
 
 dev_dependencies:
   flutter_test:
@@ -96,7 +97,6 @@ flutter:
   assets:
     - assets/images/
     - assets/tessdata/
+    - assets/models/holo/
     - assets/tessdata_config.json
     - assets/data/
-
-
