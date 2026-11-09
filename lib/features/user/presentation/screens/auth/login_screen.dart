@@ -1,3 +1,5 @@
+import 'package:medilink/features/pharmacy/data/models/pharmacy.dart';
+import 'package:medilink/features/pharmacy/data/repositories/pharmacy_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -57,6 +59,125 @@ class _LoginScreenState extends State<LoginScreen> {
   void _fillDemo(String email) {
     _email.text = email;
     _password.text = DatabaseSeeder.demoPassword;
+  }
+
+  Future<void> _showPharmacyPicker() async {
+    List<Pharmacy> pharmacies = [];
+    try {
+      pharmacies = await getIt<PharmacyRepository>().getAll();
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.75,
+          maxChildSize: 0.95,
+          minChildSize: 0.4,
+          builder: (ctx, scrollCtrl) {
+            return Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.local_pharmacy_rounded, color: Color(0xFF0D9488), size: 24),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Choisir une pharmacie (${pharmacies.length})',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Sélectionnez une officine pour tester son inventaire et ses prix spécifiques',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: pharmacies.isEmpty
+                      ? const Center(child: Text('Aucune pharmacie trouvée'))
+                      : ListView.separated(
+                          controller: scrollCtrl,
+                          itemCount: pharmacies.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (context, i) {
+                            final p = pharmacies[i];
+                            final isNight = p.isNightPharmacy;
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: isNight
+                                    ? const Color(0xFF6366F1).withValues(alpha: 0.15)
+                                    : const Color(0xFF0D9488).withValues(alpha: 0.15),
+                                child: Icon(
+                                  isNight ? Icons.nightlight_round : Icons.local_pharmacy,
+                                  color: isNight ? const Color(0xFF6366F1) : const Color(0xFF0D9488),
+                                  size: 20,
+                                ),
+                              ),
+                              title: Text(
+                                p.name,
+                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                              ),
+                              subtitle: Text(
+                                '${p.address} • ${p.phone ?? ""}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                              trailing: Chip(
+                                label: Text(
+                                  isNight ? 'Nuit' : 'Jour',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: isNight ? const Color(0xFF6366F1) : const Color(0xFF0D9488),
+                                  ),
+                                ),
+                                backgroundColor: isNight
+                                    ? const Color(0xFF6366F1).withValues(alpha: 0.1)
+                                    : const Color(0xFF0D9488).withValues(alpha: 0.1),
+                                padding: EdgeInsets.zero,
+                              ),
+                              onTap: () {
+                                Navigator.pop(sheetCtx);
+                                if (p.email != null && p.email!.isNotEmpty) {
+                                  _fillDemo(p.email!);
+                                } else {
+                                  _fillDemo('pharmacie@medilink.tn');
+                                }
+                                _submit();
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -129,8 +250,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     for (final MapEntry(key: role, value: email) in _demoAccounts.entries)
                       ActionChip(
                         avatar: Icon(role.icon, size: 18, color: role.color),
-                        label: Text(role.label),
-                        onPressed: () => _fillDemo(email),
+                        label: Text(role == UserRole.pharmacist ? 'Pharmacien (33)' : role.label),
+                        onPressed: () {
+                          if (role == UserRole.pharmacist) {
+                            _showPharmacyPicker();
+                          } else {
+                            _fillDemo(email);
+                          }
+                        },
                       ),
                   ],
                 ),

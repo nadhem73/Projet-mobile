@@ -1,39 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:medilink/core/database/app_database.dart';
 import 'package:medilink/core/modules/feature_module.dart';
 import 'package:medilink/core/navigation/app_routes.dart';
+import 'package:medilink/core/session/session_service.dart';
 import 'package:medilink/core/theme/app_colors.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/add_payment_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/add_to_cart_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/add_voucher_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/confirm_order_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/create_medicine_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/medicine_screen.dart';
+import 'package:medilink/features/pharmacy/data/models/pharmacy.dart';
+import 'package:medilink/features/pharmacy/data/repositories/medicine_repository.dart';
+import 'package:medilink/features/pharmacy/data/repositories/pharmacy_finder_repository.dart';
+import 'package:medilink/features/pharmacy/data/repositories/pharmacy_repository.dart';
+import 'package:medilink/features/pharmacy/data/repositories/stock_repository.dart';
+import 'package:medilink/features/pharmacy/presentation/controllers/medicine_catalog_controller.dart';
+import 'package:medilink/features/pharmacy/presentation/controllers/pharmacy_dashboard_controller.dart';
+import 'package:medilink/features/pharmacy/presentation/controllers/pharmacy_finder_controller.dart';
+import 'package:medilink/features/pharmacy/presentation/controllers/pharmacy_profile_controller.dart';
+import 'package:medilink/features/pharmacy/presentation/controllers/stock_management_controller.dart';
+import 'package:medilink/features/pharmacy/presentation/screens/medicine_catalog_screen.dart';
 import 'package:medilink/features/pharmacy/presentation/screens/online_pharmacy_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/order_detail_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/pharmacist_dashboard_screen.dart';
+import 'package:medilink/features/pharmacy/presentation/screens/pharmacy_dashboard_screen.dart';
 import 'package:medilink/features/pharmacy/presentation/screens/pharmacy_detail_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/product_detail_screen.dart';
-import 'package:medilink/features/pharmacy/presentation/screens/product_more_detail_screen.dart';
+import 'package:medilink/features/pharmacy/presentation/screens/pharmacy_finder_screen.dart';
+import 'package:medilink/features/pharmacy/presentation/screens/pharmacy_profile_screen.dart';
+import 'package:medilink/features/pharmacy/presentation/screens/stock_management_screen.dart';
 
 /// Module PHARMACIE — Membre 4.
-/// Catalogue des médicaments (dataset PostgreSQL), commandes, rappels de prise.
+/// Gestion des officines, recherche de médicaments avec stock en temps réel,
+/// prix personnalisés par pharmacie et inventaire.
 abstract final class PharmacyRoutes {
   /// Panel du pharmacien (espace réservé au rôle PHARMACIST).
   static const dashboard = AppRoutes.pharmacistHome;
 
   static const home = '/pharmacy';
-  static const detail = '/pharmacy-detail';
-  static const product = '/product-detail';
-  static const productMore = '/product-more-detail';
-  static const medicines = '/medicine';
-  static const createMedicine = '/create-medicine';
-  static const cart = '/add-to-cart';
-  static const confirmOrder = '/confirm-order';
-  static const orderDetail = '/order-detail';
-  static const addVoucher = '/add-voucher';
-  static const addPayment = '/add-payment';
+  static const finder = '/pharmacy/finder';
+  static const catalog = '/pharmacy/catalog';
+  static const detail = '/pharmacy/detail';
+  static const profile = '/pharmacy/profile';
+  static const stockManagement = '/pharmacy/stock-management';
 }
 
 class PharmacyModule extends FeatureModule {
@@ -44,23 +47,86 @@ class PharmacyModule extends FeatureModule {
 
   @override
   void registerDependencies(GetIt getIt) {
-    // TODO(pharmacy): enregistrer MedicamentRepository (API PostgreSQL), OrderRepository...
+    // Repositories
+    getIt.registerLazySingleton<MedicineRepository>(() => MedicineRepository(getIt<AppDatabase>()));
+    getIt.registerLazySingleton<PharmacyRepository>(() => PharmacyRepository(getIt<AppDatabase>()));
+    getIt.registerLazySingleton<StockRepository>(() => StockRepository(getIt<AppDatabase>()));
+    getIt.registerLazySingleton<PharmacyFinderRepository>(() => PharmacyFinderRepository(
+      getIt<PharmacyRepository>(),
+      getIt<MedicineRepository>(),
+      getIt<StockRepository>(),
+    ));
+
+    // Controllers
+    getIt.registerFactory<MedicineCatalogController>(() => MedicineCatalogController(
+      getIt<SessionService>(),
+      getIt<PharmacyRepository>(),
+      getIt<MedicineRepository>(),
+      getIt<StockRepository>(),
+    ));
+    getIt.registerFactory<PharmacyDashboardController>(() => PharmacyDashboardController(
+      getIt<SessionService>(),
+      getIt<PharmacyRepository>(),
+      getIt<StockRepository>(),
+      getIt<MedicineRepository>(),
+    ));
+    getIt.registerFactory<PharmacyFinderController>(() => PharmacyFinderController(
+      getIt<PharmacyFinderRepository>(),
+    ));
+    getIt.registerFactory<PharmacyProfileController>(() => PharmacyProfileController(
+      getIt<SessionService>(),
+      getIt<PharmacyRepository>(),
+    ));
+    getIt.registerFactory<StockManagementController>(() => StockManagementController(
+      getIt<SessionService>(),
+      getIt<PharmacyRepository>(),
+      getIt<MedicineRepository>(),
+      getIt<StockRepository>(),
+    ));
   }
 
   @override
   List<RouteBase> get routes => [
-    GoRoute(path: PharmacyRoutes.dashboard, builder: (_, _) => const PharmacistDashboardScreen()),
-    GoRoute(path: PharmacyRoutes.home, builder: (_, _) => const MLOnlinePharmacyScreen()),
-    GoRoute(path: PharmacyRoutes.detail, builder: (_, _) => const MLOnlinePharmacyDetailScreen()),
-    GoRoute(path: PharmacyRoutes.product, builder: (_, _) => const MLProductDetailScreen()),
-    GoRoute(path: PharmacyRoutes.productMore, builder: (_, _) => const MLProductMoreDetailScreen()),
-    GoRoute(path: PharmacyRoutes.medicines, builder: (_, _) => const MLMedicineScreen()),
-    GoRoute(path: PharmacyRoutes.createMedicine, builder: (_, _) => const MLCreateNewMedicine()),
-    GoRoute(path: PharmacyRoutes.cart, builder: (_, _) => const MLAddToCartScreen()),
-    GoRoute(path: PharmacyRoutes.confirmOrder, builder: (_, _) => const MLConfirmOrderScreen()),
-    GoRoute(path: PharmacyRoutes.orderDetail, builder: (_, _) => const MLOrderDetailScreen()),
-    GoRoute(path: PharmacyRoutes.addVoucher, builder: (_, _) => const MLAddVoucherScreen()),
-    GoRoute(path: PharmacyRoutes.addPayment, builder: (_, _) => const MLAddPaymentScreen()),
+    GoRoute(
+      path: PharmacyRoutes.dashboard,
+      builder: (_, _) => const PharmacyDashboardScreen(),
+    ),
+    GoRoute(
+      path: PharmacyRoutes.home,
+      builder: (_, _) => const MLOnlinePharmacyScreen(),
+    ),
+    GoRoute(
+      path: PharmacyRoutes.finder,
+      builder: (context, state) {
+        final initial = state.uri.queryParameters['initial'] ?? (state.extra as String?);
+        return PharmacyFinderScreen(initialMedicine: initial);
+      },
+    ),
+    GoRoute(
+      path: PharmacyRoutes.catalog,
+      builder: (context, state) {
+        final filter = state.uri.queryParameters['filter'] ?? (state.extra as String?);
+        return MedicineCatalogScreen(initialFilter: filter);
+      },
+    ),
+    GoRoute(
+      path: PharmacyRoutes.detail,
+      builder: (context, state) {
+        final pharmacy = state.extra as Pharmacy;
+        return PharmacyDetailScreen(pharmacy: pharmacy);
+      },
+    ),
+    GoRoute(
+      path: PharmacyRoutes.profile,
+      builder: (_, _) => const PharmacyProfileScreen(),
+    ),
+    GoRoute(
+      path: PharmacyRoutes.stockManagement,
+      builder: (context, state) {
+        final medicineId = (state.extra as int?) ?? 1;
+        return StockManagementScreen(medicineId: medicineId);
+      },
+    ),
   ];
 
   @override

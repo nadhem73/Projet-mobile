@@ -58,8 +58,8 @@ class AuthController extends ChangeNotifier {
     } on AppException catch (e) {
       error = e.message;
       return null;
-    } catch (e) {
-      debugPrint('[AuthController] $e');
+    } catch (e, stackTrace) {
+      debugPrint('[AuthController] $e\n$stackTrace');
       error = 'Une erreur inattendue est survenue, réessayez';
       return null;
     } finally {

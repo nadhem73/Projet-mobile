@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:medilink/app/app_modules.dart';
 import 'package:medilink/app/medilink_app.dart';
+import 'package:medilink/core/database/app_database.dart';
+import 'package:medilink/core/database/seeders/medicine_seeder.dart';
 import 'package:medilink/core/di/injection.dart';
 import 'package:medilink/core/state/app_store.dart';
 import 'package:medilink/core/theme/app_colors.dart';
@@ -31,6 +33,18 @@ Future<void> main() async {
   // Sur le Web (démo dans Chrome), SQLite passe par WebAssembly.
   if (kIsWeb) databaseFactory = databaseFactoryFfiWeb;
   await configureDependencies(appModules);
+
+  // Background catalog verification on app start (without blocking main UI)
+  if (!kIsWeb) {
+    Future.microtask(() async {
+      try {
+        final db = getIt<AppDatabase>().db;
+        await MedicineSeeder(db).seed();
+      } catch (e) {
+        debugPrint('[MedicineSeeder] App start note: $e');
+      }
+    });
+  }
 
   appStore = getIt<AppStore>();
   await appStore.toggleDarkMode(value: getBoolAsync('isDarkModeOnPref'));
