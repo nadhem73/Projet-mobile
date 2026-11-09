@@ -12,6 +12,7 @@ class InsuranceDossier {
     this.legacyPath,
     this.withdrawn = false,
     this.complementReceived = false,
+    this.appealStatus,
     List<InsuranceAttachment>? attachments,
     List<Map<String, dynamic>>? events,
   }) : attachments = attachments ?? [],
@@ -23,6 +24,9 @@ class InsuranceDossier {
   String? legacyPath;
   bool withdrawn;
   bool complementReceived;
+
+  /// Null, PENDING, UPHELD or REOPENED; SQL status remains compatible.
+  String? appealStatus;
   final List<InsuranceAttachment> attachments;
   final List<Map<String, dynamic>> events;
 
@@ -39,6 +43,7 @@ class InsuranceDossier {
         legacyPath: json['legacyPath'] as String?,
         withdrawn: json['withdrawn'] as bool? ?? false,
         complementReceived: json['complementReceived'] as bool? ?? false,
+        appealStatus: json['appealStatus'] as String?,
         attachments:
             (json['attachments'] as List)
                 .map((e) => InsuranceAttachment.fromJson(e))
@@ -74,6 +79,7 @@ class InsuranceDossier {
         'legacyPath': legacyPath,
         'withdrawn': withdrawn,
         'complementReceived': complementReceived,
+        'appealStatus': appealStatus,
         'attachments': attachments.map((a) => a.toJson()).toList(),
         'events': events,
       });
@@ -82,9 +88,12 @@ class InsuranceDossier {
 /// Derived presentation state; the existing SQL status constraint is unchanged.
 String insuranceClaimState(Map<String, Object?> claim) {
   final status = claim['status'] as String;
-  if (status != 'SUBMITTED') return status;
+  if (status != 'SUBMITTED' && status != 'REJECTED') return status;
   try {
     final dossier = InsuranceDossier.decode(claim['document_path']);
+    if (status == 'REJECTED') {
+      return dossier.appealStatus == 'PENDING' ? 'APPEAL_PENDING' : status;
+    }
     if (dossier.withdrawn) return 'WITHDRAWN';
     if (dossier.requestedDocuments != null) {
       return dossier.complementReceived

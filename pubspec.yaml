@@ -99,4 +99,7 @@ flutter:
     - assets/tessdata/
     - assets/models/holo/
     - assets/tessdata_config.json
+    - lib/features/insurance/tool/demo_config/
+
+
     - assets/data/

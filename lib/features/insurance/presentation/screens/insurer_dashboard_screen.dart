@@ -112,6 +112,7 @@ class _InsurerDashboardScreenState extends State<InsurerDashboardScreen> {
               (c) => [
                 'SUBMITTED',
                 'REVIEW_COMPLEMENT',
+                'APPEAL_PENDING',
               ].contains(insuranceClaimState(c)),
             )
             .length;
@@ -179,6 +180,7 @@ class _InsurerDashboardScreenState extends State<InsurerDashboardScreen> {
               'SUBMITTED',
               'WAITING_DOCUMENTS',
               'REVIEW_COMPLEMENT',
+              'APPEAL_PENDING',
               'WITHDRAWN',
               'APPROVED',
               'REJECTED',

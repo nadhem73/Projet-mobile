@@ -99,6 +99,11 @@ void main() {
       await tap('Réactiver');
       await tap('Confirmer');
       await tap('Ouvrir le dossier');
+      expect(find.text('Expliquer mon dossier'), findsOneWidget);
+      expect(
+        find.textContaining('Envoie l’état et les montants à Groq'),
+        findsOneWidget,
+      );
       await tap('Corriger les informations');
       await tester.enterText(
         find.widgetWithText(TextField, 'Frais corrigés (TND)'),

@@ -57,6 +57,16 @@ class InsuranceRepository {
     [_patientId],
   );
 
+  /// Local registered insurer names; this is not verification of a real policy.
+  Future<List<String>> availableInsurerCompanies() async {
+    _patientId;
+    final rows = await _database.db.rawQuery(
+      "SELECT MIN(trim(i.company)) AS company FROM insurers i JOIN users u ON u.id = i.user_id "
+      "WHERE u.status = 'ACTIVE' AND trim(i.company) != '' GROUP BY trim(i.company) COLLATE NOCASE ORDER BY company COLLATE NOCASE",
+    );
+    return rows.map((row) => row['company'] as String).toList();
+  }
+
   Future<int> addContract({
     required String company,
     required String policyNumber,
@@ -424,6 +434,7 @@ class InsuranceRepository {
         );
       }
       dossier.requestedDocuments = null;
+      if (next == 'REJECTED') dossier.appealStatus = null;
       dossier.record(
         next,
         actor,
@@ -584,6 +595,100 @@ class InsuranceRepository {
 
   Future<List<MedicalDocument>> patientDocuments() =>
       MedicalRecordRepository(_database).documents(_patientId);
+
+  /// One request for review per refusal; the refusal and its history remain intact.
+  Future<void> submitAppeal(int claimId, String reason) async {
+    final patientId = _patientId;
+    final actor = _session.requireUser.fullName;
+    if (reason.trim().isEmpty || reason.length > 1000) {
+      throw const AppException(
+        'Expliquez votre recours (1 000 caractères maximum).',
+      );
+    }
+    await _database.db.transaction((txn) async {
+      final rows = await txn.rawQuery(
+        'SELECT c.*, t.company FROM insurance_claims c JOIN insurance_contracts t ON t.contract_id = c.contract_id WHERE c.claim_id = ? AND t.patient_id = ?',
+        [claimId, patientId],
+      );
+      if (rows.isEmpty || rows.single['status'] != 'REJECTED') {
+        throw const AppException('Ce recours concerne une demande refusée.');
+      }
+      final dossier = InsuranceDossier.decode(rows.single['document_path']);
+      if (dossier.appealStatus != null) {
+        throw const AppException('Un recours a déjà été déposé pour ce refus.');
+      }
+      dossier.appealStatus = 'PENDING';
+      dossier.record('APPEAL_SUBMITTED', actor, note: reason);
+      await txn.update(
+        'insurance_claims',
+        {'document_path': dossier.encode()},
+        where: 'claim_id = ?',
+        whereArgs: [claimId],
+      );
+      await _notifyInsurers(
+        txn,
+        rows.single['company'] as String,
+        claimId,
+        'Recours · dossier #$claimId',
+        'Le patient demande un nouvel examen.',
+      );
+    });
+    _changed();
+  }
+
+  Future<void> resolveAppeal(
+    int claimId, {
+    required bool reopen,
+    required String reason,
+  }) async {
+    final company = await _insurerCompany();
+    final actor = _session.requireUser.fullName;
+    if (reason.trim().isEmpty || reason.length > 1000) {
+      throw const AppException(
+        'Expliquez votre réponse (1 000 caractères maximum).',
+      );
+    }
+    await _database.db.transaction((txn) async {
+      final rows = await txn.rawQuery(
+        'SELECT c.*, p.user_id FROM insurance_claims c JOIN insurance_contracts t ON t.contract_id = c.contract_id '
+        'JOIN patients p ON p.patient_id = t.patient_id WHERE c.claim_id = ? AND trim(t.company) = ? COLLATE NOCASE',
+        [claimId, company.trim()],
+      );
+      if (rows.isEmpty || rows.single['status'] != 'REJECTED') {
+        throw const AppException('Ce recours ne peut plus être traité.');
+      }
+      final dossier = InsuranceDossier.decode(rows.single['document_path']);
+      if (dossier.appealStatus != 'PENDING') {
+        throw const AppException('Aucun recours en attente.');
+      }
+      dossier.appealStatus = reopen ? 'REOPENED' : 'UPHELD';
+      dossier.record(
+        reopen ? 'APPEAL_REOPENED' : 'APPEAL_UPHELD',
+        actor,
+        note: reason,
+      );
+      await txn.update(
+        'insurance_claims',
+        {
+          'document_path': dossier.encode(),
+          if (reopen) 'status': 'SUBMITTED',
+          if (reopen) 'reimbursed_amount': null,
+        },
+        where: 'claim_id = ? AND status = ?',
+        whereArgs: [claimId, 'REJECTED'],
+      );
+      await _notify(
+        txn,
+        rows.single['user_id'] as int,
+        claimId,
+        reopen
+            ? 'Dossier #$claimId rouvert'
+            : 'Refus maintenu · dossier #$claimId',
+        reason.trim(),
+      );
+    });
+    _changed();
+  }
 
   Future<void> withdrawClaim(int id, String reason) =>
       _changePatientClaim(id, reason: reason, withdraw: true);
