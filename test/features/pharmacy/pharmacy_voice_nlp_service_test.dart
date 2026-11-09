@@ -217,5 +217,41 @@ void main() {
       expect(res.intent, VoiceIntentType.checkStock);
       expect(res.matchedItem?.medicineName, 'Doliprane 1000 mg');
     });
+
+    test('Modification de prix (updatePrice)', () {
+      final res = service.parseCommand(
+        voiceInput: 'Change le prix du Doliprane à 5 DT',
+        currentStockItems: testItems,
+      );
+
+      expect(res.intent, VoiceIntentType.updatePrice);
+      expect(res.newPrice, 5.0);
+      expect(res.matchedItem?.stock.stockId, 1);
+      expect(res.spokenResponse, contains('Prix de Doliprane 1000 mg mis à 5.000 DT'));
+    });
+
+    test('Modification d\'emplacement (updateLocation)', () {
+      final res = service.parseCommand(
+        voiceInput: 'Déplace le Spasfon au Rayon B',
+        currentStockItems: testItems,
+      );
+
+      expect(res.intent, VoiceIntentType.updateLocation);
+      expect(res.newLocation, 'Rayon B');
+      expect(res.matchedItem?.stock.stockId, 3);
+      expect(res.spokenResponse, contains('Spasfon placé au Rayon B'));
+    });
+
+    test('Réglage direct de la quantité en stock (setStockQuantity)', () {
+      final res = service.parseCommand(
+        voiceInput: 'Mets le stock de Panadol à 25',
+        currentStockItems: testItems,
+      );
+
+      expect(res.intent, VoiceIntentType.setStockQuantity);
+      expect(res.quantity, 25);
+      expect(res.matchedItem?.stock.stockId, 4);
+      expect(res.spokenResponse, contains('Stock de Panadol 500 mg réglé à 25 boîtes'));
+    });
   });
 }

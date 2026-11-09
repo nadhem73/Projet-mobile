@@ -40,6 +40,9 @@ class _PharmacyVoiceAssistantDialogState
 
   final List<String> _quickSuggestions = [
     'Combien de Doliprane en stock ?',
+    'Change le prix du Doliprane à 5 DT',
+    'Déplace le Spasfon au Rayon B',
+    'Mets le stock de Panadol à 25',
     'Où est rangé le Spasfon ?',
     'J\'ai vendu 2 boîtes de Panadol',
     'Ajoute 5 boîtes de Doliprane',
@@ -482,6 +485,9 @@ class _PharmacyVoiceAssistantDialogState
       VoiceIntentType.locateMedicine => ('Emplacement', Colors.blue, Icons.place_rounded),
       VoiceIntentType.adjustStockDecrement => ('Décrémenté', Colors.orange, Icons.remove_circle_outline_rounded),
       VoiceIntentType.adjustStockIncrement => ('Incrémenté', Colors.green, Icons.add_circle_outline_rounded),
+      VoiceIntentType.setStockQuantity => ('Stock réglé', Colors.indigo, Icons.edit_note_rounded),
+      VoiceIntentType.updatePrice => ('Prix modifié', Colors.purple, Icons.price_change_rounded),
+      VoiceIntentType.updateLocation => ('Déplacé', Colors.deepOrange, Icons.move_to_inbox_rounded),
       VoiceIntentType.checkPrice => ('Prix', Colors.purple, Icons.payments_outlined),
       VoiceIntentType.checkExpiry => ('Péremption', Colors.amber.shade800, Icons.event_busy_rounded),
       VoiceIntentType.checkStockout => ('Rupture', Colors.red, Icons.warning_amber_rounded),

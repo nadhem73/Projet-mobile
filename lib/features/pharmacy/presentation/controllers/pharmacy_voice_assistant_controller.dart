@@ -45,7 +45,6 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
 
   // Support Undo
   PharmacyStock? _undoStock;
-  int? _previousQuantity;
 
   // Getters
   bool get isListening => _isListening;
@@ -56,7 +55,7 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
   String get voiceTranscript => _voiceTranscript;
   String? get speechError => _speechError;
   VoiceParseResult? get lastResult => _lastResult;
-  bool get canUndo => _undoStock != null && _previousQuantity != null;
+  bool get canUndo => _undoStock != null;
 
   /// Initialise les moteurs de voix et charge le stock de l'officine
   Future<void> initialize() async {
@@ -264,29 +263,74 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
 
       _lastResult = result;
 
-      // Exécution de l'action si c'est un ajustement de stock
-      if (result.matchedItem != null && result.quantity != null) {
+      // Exécution des actions directes sur le stock
+      if (result.matchedItem != null) {
         final currentStock = result.matchedItem!.stock;
         final currentQty = currentStock.quantity;
-        final change = result.quantity!;
+        PharmacyStock? updatedStock;
 
-        int newQty = currentQty;
-        if (result.intent == VoiceIntentType.adjustStockDecrement) {
-          newQty = (currentQty - change).clamp(0, 999999);
-        } else if (result.intent == VoiceIntentType.adjustStockIncrement) {
-          newQty = currentQty + change;
+        switch (result.intent) {
+          case VoiceIntentType.adjustStockDecrement:
+            final change = result.quantity ?? 1;
+            final newQty = (currentQty - change).clamp(0, 999999);
+            if (newQty != currentQty) {
+              _undoStock = currentStock;
+              updatedStock = currentStock.copyWith(
+                quantity: newQty,
+                inStock: newQty > 0,
+                updatedAt: DateTime.now(),
+              );
+            }
+            break;
+
+          case VoiceIntentType.adjustStockIncrement:
+            final change = result.quantity ?? 1;
+            final newQty = currentQty + change;
+            _undoStock = currentStock;
+            updatedStock = currentStock.copyWith(
+              quantity: newQty,
+              inStock: newQty > 0,
+              updatedAt: DateTime.now(),
+            );
+            break;
+
+          case VoiceIntentType.setStockQuantity:
+            final newQty = (result.quantity ?? 0).clamp(0, 999999);
+            if (newQty != currentQty) {
+              _undoStock = currentStock;
+              updatedStock = currentStock.copyWith(
+                quantity: newQty,
+                inStock: newQty > 0,
+                updatedAt: DateTime.now(),
+              );
+            }
+            break;
+
+          case VoiceIntentType.updatePrice:
+            if (result.newPrice != null) {
+              _undoStock = currentStock;
+              updatedStock = currentStock.copyWith(
+                customPrice: result.newPrice!,
+                updatedAt: DateTime.now(),
+              );
+            }
+            break;
+
+          case VoiceIntentType.updateLocation:
+            if (result.newLocation != null) {
+              _undoStock = currentStock;
+              updatedStock = currentStock.copyWith(
+                shelfLocation: result.newLocation!,
+                updatedAt: DateTime.now(),
+              );
+            }
+            break;
+
+          default:
+            break;
         }
 
-        if (newQty != currentQty) {
-          _undoStock = currentStock;
-          _previousQuantity = currentQty;
-
-          final updatedStock = currentStock.copyWith(
-            quantity: newQty,
-            inStock: newQty > 0,
-            updatedAt: DateTime.now(),
-          );
-
+        if (updatedStock != null) {
           await _stockRepository.update(updatedStock);
           await refreshStockData();
         }
@@ -304,35 +348,26 @@ class PharmacyVoiceAssistantController extends ChangeNotifier {
     }
   }
 
-  /// Annule la dernière action d'ajustement de stock (Undo)
+  /// Annule la dernière action effectuée sur le stock (Undo)
   Future<void> undoLastAction() async {
-    if (_undoStock == null || _previousQuantity == null) return;
+    if (_undoStock == null) return;
 
     final targetStock = _undoStock!;
-    final prevQty = _previousQuantity!;
+    _undoStock = null;
 
-    final revertedStock = targetStock.copyWith(
-      quantity: prevQty,
-      inStock: prevQty > 0,
-      updatedAt: DateTime.now(),
-    );
-
-    await _stockRepository.update(revertedStock);
+    await _stockRepository.update(targetStock);
     await refreshStockData();
 
-    _undoStock = null;
-    _previousQuantity = null;
-
-    final undoMsg = 'Action annulée. Le stock a été rétabli à $prevQty boîtes.';
+    const undoMsg = 'Action annulée.';
     if (_isTtsEnabled) {
       await speak(undoMsg);
     }
 
-    _lastResult = VoiceParseResult(
+    _lastResult = const VoiceParseResult(
       intent: VoiceIntentType.checkStock,
       rawQuery: 'Annulation',
       spokenResponse: undoMsg,
-      actionDetails: 'Rétabli à $prevQty boîtes',
+      actionDetails: 'État précédent rétabli',
     );
     notifyListeners();
   }

@@ -29,6 +29,9 @@ enum VoiceIntentType {
   locateMedicine,
   adjustStockDecrement,
   adjustStockIncrement,
+  setStockQuantity,
+  updatePrice,
+  updateLocation,
   checkPrice,
   checkExpiry,
   checkStockout,
@@ -43,6 +46,8 @@ class VoiceParseResult {
   final PharmacyStockItem? matchedItem;
   final Medicine? matchedNationalMedicine;
   final int? quantity;
+  final double? newPrice;
+  final String? newLocation;
   final double confidence;
   final String spokenResponse;
   final String? actionDetails;
@@ -55,6 +60,8 @@ class VoiceParseResult {
     this.matchedItem,
     this.matchedNationalMedicine,
     this.quantity,
+    this.newPrice,
+    this.newLocation,
     this.confidence = 0.0,
     required this.spokenResponse,
     this.actionDetails,
@@ -66,6 +73,8 @@ class VoiceParseResult {
 /// et faire correspondre les médicaments par distance phonétique / Levenshtein.
 class PharmacyVoiceNLPService {
   static const Map<String, int> _numberWords = {
+    'zero': 0,
+    'zéro': 0,
     'un': 1,
     'une': 1,
     'deux': 2,
@@ -97,19 +106,82 @@ class PharmacyVoiceNLPService {
       return const VoiceParseResult(
         intent: VoiceIntentType.unknown,
         rawQuery: '',
-        spokenResponse: 'Je vous écoute. Comment puis-je vous aider dans votre stock ?',
+        spokenResponse: 'Je vous écoute.',
       );
     }
 
     final normalized = _normalize(query);
 
-    // 1. Détection de rupture générale
+    // 1. Modification du prix ("change le prix du doliprane à 5 DT", "mets le prix à 12.5 dt")
+    if (_isPriceUpdateQuery(normalized)) {
+      final newPrice = _extractNewPrice(normalized);
+      final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
+      if (target != null && newPrice != null) {
+        final priceFormatted = newPrice.toStringAsFixed(3);
+        final oldPriceFormatted = target.item != null
+            ? target.item!.effectivePrice.toStringAsFixed(3)
+            : (target.nationalMedicine?.price.toStringAsFixed(3) ?? '0.000');
+        return VoiceParseResult(
+          intent: VoiceIntentType.updatePrice,
+          rawQuery: query,
+          matchedMedicineName: target.medicineName,
+          matchedItem: target.item,
+          matchedNationalMedicine: target.nationalMedicine,
+          newPrice: newPrice,
+          confidence: target.score,
+          spokenResponse: 'Prix de ${target.medicineName} mis à $priceFormatted DT.',
+          actionDetails: '$oldPriceFormatted → $priceFormatted DT',
+        );
+      }
+    }
+
+    // 2. Modification de l'emplacement ("déplace doliprane au Rayon B", "mets spasfon au tiroir 2")
+    if (_isLocationUpdateQuery(normalized)) {
+      final newLoc = _extractNewLocation(query);
+      final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
+      if (target != null && newLoc != null) {
+        final oldLoc = target.item?.shelfLocation ?? 'Non assigné';
+        return VoiceParseResult(
+          intent: VoiceIntentType.updateLocation,
+          rawQuery: query,
+          matchedMedicineName: target.medicineName,
+          matchedItem: target.item,
+          matchedNationalMedicine: target.nationalMedicine,
+          newLocation: newLoc,
+          confidence: target.score,
+          spokenResponse: '${target.medicineName} placé au $newLoc.',
+          actionDetails: '$oldLoc → $newLoc',
+        );
+      }
+    }
+
+    // 3. Réglage direct du stock ("mets le stock de doliprane à 20", "fixe le stock à 15")
+    if (_isSetStockQuery(normalized)) {
+      final qty = _extractQuantity(normalized);
+      final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
+      if (target != null && target.item != null && qty != null) {
+        final oldQty = target.item!.quantity;
+        return VoiceParseResult(
+          intent: VoiceIntentType.setStockQuantity,
+          rawQuery: query,
+          matchedMedicineName: target.medicineName,
+          matchedItem: target.item,
+          matchedNationalMedicine: target.nationalMedicine,
+          quantity: qty,
+          confidence: target.score,
+          spokenResponse: 'Stock de ${target.medicineName} réglé à $qty boîtes.',
+          actionDetails: '$oldQty → $qty boîtes',
+        );
+      }
+    }
+
+    // 4. Détection de rupture générale ("Qu'est-ce qui est en rupture ?")
     if (_isStockoutQuery(normalized)) {
       final outOfStock = currentStockItems.where((s) => s.isOutOfStock).toList();
       final count = outOfStock.length;
       final speech = count == 0
-          ? 'Excellente nouvelle, aucune rupture de stock détectée dans votre officine.'
-          : 'Vous avez $count produit${count > 1 ? 's' : ''} en rupture de stock : ${_summarizeNames(outOfStock)}.';
+          ? 'Aucune rupture de stock.'
+          : '$count rupture${count > 1 ? 's' : ''} : ${_summarizeNames(outOfStock)}.';
       return VoiceParseResult(
         intent: VoiceIntentType.checkStockout,
         rawQuery: query,
@@ -120,13 +192,13 @@ class PharmacyVoiceNLPService {
       );
     }
 
-    // 2. Détection d'expiration prochaine
+    // 5. Détection d'expiration prochaine ("Qu'est-ce qui expire ?")
     if (_isExpiryQuery(normalized)) {
       final expiring = currentStockItems.where((s) => s.isExpiringSoon).toList();
       final count = expiring.length;
       final speech = count == 0
-          ? 'Aucun médicament ne périme dans les 90 prochains jours.'
-          : 'Attention, $count médicament${count > 1 ? 's expirent' : ' expire'} bientôt : ${_summarizeNames(expiring)}.';
+          ? 'Aucun médicament à périmer dans les 90 jours.'
+          : '$count médicament${count > 1 ? 's expirent' : ' expire'} bientôt : ${_summarizeNames(expiring)}.';
       return VoiceParseResult(
         intent: VoiceIntentType.checkExpiry,
         rawQuery: query,
@@ -137,7 +209,7 @@ class PharmacyVoiceNLPService {
       );
     }
 
-    // 3. Détection de substitution / générique
+    // 6. Détection de substitution / générique ("Générique de Doliprane")
     if (_isGenericQuery(normalized)) {
       final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
       if (target != null) {
@@ -156,7 +228,7 @@ class PharmacyVoiceNLPService {
         if (equivalents.isNotEmpty) {
           final first = equivalents.first;
           final speech =
-              'Générique disponible en stock : ${first.medicineName} (${first.quantity} boîtes en stock à ${first.effectivePrice.toStringAsFixed(3)} DT).';
+              'Générique disponible : ${first.medicineName} (${first.quantity} boîtes à ${first.effectivePrice.toStringAsFixed(3)} DT).';
           return VoiceParseResult(
             intent: VoiceIntentType.findGeneric,
             rawQuery: query,
@@ -177,13 +249,13 @@ class PharmacyVoiceNLPService {
             matchedNationalMedicine: target.nationalMedicine,
             confidence: target.score,
             spokenResponse:
-                'Aucun générique de ${target.medicineName} ayant la DCI ${dci ?? "identique"} n\'est actuellement disponible en stock.',
+                'Aucun générique disponible en stock pour ${target.medicineName}.',
           );
         }
       }
     }
 
-    // 4. Détection d'ajustement de stock (décrément / incrément)
+    // 7. Détection d'ajustement de stock (décrément / incrément)
     final qty = _extractQuantity(normalized) ?? 1;
     final isDecrement = _isDecrementQuery(normalized);
     final isIncrement = _isIncrementQuery(normalized);
@@ -198,7 +270,7 @@ class PharmacyVoiceNLPService {
 
         final speech = isDecrement
             ? 'Stock de ${target.medicineName} décrémenté de $qty. Il reste $newQty boîtes.'
-            : '$qty boîte${qty > 1 ? 's' : ''} ajoutée${qty > 1 ? 's' : ''} au stock de ${target.medicineName}. Total : $newQty unités.';
+            : '$qty boîte${qty > 1 ? 's ajoutées' : ' ajoutée'} au stock de ${target.medicineName}. Total : $newQty unités.';
 
         return VoiceParseResult(
           intent: isDecrement
@@ -216,14 +288,14 @@ class PharmacyVoiceNLPService {
       }
     }
 
-    // 5. Détection de localisation / rayon
+    // 8. Détection de localisation / rayon ("Où est le Doliprane ?")
     if (_isLocationQuery(normalized)) {
       final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
       if (target != null) {
         final location = target.item?.shelfLocation;
         final speech = (location != null && location.trim().isNotEmpty)
-            ? '${target.medicineName} est rangé à l\'emplacement $location.'
-            : '${target.medicineName} n\'a pas d\'emplacement spécifique défini dans l\'officine.';
+            ? '${target.medicineName} est au $location.'
+            : '${target.medicineName} : aucun emplacement défini.';
         return VoiceParseResult(
           intent: VoiceIntentType.locateMedicine,
           rawQuery: query,
@@ -237,7 +309,7 @@ class PharmacyVoiceNLPService {
       }
     }
 
-    // 6. Détection de prix
+    // 9. Détection de prix ("Quel est le prix du Doliprane ?")
     if (_isPriceQuery(normalized)) {
       final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
       if (target != null) {
@@ -245,7 +317,7 @@ class PharmacyVoiceNLPService {
             target.nationalMedicine?.price ??
             0.0;
         final speech =
-            'Le prix de ${target.medicineName} est de ${price.toStringAsFixed(3)} Dinars.';
+            '${target.medicineName} : ${price.toStringAsFixed(3)} Dinars.';
         return VoiceParseResult(
           intent: VoiceIntentType.checkPrice,
           rawQuery: query,
@@ -259,7 +331,7 @@ class PharmacyVoiceNLPService {
       }
     }
 
-    // 7. Requête de stock par défaut (ex: "Doliprane", "Combien de Spasfon", "Stock Inexium")
+    // 10. Requête de stock par défaut ("Doliprane", "Combien de Spasfon")
     final target = _extractMedicineMatch(normalized, currentStockItems, allCatalogMedicines);
     if (target != null) {
       if (target.item != null) {
@@ -270,14 +342,14 @@ class PharmacyVoiceNLPService {
             : '';
         String statusText;
         if (item.isOutOfStock) {
-          statusText = 'Ce médicament est actuellement en rupture de stock.';
+          statusText = 'Rupture de stock.';
         } else if (item.isLowStock) {
-          statusText = 'Attention, stock faible : il ne reste que ${item.quantity} boîtes$loc.';
+          statusText = '${item.quantity} boîtes disponibles (stock faible)$loc';
         } else {
-          statusText = '${item.quantity} boîtes disponibles en stock$loc.';
+          statusText = '${item.quantity} boîtes disponibles$loc';
         }
 
-        final speech = '${item.medicineName} : $statusText Prix : ${price.toStringAsFixed(3)} DT.';
+        final speech = '${item.medicineName} : $statusText (${price.toStringAsFixed(3)} DT).';
         return VoiceParseResult(
           intent: VoiceIntentType.checkStock,
           rawQuery: query,
@@ -289,7 +361,6 @@ class PharmacyVoiceNLPService {
           actionDetails: '${item.quantity} en stock (${price.toStringAsFixed(3)} DT)',
         );
       } else if (target.nationalMedicine != null) {
-        // Dans le catalogue national mais pas encore en stock officine
         return VoiceParseResult(
           intent: VoiceIntentType.checkStock,
           rawQuery: query,
@@ -297,7 +368,7 @@ class PharmacyVoiceNLPService {
           matchedNationalMedicine: target.nationalMedicine,
           confidence: target.score,
           spokenResponse:
-              '${target.medicineName} est référencé au répertoire national (${target.nationalMedicine!.price.toStringAsFixed(3)} DT) mais n\'est pas encore enregistré dans votre stock officine.',
+              '${target.medicineName} : Référencé au répertoire national (${target.nationalMedicine!.price.toStringAsFixed(3)} DT) mais absent du stock officine.',
           actionDetails: 'Répertoire national (0 en stock)',
         );
       }
@@ -308,11 +379,61 @@ class PharmacyVoiceNLPService {
       intent: VoiceIntentType.unknown,
       rawQuery: query,
       spokenResponse:
-          'Désolé, je n\'ai pas trouvé de médicament correspondant dans votre stock pour "$query". Essayez par exemple : "Combien de Doliprane en stock ?"',
+          'Commande non reconnue. Vous pouvez demander un stock, changer un prix, ou déplacer un produit.',
     );
   }
 
   // --- MÉTROLOGIE ET PATTERNS ---
+
+  static bool _isPriceUpdateQuery(String text) {
+    final hasPriceWord = text.contains('prix') || text.contains('tarif');
+    final hasActionWord = text.contains('change') ||
+        text.contains('changer') ||
+        text.contains('modifie') ||
+        text.contains('modifier') ||
+        text.contains('mets') ||
+        text.contains('mettre') ||
+        text.contains('fixe') ||
+        text.contains('fixer') ||
+        text.contains('passe') ||
+        text.contains('passer') ||
+        text.contains('nouveau');
+    return hasPriceWord && hasActionWord;
+  }
+
+  static bool _isLocationUpdateQuery(String text) {
+    final hasLocWord = text.contains('rayon') ||
+        text.contains('etagere') ||
+        text.contains('tiroir') ||
+        text.contains('armoire') ||
+        text.contains('bac') ||
+        text.contains('frigo') ||
+        text.contains('emplacement');
+    final hasActionWord = text.contains('change') ||
+        text.contains('changer') ||
+        text.contains('deplace') ||
+        text.contains('deplacer') ||
+        text.contains('range') ||
+        text.contains('ranger') ||
+        text.contains('mets') ||
+        text.contains('mettre') ||
+        text.contains('place') ||
+        text.contains('placer');
+    return hasLocWord && hasActionWord;
+  }
+
+  static bool _isSetStockQuery(String text) {
+    return text.contains('mets le stock') ||
+        text.contains('mettre le stock') ||
+        text.contains('regle le stock') ||
+        text.contains('regler le stock') ||
+        text.contains('fixe le stock') ||
+        text.contains('fixer le stock') ||
+        text.contains('ajuste le stock') ||
+        text.contains('ajuster le stock') ||
+        text.contains('stock a') ||
+        text.contains('stock =');
+  }
 
   static bool _isStockoutQuery(String text) {
     return text.contains('rupture') ||
@@ -378,13 +499,52 @@ class PharmacyVoiceNLPService {
         text.contains('valeur');
   }
 
+  static double? _extractNewPrice(String text) {
+    // 1. Chercher un chiffre numérique avec décimale optionnelle : "5 dt", "5.500", "à 12.5 dt"
+    final regex = RegExp(
+      r'(?:a|à|=|de|prix|fixe|mets|mettre)?\s*(\d+(?:[.,]\d+)?)\s*(?:dt|dinars?|millimes?)?',
+      caseSensitive: false,
+    );
+    for (final match in regex.allMatches(text)) {
+      final numStr = match.group(1);
+      if (numStr != null && numStr.isNotEmpty) {
+        final parsed = double.tryParse(numStr.replaceAll(',', '.'));
+        if (parsed != null && parsed > 0) {
+          return parsed;
+        }
+      }
+    }
+
+    // 2. Mots de chiffres français
+    for (final entry in _numberWords.entries) {
+      if (text.contains(entry.key)) {
+        return entry.value.toDouble();
+      }
+    }
+    return null;
+  }
+
+  static String? _extractNewLocation(String text) {
+    final match = RegExp(
+      r'(?:au|dans|en|vers|a|sur)?\s*((?:rayon|etagere|tiroir|armoire|bac|frigo|comptoir|zone)\s*[a-z0-9\-]+(?:\s*(?:etagere|tiroir|bac|niveau|case)\s*[a-z0-9\-]+)?)',
+      caseSensitive: false,
+    ).firstMatch(text);
+
+    if (match != null) {
+      final rawLoc = match.group(1)!.trim();
+      return rawLoc
+          .split(' ')
+          .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
+          .join(' ');
+    }
+    return null;
+  }
+
   static int? _extractQuantity(String text) {
-    // 1. Chercher un chiffre numérique
     final digitMatch = RegExp(r'\b(\d+)\b').firstMatch(text);
     if (digitMatch != null) {
       return int.tryParse(digitMatch.group(1)!);
     }
-    // 2. Chercher les mots numériques en français
     for (final entry in _numberWords.entries) {
       if (RegExp('\\b${entry.key}\\b').hasMatch(text)) {
         return entry.value;
@@ -420,7 +580,6 @@ class PharmacyVoiceNLPService {
     List<PharmacyStockItem> currentStockItems,
     List<Medicine>? allCatalogMedicines,
   ) {
-    // Nettoyer les mots-clés d'intention de la requête pour isoler le nom
     var cleanedQuery = normalizedQuery;
     final stopWords = [
       'combien', 'de', 'boite', 'boites', 'unite', 'unites', 'en', 'stock',
@@ -428,12 +587,16 @@ class PharmacyVoiceNLPService {
       'emplacement', 'rayon', 'prix', 'coute', 'decremente', 'enleve',
       'retire', 'vendu', 'ajoute', 'recu', 'generique', 'substitut',
       'remplace', 's\'il', 'vous', 'plait', 'donne', 'moi', 'le', 'la', 'les',
-      'du', 'des', 'dans', 'notre', 'officine', 'pharmacie'
+      'du', 'des', 'dans', 'notre', 'officine', 'pharmacie', 'change',
+      'changer', 'mets', 'mettre', 'fixe', 'fixer', 'modifie', 'modifier',
+      'regle', 'regler', 'ajuste', 'ajuster', 'deplace', 'deplacer', 'range',
+      'ranger', 'place', 'placer', 'dt', 'dinar', 'dinars', 'millimes',
+      'nouveau', 'nouvel', 'vers', 'sur', 'tiroir', 'etagere', 'armoire',
+      'bac', 'frigo', 'zone', 'comptoir'
     ];
     for (final word in stopWords) {
       cleanedQuery = cleanedQuery.replaceAll(RegExp('\\b$word\\b'), ' ');
     }
-    // Retirer aussi les nombres
     cleanedQuery = cleanedQuery.replaceAll(RegExp(r'\b\d+\b'), ' ');
     for (final numKey in _numberWords.keys) {
       cleanedQuery = cleanedQuery.replaceAll(RegExp('\\b$numKey\\b'), ' ');
@@ -445,7 +608,6 @@ class PharmacyVoiceNLPService {
     _MatchedTarget? bestTarget;
     double bestScore = 0.0;
 
-    // 1. Rechercher en priorité dans le stock actif de la pharmacie
     for (final item in currentStockItems) {
       final nameNorm = _normalize(item.medicineName);
       final score = _calculateSimilarity(cleanedQuery, nameNorm);
@@ -460,7 +622,6 @@ class PharmacyVoiceNLPService {
       }
     }
 
-    // 2. Si le score est faible (< 0.55), chercher dans le grand catalogue national
     if (bestScore < 0.55 && allCatalogMedicines != null) {
       for (final med in allCatalogMedicines) {
         final nameNorm = _normalize(med.name);
@@ -480,52 +641,55 @@ class PharmacyVoiceNLPService {
     return (bestScore >= 0.40) ? bestTarget : null;
   }
 
-  /// Score hybride entre inclusion de sous-chaîne et similarité de Levenshtein
-  static double _calculateSimilarity(String query, String target) {
-    if (query.isEmpty || target.isEmpty) return 0.0;
-    if (target.contains(query)) {
-      return 0.80 + (query.length / target.length) * 0.20;
-    }
-    // Comparaison mot par mot
+  double _calculateSimilarity(String query, String target) {
+    if (query == target) return 1.0;
+    if (target.contains(query)) return 0.90;
+
     final queryWords = query.split(' ').where((w) => w.length > 2).toList();
-    if (queryWords.isNotEmpty) {
-      for (final qw in queryWords) {
-        if (target.contains(qw)) {
-          return 0.75;
+    final targetWords = target.split(' ').where((w) => w.length > 2).toList();
+
+    for (final qw in queryWords) {
+      for (final tw in targetWords) {
+        if (tw.startsWith(qw) || qw.startsWith(tw)) {
+          return 0.85;
+        }
+        final dist = _levenshtein(qw, tw);
+        final maxLen = math.max(qw.length, tw.length);
+        if (maxLen > 0 && (dist / maxLen) <= 0.30) {
+          return 0.80;
         }
       }
     }
 
-    // Levenshtein sur les premiers N caractères
-    final minLen = math.min(query.length, target.length);
-    final subTarget = target.substring(0, minLen);
-    final dist = _levenshtein(query.substring(0, minLen), subTarget);
-    final ratio = 1.0 - (dist / minLen);
-    return math.max(0.0, ratio);
+    final overallDist = _levenshtein(query, target);
+    final maxLen = math.max(query.length, target.length);
+    if (maxLen == 0) return 1.0;
+    return (1.0 - (overallDist / maxLen)).clamp(0.0, 1.0);
   }
 
-  static int _levenshtein(String a, String b) {
-    final m = a.length;
-    final n = b.length;
-    final dp = List.generate(m + 1, (_) => List.filled(n + 1, 0));
+  int _levenshtein(String s, String t) {
+    if (s == t) return 0;
+    if (s.isEmpty) return t.length;
+    if (t.isEmpty) return s.length;
 
-    for (var i = 0; i <= m; i++) {
-      dp[i][0] = i;
-    }
-    for (var j = 0; j <= n; j++) {
-      dp[0][j] = j;
-    }
+    List<int> v0 = List<int>.generate(t.length + 1, (i) => i);
+    List<int> v1 = List<int>.filled(t.length + 1, 0);
 
-    for (var i = 1; i <= m; i++) {
-      for (var j = 1; j <= n; j++) {
-        final cost = (a[i - 1] == b[j - 1]) ? 0 : 1;
-        dp[i][j] = math.min(
-          dp[i - 1][j] + 1,
-          math.min(dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost),
+    for (int i = 0; i < s.length; i++) {
+      v1[0] = i + 1;
+      for (int j = 0; j < t.length; j++) {
+        int cost = (s[i] == t[j]) ? 0 : 1;
+        v1[j + 1] = math.min(
+          v1[j] + 1,
+          math.min(v0[j + 1] + 1, v0[j] + cost),
         );
       }
+      for (int j = 0; j <= t.length; j++) {
+        v0[j] = v1[j];
+      }
     }
-    return dp[m][n];
+
+    return v1[t.length];
   }
 }
 
@@ -535,13 +699,13 @@ class _MatchedTarget {
   final Medicine? nationalMedicine;
   final double score;
 
-  const _MatchedTarget({
+  _MatchedTarget({
     required this.medicineName,
     this.item,
     this.nationalMedicine,
     required this.score,
   });
 
-  int? get medicineId => item?.medicineId ?? nationalMedicine?.medicineId;
   String? get dci => item?.dci ?? nationalMedicine?.dci;
+  int? get medicineId => item?.medicineId ?? nationalMedicine?.medicineId;
 }
