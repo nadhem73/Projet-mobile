@@ -40,7 +40,7 @@ void main() {
     );
 
     final users = await database.db.query('users');
-    expect(users, hasLength(8));
+    expect(users, hasLength(41));
     expect(users.every((u) => !(u['password_hash'] as String).contains('Medilink123')), isTrue);
   });
 
@@ -80,7 +80,7 @@ void main() {
     await old.close();
 
     final upgraded = await AppDatabase.open(factory: databaseFactoryFfi, path: path);
-    expect(await upgraded.db.query('users'), hasLength(8));
+    expect(await upgraded.db.query('users'), hasLength(41));
     await upgraded.close();
   });
 
