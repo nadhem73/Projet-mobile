@@ -7,6 +7,8 @@ import 'package:medilink/features/insurance/data/insurance_dossier.dart';
 import 'package:medilink/features/insurance/data/insurance_repository.dart';
 import 'insurance_forms.dart';
 import 'insurance_contract_form.dart';
+import 'insurance_explanation_dialog.dart';
+import 'insurance_document_help_dialog.dart';
 import 'insurance_widgets.dart';
 
 class InsuranceClaimScreen extends StatefulWidget {
@@ -81,6 +83,12 @@ class _InsuranceClaimScreenState extends State<InsuranceClaimScreen> {
         final status = dossier.withdrawn ? 'WITHDRAWN' : claim['status'];
         final theme = Theme.of(context);
         final next = switch (status) {
+          'REJECTED' when dossier.appealStatus == 'PENDING' =>
+            patient
+                ? 'Votre recours attend une réponse de l’assureur'
+                : 'Examinez le recours et répondez au patient',
+          'REJECTED' when dossier.appealStatus == 'UPHELD' =>
+            'Le refus a été maintenu après examen du recours.',
           'WITHDRAWN' => 'Demande retirée par le patient. Historique conservé.',
           'SUBMITTED' when dossier.complementReceived =>
             'Réponse reçue : le complément doit être vérifié par l’assureur.',
@@ -119,11 +127,62 @@ class _InsuranceClaimScreenState extends State<InsuranceClaimScreen> {
                         title: 'Prochaine étape',
                         text: next,
                       ),
+                      if (patient) ...[
+                        const SizedBox(height: 12),
+                        InsuranceMotion(
+                          child: OutlinedButton.icon(
+                            onPressed:
+                                () => showDialog<void>(
+                                  context: context,
+                                  builder:
+                                      (_) => InsuranceExplanationDialog(
+                                        claim: claim,
+                                        repo: repo,
+                                      ),
+                                ),
+                            icon: const Icon(Icons.auto_awesome_outlined),
+                            label: const Text('Expliquer mon dossier'),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Envoie l’état et les montants à Groq ; sans nom ni document.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                       if (dossier.requestedDocuments != null)
                         InsuranceEmpty(
                           icon: Icons.attach_file,
                           title: 'Pièces demandées',
                           text: dossier.requestedDocuments!,
+                        ),
+                      if (patient &&
+                          status == 'SUBMITTED' &&
+                          dossier.requestedDocuments != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(160, 48),
+                            ),
+                            onPressed:
+                                () => showDialog<void>(
+                                  context: context,
+                                  builder:
+                                      (_) => InsuranceDocumentHelpDialog(
+                                        repo: repo,
+                                        claimId: widget.claimId,
+                                        instruction:
+                                            dossier.requestedDocuments!,
+                                      ),
+                                ),
+                            icon: const Icon(Icons.help_outline),
+                            label: const Text(
+                              'Comprendre les pièces demandées',
+                            ),
+                          ),
                         ),
                       const SizedBox(height: 24),
                       Text(
@@ -264,6 +323,40 @@ class _InsuranceClaimScreenState extends State<InsuranceClaimScreen> {
                       for (final event in dossier.events)
                         _TimelineEvent(event: event),
                       const SizedBox(height: 24),
+                      if (patient &&
+                          status == 'REJECTED' &&
+                          dossier.appealStatus == null)
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(160, 48),
+                          ),
+                          onPressed: () => action(claim, 'APPEAL_SUBMITTED'),
+                          icon: const Icon(Icons.rate_review_outlined),
+                          label: const Text('Demander une révision'),
+                        ),
+                      if (!patient &&
+                          status == 'REJECTED' &&
+                          dossier.appealStatus == 'PENDING')
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            FilledButton(
+                              onPressed: () => action(claim, 'APPEAL_REOPENED'),
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size(160, 48),
+                              ),
+                              child: const Text('Rouvrir le dossier'),
+                            ),
+                            OutlinedButton(
+                              onPressed: () => action(claim, 'APPEAL_UPHELD'),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(160, 48),
+                              ),
+                              child: const Text('Maintenir le refus'),
+                            ),
+                          ],
+                        ),
                       if (patient && status == 'SUBMITTED')
                         InsuranceMotion(
                           child: FilledButton.icon(
@@ -378,6 +471,9 @@ class _TimelineEvent extends StatelessWidget {
       'COMPLEMENT_ACCEPTED' => 'Complément vérifié',
       'CORRECTED' => 'Informations corrigées',
       'WITHDRAWN' => 'Demande retirée',
+      'APPEAL_SUBMITTED' => 'Recours demandé',
+      'APPEAL_REOPENED' => 'Dossier rouvert après recours',
+      'APPEAL_UPHELD' => 'Refus maintenu après recours',
       'APPROVED' => 'Demande approuvée',
       'REJECTED' => 'Demande refusée',
       'PAID' => 'Paiement enregistré',
@@ -467,6 +563,15 @@ class _DecisionFormState extends State<_DecisionForm> {
     try {
       final id = widget.claim['claim_id'] as int;
       switch (widget.action) {
+        case 'APPEAL_SUBMITTED':
+          await widget.repo.submitAppeal(id, note.text);
+        case 'APPEAL_REOPENED':
+        case 'APPEAL_UPHELD':
+          await widget.repo.resolveAppeal(
+            id,
+            reopen: widget.action == 'APPEAL_REOPENED',
+            reason: note.text,
+          );
         case 'WITHDRAWN':
           await widget.repo.withdrawClaim(id, note.text);
         case 'CORRECTED':
@@ -522,6 +627,9 @@ class _DecisionFormState extends State<_DecisionForm> {
   @override
   Widget build(BuildContext context) {
     final title = switch (widget.action) {
+      'APPEAL_SUBMITTED' => 'Demander une révision',
+      'APPEAL_REOPENED' => 'Rouvrir le dossier',
+      'APPEAL_UPHELD' => 'Maintenir le refus',
       'WITHDRAWN' => 'Retirer ma demande',
       'CORRECTED' => 'Corriger les informations',
       'COMPLEMENT_ACCEPTED' => 'Valider le complément',
@@ -544,6 +652,18 @@ class _DecisionFormState extends State<_DecisionForm> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (widget.action == 'APPEAL_SUBMITTED') ...[
+                  const Text(
+                    'Expliquez pourquoi vous demandez un réexamen. Le refus initial et son motif restent dans l’historique.',
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (widget.action == 'APPEAL_REOPENED') ...[
+                  const Text(
+                    'Le dossier sera de nouveau à examiner. La réouverture n’approuve pas le remboursement.',
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 if (widget.action == 'WITHDRAWN') ...[
                   const Text(
                     'Le dossier restera consultable, mais ne pourra plus être traité. Vous pourrez créer une nouvelle demande si nécessaire.',
@@ -619,6 +739,9 @@ class _DecisionFormState extends State<_DecisionForm> {
                       'CORRECTED' => 'Motif de la correction',
                       'COMPLEMENT_INSUFFICIENT' => 'Pièces encore attendues',
                       'COMPLEMENT_ACCEPTED' => 'Résultat de la vérification',
+                      'APPEAL_SUBMITTED' => 'Motif de votre recours',
+                      'APPEAL_REOPENED' ||
+                      'APPEAL_UPHELD' => 'Réponse au recours',
                       'PAID' => 'Référence du paiement (facultatif)',
                       _ => 'Motif de la décision',
                     },

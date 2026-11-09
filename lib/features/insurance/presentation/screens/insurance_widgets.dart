@@ -14,6 +14,7 @@ String statusLabel(Object? status) => switch (status) {
   'WITHDRAWN' => 'Retirée',
   'WAITING_DOCUMENTS' => 'Pièces attendues',
   'REVIEW_COMPLEMENT' => 'Complément à vérifier',
+  'APPEAL_PENDING' => 'Recours à examiner',
   'UNREADABLE' => 'Dossier illisible',
   'APPROVED' => 'Approuvée',
   'REJECTED' => 'Refusée',
@@ -78,6 +79,7 @@ class InsuranceHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
+      width: double.infinity,
       constraints: const BoxConstraints(minHeight: 230),
       decoration: BoxDecoration(
         color: AppColors.primaryDeep,
@@ -564,7 +566,9 @@ class ClaimCard extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 4),
-          if (status != 'REJECTED' && status != 'WITHDRAWN')
+          if (status != 'REJECTED' &&
+              status != 'APPEAL_PENDING' &&
+              status != 'WITHDRAWN')
             Text(
               '${status == 'APPROVED' || status == 'PAID' ? 'Montant retenu' : 'Estimation indicative'} : ${money(claim['reimbursed_amount'] ?? estimate)}',
               style: theme.textTheme.bodyMedium?.copyWith(

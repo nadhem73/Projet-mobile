@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:medilink/features/insurance/data/insurance_dossier.dart';
 import 'insurance_forms.dart';
 import 'insurance_contract_form.dart';
+import 'insurance_comparison_screen.dart';
 import 'package:medilink/core/di/injection.dart';
 import 'package:medilink/core/error/app_exception.dart';
 import 'package:medilink/core/widgets/widgets.dart';
@@ -132,6 +133,7 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> {
                     'SUBMITTED',
                     'WAITING_DOCUMENTS',
                     'REVIEW_COMPLEMENT',
+                    'APPEAL_PENDING',
                   ].contains(insuranceClaimState(claim)),
                 )
                 .length;
@@ -160,6 +162,22 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> {
                           ),
                           const SizedBox(height: 32),
                           InsuranceSimulator(contracts: contracts),
+                          const SizedBox(height: 16),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(160, 48),
+                            ),
+                            onPressed:
+                                () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder:
+                                        (_) =>
+                                            const InsuranceComparisonScreen(),
+                                  ),
+                                ),
+                            icon: const Icon(Icons.compare_arrows),
+                            label: const Text('Comparer des offres fictives'),
+                          ),
                           const SizedBox(height: 32),
                           InsuranceSectionHeading(
                             eyebrow: 'Votre couverture',

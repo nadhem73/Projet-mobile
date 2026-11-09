@@ -203,6 +203,7 @@ void main() {
       }
 
       await tap('Ouvrir le dossier');
+      expect(find.text('Expliquer mon dossier'), findsNothing);
       await tap('Demander des pièces');
       await tester.enterText(
         find.widgetWithText(TextField, 'Pièces attendues et consignes'),
@@ -344,6 +345,16 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Mon assurance'), findsOneWidget);
+      final hero = find.byType(InsuranceHero);
+      final expectedWidth =
+          width < 380 ? width - 32 : (width - 48).clamp(0.0, 760.0);
+      expect(tester.getSize(hero).width, expectedWidth);
+      expect(
+        tester
+            .getSize(find.descendant(of: hero, matching: find.byType(Image)))
+            .width,
+        expectedWidth,
+      );
       await tester.ensureVisible(find.text('Ajouter'));
       await tester.tap(find.text('Ajouter'));
       await tester.pumpAndSettle();

@@ -15,6 +15,7 @@ class InsuranceContractForm extends StatefulWidget {
 
 class _InsuranceContractFormState extends State<InsuranceContractForm> {
   final form = GlobalKey<FormState>();
+  late final companies = widget.repo.availableInsurerCompanies();
   late final company = TextEditingController(
     text: widget.contract?['company'] as String?,
   );
@@ -113,12 +114,68 @@ class _InsuranceContractFormState extends State<InsuranceContractForm> {
                   controller: company,
                   enabled: !busy,
                   validator: requiredText,
+                  onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(
                     labelText: 'Organisme (ex. CNAM)',
                     helperText:
                         'Nom identique à celui de votre organisme dans MediLink.',
                     helperMaxLines: 2,
                   ),
+                ),
+                FutureBuilder<List<String>>(
+                  future: companies,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Liste des assureurs indisponible : vérifiez le nom avant de continuer.',
+                        ),
+                      );
+                    }
+                    if (!snapshot.hasData) return const SizedBox.shrink();
+                    final names = snapshot.data!;
+                    final name = company.text.trim().toLowerCase();
+                    final found = names.any(
+                      (n) => n.trim().toLowerCase() == name,
+                    );
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (names.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Assureurs actifs sur cet appareil :',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              for (final n in names)
+                                ActionChip(
+                                  label: Text(n),
+                                  onPressed:
+                                      busy
+                                          ? null
+                                          : () =>
+                                              setState(() => company.text = n),
+                                ),
+                            ],
+                          ),
+                        ],
+                        if (name.isNotEmpty && !found)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              'Aucun assureur actif ne correspond sur cet appareil. La demande peut être enregistrée, mais aucun assureur correspondant ne pourra la traiter ici.',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

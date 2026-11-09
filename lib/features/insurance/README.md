@@ -55,7 +55,7 @@ Ces comptes de démonstration sont créés lors de l'initialisation d'une nouvel
 | Fonction | Ce que fait l'utilisateur | Où se trouve le code ? |
 | --- | --- | --- |
 | Consulter son espace | Ouvre ses contrats et ses demandes. | [`InsuranceHomeScreen`](presentation/screens/insurance_home_screen.dart), `refresh()` et `build()` ; [`InsuranceRepository`](data/insurance_repository.dart), `patientContracts()` et `patientClaims()`. |
-| Ajouter un contrat | Saisit l'organisme, le numéro, le taux estimé et éventuellement les dates de validité. Un doublon pour le même patient est refusé. Les noms reconnus reprennent l'écriture du catalogue partagé ; « Autre » seul doit être précisé. | `InsuranceContractForm.save()` dans [`insurance_contract_form.dart`](presentation/screens/insurance_contract_form.dart), `addContract()` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
+| Ajouter un contrat | Le formulaire propose les organismes ayant un compte assureur actif sur cet appareil. La saisie manuelle reste possible, avec avertissement si aucun nom ne correspond. Numéro, taux et dates restent déclaratifs. | `InsuranceContractForm`, `availableInsurerCompanies()` et `addContract()` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
 | Modifier ou supprimer un contrat | Boutons visibles sur les contrats sans aucune demande liée. Vérification du propriétaire et de l'absence d'historique dans une transaction. | `updateContract()`, `deleteContract()`, `_ownContract()` dans [`insurance_repository.dart`](data/insurance_repository.dart) ; `ContractCard` dans [`insurance_widgets.dart`](presentation/screens/insurance_widgets.dart). |
 | Désactiver / réactiver un contrat | Empêche de nouvelles demandes sans interrompre le traitement des anciennes. Une réactivation reste soumise aux dates de validité et ne certifie pas le contrat. | `manageContract()` dans [`insurance_home_screen.dart`](presentation/screens/insurance_home_screen.dart), `setContractActive()` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
 | Simuler le reste à charge | Choisit un contrat actif et saisit les frais ; aucune demande n'est créée. | `InsuranceSimulator` dans [`insurance_forms.dart`](presentation/screens/insurance_forms.dart) ; `insuranceEstimate()` dans [`insurance_dossier.dart`](data/insurance_dossier.dart). |
@@ -63,6 +63,10 @@ Ces comptes de démonstration sont créés lors de l'initialisation d'une nouvel
 | Joindre un justificatif | Sélectionne une photo ou une image du dossier médical. La copie ajoutée à la demande reste disponible même si le document source est supprimé du dossier médical. | `InsuranceEvidencePicker` dans [`insurance_forms.dart`](presentation/screens/insurance_forms.dart) ; `patientDocuments()` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
 | Lire une facture | Lance la reconnaissance de texte sur la **première image** ; le montant et la date détectés sont proposés pour vérification. | `scan()` dans [`insurance_forms.dart`](presentation/screens/insurance_forms.dart), `recognizeInvoice()` dans [`invoice_ocr.dart`](data/invoice_ocr.dart) et `InvoiceSuggestions.fromText()` dans [`insurance_dossier.dart`](data/insurance_dossier.dart). |
 | Suivre et compléter le dossier | Consulte les pièces, l'historique et la prochaine étape ; ajoute une réponse et éventuellement des images tant que la demande est en attente. | [`InsuranceClaimScreen`](presentation/screens/insurance_claim_screen.dart), `_TimelineEvent` et `_DecisionForm` ; `claim()` et `complementClaim()` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
+| Comprendre une consigne de pièces | Affiche exactement la consigne et demande un accord explicite avant de l'envoyer à Groq. Le patient doit comparer la réponse avec l'original : l'IA peut inventer ou se tromper. | [`insurance_document_help_dialog.dart`](presentation/screens/insurance_document_help_dialog.dart), tâche `documents` dans [`groq_relay.py`](tool/groq_relay.py). |
+| Demander une révision | Après un refus, envoie un recours motivé ; un recours par refus. Le refus initial reste visible. | `submitAppeal()` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
+| Comparer des offres fictives | Saisit un budget et des priorités ; l'application classe un catalogue de démonstration. Une explication IA facultative est disponible pour chaque offre. | [`insurance_comparator.dart`](data/insurance_comparator.dart) et [`insurance_comparison_screen.dart`](presentation/screens/insurance_comparison_screen.dart). |
+| Expliquer mon dossier avec l'IA | En un clic, le patient envoie l'état et les montants à Groq. Un modèle reformule le statut et, si possible, la prochaine étape. Des exemples fictifs permettent de comparer les réponses, sans modifier le dossier. | [`insurance_explanation_dialog.dart`](presentation/screens/insurance_explanation_dialog.dart), [`insurance_explanation_service.dart`](data/insurance_explanation_service.dart) et [`groq_relay.py`](tool/groq_relay.py). |
 | Corriger une demande | **Corriger les informations** permet de modifier le montant et la date avant décision, avec un motif obligatoire. Les anciennes valeurs restent dans l'historique. Pour changer le contrat ou le soin lié : retirer puis recréer. | `correctClaim()` et `_changePatientClaim()` dans [`insurance_repository.dart`](data/insurance_repository.dart) ; `_DecisionForm` dans [`insurance_claim_screen.dart`](presentation/screens/insurance_claim_screen.dart). |
 | Retirer une demande | **Retirer ma demande** est disponible avant décision, avec confirmation et motif. Le dossier reste consultable ; aucune décision ni nouveau complément n'est ensuite autorisé. | `withdrawClaim()` et `_changePatientClaim()` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
 | Repérer les anomalies de parcours | Avertissement si aucun assureur actif ne correspond localement au contrat. Signalement de frais similaires : même patient, même montant et même date ou même soin lié. C'est une invitation à vérifier, pas une preuve de double remboursement. | `patientContracts()`, `_flagPossibleDuplicates()` dans [`insurance_repository.dart`](data/insurance_repository.dart) ; cartes dans [`insurance_widgets.dart`](presentation/screens/insurance_widgets.dart). |
@@ -98,6 +102,7 @@ La reconnaissance peut se tromper ou ne rien détecter : elle ne valide pas une 
 | Vérifier un complément | Après une réponse du patient, accepte le complément avec une explication ou redemande les pièces manquantes. Cette étape ne décide pas du remboursement. | `reviewComplement()` dans [`insurance_repository.dart`](data/insurance_repository.dart) ; `_DecisionForm` dans [`insurance_claim_screen.dart`](presentation/screens/insurance_claim_screen.dart). |
 | Approuver | Enregistre un montant compris entre zéro et les frais déclarés. Un montant différent de l'estimation nécessite un motif. L'approbation reste bloquée tant que le complément demandé n'est pas validé par l'assureur. | `changeClaimStatus(..., 'APPROVED')` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
 | Refuser | Enregistre un refus avec un motif obligatoire. | `changeClaimStatus(..., 'REJECTED')` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
+| Examiner un recours | Après un refus contesté, l'assureur peut maintenir le refus ou rouvrir le dossier, avec une réponse obligatoire. La réouverture ne vaut pas approbation ; les décisions précédentes restent dans l'historique. | `resolveAppeal()` dans [`insurance_repository.dart`](data/insurance_repository.dart) ; `insurance_claim_screen.dart` et filtre « Recours à examiner ». |
 | Marquer comme payée | Après approbation, enregistre manuellement le statut et éventuellement une référence. | `changeClaimStatus(..., 'PAID')` dans [`insurance_repository.dart`](data/insurance_repository.dart). |
 
 **Important :** « marquée comme payée » signifie que l'assureur a enregistré cette information dans l'application. MediLink ne réalise pas de paiement et ne vérifie pas qu'un virement a eu lieu.
@@ -108,6 +113,9 @@ La reconnaissance peut se tromper ou ne rien détecter : elle ne valide pas une 
 flowchart LR
     S[SUBMITTED : à traiter] --> A[APPROVED : approuvée]
     S --> R[REJECTED : refusée]
+    R --> Q[Recours en attente]
+    Q -->|Refus maintenu| R2[REJECTED : refus maintenu]
+    Q -->|Réouverture| S
     A --> P[PAID : marquée payée]
     S --> D[Complément demandé]
     D --> C[Réponse du patient]
@@ -122,6 +130,8 @@ flowchart LR
 Une demande de complément est une **information supplémentaire du dossier** : elle ne crée pas un nouveau statut dans la table. La demande reste `SUBMITTED` et l'assureur doit vérifier la réponse avant de pouvoir l'approuver. Un refus reste possible avec un motif. Une correction ou un complément spontané est possible tant que le dossier n'a pas de décision et n'est pas retiré.
 
 Le retrait utilise `withdrawn: true` dans le dossier JSON : la colonne SQL reste `SUBMITTED` pour respecter la contrainte existante. **Tout futur consommateur de ces données doit utiliser `insuranceClaimState()` ou appliquer la même règle**, sinon il compterait à tort les retraits parmi les demandes à traiter. `complementReceived` distingue une réponse reçue d'une réponse validée. Ces champs sont facultatifs pour relire les anciens dossiers.
+
+Un recours utilise `appealStatus` dans ce même JSON. Tant qu'il est en attente, le statut SQL reste `REJECTED` et l'état d'affichage est `APPEAL_PENDING`. Un refus maintenu reste `REJECTED`. Une réouverture remet le dossier à `SUBMITTED` pour un nouvel examen, sans effacer l'événement de refus ou le recours. Une décision ultérieure de refus permet un nouveau recours pour ce nouveau refus. Les mutations et notifications sont transactionnelles.
 
 L'historique mémorise les événements tels que le dépôt, la demande de pièces, la réponse, l'approbation, le refus et le paiement marqué. Chaque événement contient un auteur, une date et, selon l'action, un motif ou un montant. Il est construit par `InsuranceDossier.record()` dans [`insurance_dossier.dart`](data/insurance_dossier.dart) et affiché par `_TimelineEvent` dans [`insurance_claim_screen.dart`](presentation/screens/insurance_claim_screen.dart).
 
@@ -206,6 +216,8 @@ lib/features/insurance/
 ├── data/
 │   ├── insurance_repository.dart     Accès aux données et règles métier
 │   ├── insurance_dossier.dart        Dossier, pièces, calcul et extraction des valeurs
+│   ├── insurance_comparator.dart     Offres fictives et classement par règles
+│   ├── insurance_explanation_service.dart  Client du relais IA
 │   ├── invoice_ocr.dart              Point d'entrée OCR selon la plateforme
 │   ├── invoice_ocr_native.dart       OCR Android / iOS
 │   ├── invoice_ocr_web.dart          OCR navigateur
@@ -213,6 +225,9 @@ lib/features/insurance/
 └── presentation/screens/
     ├── insurance_home_screen.dart    Espace patient et ajout de contrat
     ├── insurance_contract_form.dart  Création / modification et dates de validité
+    ├── insurance_comparison_screen.dart    Comparateur fictif et explication IA
+    ├── insurance_document_help_dialog.dart Consentement et aide aux pièces
+    ├── insurance_explanation_dialog.dart   Explication d'un dossier et scénarios
     ├── insurer_dashboard_screen.dart Espace assureur et filtres
     ├── insurance_forms.dart          Simulateur, pièces et dépôt de demande
     ├── insurance_claim_screen.dart   Détail, historique et actions sur un dossier
@@ -238,6 +253,8 @@ flutter build web
 | [`insurance_repository_test.dart`](../../../test/features/insurance/insurance_repository_test.dart) | Parcours de remboursement, droits d'accès, justificatifs, historique, notifications, ancien chemin et structure inchangée de la base. |
 | [`insurance_screen_test.dart`](../../../test/features/insurance/insurance_screen_test.dart) | Formulaires, simulateur, parcours patient–assureur, filtres, notifications et différentes largeurs d'écran. |
 | [`insurance_crud_screen_test.dart`](../../../test/features/insurance/insurance_crud_screen_test.dart) | Boutons modifier / supprimer / désactiver, correction et retrait d'une demande, à 320 px avec le thème réel de l'application. |
+| [`insurance_new_workflows_test.dart`](../../../test/features/insurance/insurance_new_workflows_test.dart) | Recours patient–assureur, droits, conservation du schéma et de l'historique, suggestions d'organismes, classement fictif et consentement pour les consignes. |
+| [`groq_relay_test.py`](../../../test/features/insurance/groq_relay_test.py) | Validation des charges utiles, confidentialité et tests du relais simulés sans appel réseau réel. |
 
 Le test navigateur facultatif [`verify_insurance_ocr.cjs`](../../../tool/verify_insurance_ocr.cjs) utilise une facture synthétique : il vérifie la reconnaissance et l'absence de requête OCR externe. Il nécessite Chrome et `playwright-core` installés séparément ; la variable `PLAYWRIGHT_CORE_PATH` peut pointer vers le dossier du paquet.
 
@@ -246,7 +263,7 @@ Le test navigateur facultatif [`verify_insurance_ocr.cjs`](../../../tool/verify_
 - Les données sont locales à une installation et ne sont pas synchronisées entre les appareils. Patient et assureur doivent utiliser la même installation pour la démonstration.
 - Le contrat et son taux sont déclarés par le patient. Il n'y a pas de vérification auprès de l'organisme, de gestion des accords préalables officiels ni de connexion à un portail CNAM ou à une mutuelle.
 - Le module n'effectue pas de virement réel. La validation du paiement est manuelle.
-- Les corrections et retraits sont disponibles avant décision. Les brouillons, recours après refus et renouvellements conservant le même numéro ne sont pas implémentés ; ils nécessitent des règles métier distinctes. Un refus n'est pas réouvert silencieusement.
+- Les corrections et retraits sont disponibles avant décision. Un recours motivé est possible après refus ; les brouillons et renouvellements conservant le même numéro ne sont pas implémentés. Un refus n'est jamais réouvert silencieusement.
 - Les pièces déjà transmises ne sont pas supprimables ni remplaçables ; un complément peut ajouter une copie dans les limites de stockage. Un véritable remplacement versionné des justificatifs reste à concevoir pour éviter d'effacer les pièces utilisées dans une décision, notamment lorsque la limite est atteinte.
 - Le signalement de frais similaires est une heuristique locale, sans référence de facture normalisée. L'assureur ne compare que les dossiers de son organisme ; le patient voit ses propres dossiers. Les cas légitimes de couverture complémentaire ne sont pas bloqués automatiquement.
 - Les données et les images sont stockées localement dans SQLite ; le Base64 est un encodage, **pas un chiffrement**. Une version de production nécessiterait notamment un backend sécurisé, une politique de stockage adaptée et une vraie gestion des accès et des droits.
@@ -254,8 +271,71 @@ Le test navigateur facultatif [`verify_insurance_ocr.cjs`](../../../tool/verify_
 
 Pour une version réelle, la prochaine étape serait donc de définir une API et un stockage sécurisés avec les autres membres de l'équipe, puis d'intégrer les règles de chaque organisme sans présenter les estimations locales comme des décisions officielles.
 
-### Préparer le futur système de recommandation
+### Comparateur de démonstration et explication IA
 
-Le système de recommandation n'est **pas implémenté** dans cette étape. Avant de le développer, choisir précisément ce qu'il recommande : par exemple des offres d'assurance adaptées à un budget et à des besoins déclarés. Il faudra un catalogue d'offres avec garanties, plafonds, exclusions et critères d'éligibilité ; les taux saisis par les patients ne suffisent pas à représenter les offres réelles.
+Le bouton **Comparer des offres fictives**, dans l'espace patient, ouvre un catalogue de trois offres inventées. Le patient choisit un budget mensuel et au moins une priorité. Les offres dépassant le budget sont écartées ; les garanties choisies sont des préférences, pas des critères obligatoires. L'application affiche les priorités incluses et non incluses.
 
-Un premier prototype pourra rester entièrement dans Assurance, avec un catalogue de démonstration explicite, des préférences saisies volontairement et un classement expliqué. Définir ensuite les critères d'évaluation et déterminer si un modèle apporte un bénéfice par rapport à des règles. Aucune recommandation ne doit valider automatiquement un remboursement ou exploiter les notes médicales d'autres espaces sans contrat d'accès approprié.
+`rankDemoOffers()` dans [`insurance_comparator.dart`](data/insurance_comparator.dart) calcule un score déterministe : **70 points × proportion des priorités couvertes + 30 points × proportion de budget restant**. Par exemple, budget 70 TND et priorités consultations + dentaire : l'offre fictive Complète coûte 65 TND et couvre 2 priorités sur 2, soit environ 72,1/100. Les ex æquo sont départagés par le prix inférieur. Le bouton **Pourquoi cette offre ?** envoie à Groq le budget, les priorités et l'identifiant de l'offre fictive sélectionnée ; aucun nom ni dossier médical. Le relais ajoute les détails du catalogue. Le classement lui-même ne dépend pas de l'IA et ne constitue pas du machine learning.
+
+Les offres, tarifs et garanties ne sont pas réels. Ce prototype ne vérifie pas l'éligibilité, les plafonds ou exclusions et ne constitue pas un conseil. Une version réelle exige un catalogue officiel à jour, les critères et conditions vérifiés, ainsi qu'une évaluation avec l'équipe concernée. Les résultats IA restent à contrôler.
+
+### Assistant d'explication Groq : démarrage local
+
+Les fonctions IA expliquent un dossier, une consigne ou une offre fictive. Elles utilisent GPT-OSS sur **Groq** (et non Grok de xAI). Les réponses sont temporaires ; aucune nouvelle table n'est créée.
+
+1. Dans la console Groq, révoquer toute clé divulguée et créer une nouvelle clé. Ne pas la mettre dans le code, le dépôt Git ou la conversation.
+2. Créer le fichier local `lib/features/insurance/tool/.env` et y écrire :
+
+   ```text
+   GROQ_API_KEY=COLLER_LA_NOUVELLE_CLE_ICI
+   ```
+
+   Remplacer le texte après `=` par la nouvelle clé, sans guillemets. Le fichier `.env` est ignoré par Git grâce au fichier `.gitignore` de ce dossier. Ne pas modifier la ligne `os.environ.get("GROQ_API_KEY")` dans le relais. Une variable d'environnement déjà définie a priorité sur ce fichier.
+
+3. Dans PowerShell, à la racine du projet, démarrer le relais local :
+
+   ```powershell
+   python lib/features/insurance/tool/groq_relay.py
+   ```
+
+   Autre possibilité, sans fichier `.env` : saisir la clé de manière masquée dans la session PowerShell avant de démarrer le relais :
+
+   ```powershell
+   $insuranceSecret = Read-Host 'Nouvelle clé API Groq' -AsSecureString
+   $env:GROQ_API_KEY = (New-Object System.Net.NetworkCredential('', $insuranceSecret)).Password
+   Remove-Variable insuranceSecret
+   python lib/features/insurance/tool/groq_relay.py
+   ```
+
+   Laisser ce terminal ouvert. Le relais écoute uniquement sur `127.0.0.1:8787` et utilise par défaut `openai/gpt-oss-20b`. On peut sélectionner un autre modèle Groq compatible avec la variable d'environnement `GROQ_MODEL`. À l'arrêt, fermer le terminal et retirer la variable d'environnement de la session si nécessaire.
+4. Dans un second terminal, lancer le client Web local : `flutter run -d chrome`. Se connecter comme patient, ouvrir une demande et choisir **Expliquer mon dossier** : la génération commence immédiatement. Une connexion Internet est nécessaire au relais pour contacter Groq.
+5. Sur un émulateur Android, `adb reverse tcp:8787 tcp:8787` permet de relier son port local au relais sur l'ordinateur. **La connexion HTTP locale reste soumise à la politique de trafic en clair Android et n'a pas été validée sur cet émulateur.** Pour une application mobile déployée, utiliser une API HTTPS authentifiée ; son URL peut être configurée avec `--dart-define=INSURANCE_ASSISTANT_URL=https://.../explain`.
+
+Le client envoie uniquement l'état et les montants ; une indication est affichée sous le bouton avant le clic. Il ne transmet ni nom, ni numéro de contrat, ni image, ni document, ni texte libre (consigne ou motif). L'explication ne peut donc pas préciser le contenu d'une consigne ou le motif d'une décision ; ces informations restent consultables dans le dossier. L'état et les montants sont récupérés à nouveau au début de chaque tentative. La réponse est générée par un modèle externe et peut être incorrecte : l'utilisateur doit vérifier les faits et la décision d'origine.
+
+Pour **Comprendre les pièces demandées**, la consigne libre affichée est envoyée seulement si le patient coche son accord explicite. Elle peut contenir des données personnelles : ne l'envoyez pas si vous ne souhaitez pas la partager avec Groq. Aucun document ni autre champ du dossier n'est transmis. Si la consigne change avant l'envoi, le patient doit rouvrir le dialogue. Le modèle peut ajouter ou mal interpréter des éléments ; la consigne originale fait foi et toute ambiguïté doit être vérifiée auprès de l'assureur.
+
+**Essayer les scénarios :** dans la fenêtre de réponse, utiliser « Explorer des exemples ». Chaque sélection envoie uniquement des données fictives, demande une nouvelle réponse au modèle et affiche « Simulation · données fictives ». Les exemples ne modifient aucune table. « Mon dossier » recharge les données réelles du patient.
+
+| Exemple | Données fictives | Ce que l'on peut observer |
+| --- | --- | --- |
+| Pièces attendues | Frais déclarés : 120 TND. | L'IA explique qu'un complément est attendu. Elle ne connaît pas la consigne exacte. |
+| Approuvée | Frais : 120 TND ; montant retenu : 84 TND. | L'approbation est enregistrée ; le paiement est à suivre, sans virement automatique. |
+| Refusée | Frais : 120 TND. | Le dossier est refusé ; aucun motif précis n'est inventé. |
+| Paiement indiqué | Frais : 120 TND ; montant retenu : 84 TND. | L'organisme a marqué le paiement comme effectué ; l'application ne vérifie pas le virement. |
+
+Les réponses varient d'un appel à l'autre : ces exemples servent à observer l'explication, pas à prendre une décision ni à tester de véritables contrats. Un appel API est effectué à chaque changement d'exemple.
+
+Le relais fourni est **réservé à une démonstration sur un ordinateur de confiance** : il n'authentifie pas les utilisateurs et n'applique pas de quotas. Pour une mise en production, l'équipe backend doit ajouter une API HTTPS, une authentification et autorisation serveur, des limites d'utilisation et une gestion sécurisée des secrets. Le relais local ne doit pas être exposé sur Internet. Les politiques de traitement et de conservation de Groq doivent être vérifiées avant d'envoyer des données réelles.
+
+Tests sans appel ni clé Groq : `flutter test test/features/insurance/insurance_explanation_test.dart` et `python -m unittest discover -s test/features/insurance -p groq_relay_test.py`.
+
+**Dépannage :**
+
+- « Impossible de joindre le relais local » : démarrer le relais et laisser son terminal ouvert. Dans le navigateur, l'application doit être ouverte sur `localhost` ou `127.0.0.1`. Sur Android, l'adresse locale désigne l'émulateur ; voir la configuration `adb reverse` et la limite HTTP ci-dessus.
+- « Le relais ne peut pas joindre Groq » : vérifier l'accès Internet du processus Python. Un relais exécuté dans un environnement isolé peut écouter sur le port local tout en étant privé de connexion sortante.
+- « Groq a refusé l'accès » : vérifier la clé, l'accès du compte au modèle configuré et un éventuel blocage réseau. Ne jamais partager la clé dans un message d'erreur.
+- « La limite Groq est atteinte » : vérifier les quotas et réessayer plus tard.
+- « Le modèle configuré est indisponible » : vérifier `GROQ_MODEL` et choisir un modèle disponible pour le compte. L'ancien modèle Llama 3.3 70B n'est plus disponible sur toutes les offres Groq.
+
+Après modification du code Flutter, effectuer un redémarrage complet de l'application. Après modification de `groq_relay.py` ou de la clé dans `.env`, arrêter et redémarrer le relais. Le relais ajoute les en-têtes CORS sur les erreurs destinées aux origines locales autorisées afin que le navigateur puisse afficher le bon diagnostic.
