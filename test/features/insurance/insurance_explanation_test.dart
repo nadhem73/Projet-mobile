@@ -21,6 +21,117 @@ void main() {
   sqfliteFfiInit();
 
   test(
+    'direct Groq requests handle the three tasks without forwarding identity',
+    () async {
+      var calls = 0;
+      final service = InsuranceExplanationService(
+        apiKey: 'test-key',
+        client: MockClient((request) async {
+          calls++;
+          expect(
+            request.url.toString(),
+            'https://api.groq.com/openai/v1/chat/completions',
+          );
+          expect(request.headers['authorization'], 'Bearer test-key');
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          final messages = body['messages'] as List<dynamic>;
+          final facts =
+              jsonDecode(messages[1]['content'] as String)
+                  as Map<String, dynamic>;
+          if (calls == 1) {
+            expect(facts, {'status': 'SUBMITTED', 'amount_tnd': 100});
+          }
+          if (calls == 2) {
+            expect(facts, {'instruction': 'Envoyez la facture'});
+          }
+          if (calls == 3) {
+            expect(facts['offer']['name'], 'Essentielle');
+            expect(facts['budget_tnd'], 50);
+          }
+          return http.Response(
+            jsonEncode({
+              'choices': [
+                {
+                  'message': {'content': 'Explication'},
+                },
+              ],
+            }),
+            200,
+          );
+        }),
+      );
+      expect(
+        await service.explain({'status': 'SUBMITTED', 'amount_tnd': 100}),
+        'Explication',
+      );
+      expect(
+        await service.explain({
+          'task': 'documents',
+          'instruction': 'Envoyez la facture',
+        }),
+        'Explication',
+      );
+      expect(
+        await service.explain({
+          'task': 'compare',
+          'offer_id': 'demo_essential',
+          'budget': 50,
+          'priorities': ['pharmacy'],
+        }),
+        'Explication',
+      );
+      await expectLater(
+        service.explain({
+          'status': 'SUBMITTED',
+          'amount_tnd': 100,
+          'name': 'private',
+        }),
+        throwsA(isA<AppException>()),
+      );
+      expect(calls, 3);
+      service.dispose();
+    },
+  );
+
+  test(
+    'direct mode reports missing credentials and hides provider errors',
+    () async {
+      final missing = InsuranceExplanationService(
+        apiKey: '',
+        client: MockClient((_) async => http.Response('', 500)),
+      );
+      await expectLater(
+        missing.explain({}),
+        throwsA(
+          isA<AppException>().having(
+            (e) => e.message,
+            'message',
+            contains('Clé Groq absente'),
+          ),
+        ),
+      );
+      final denied = InsuranceExplanationService(
+        apiKey: 'test-key',
+        client: MockClient(
+          (_) async => http.Response('secret provider details', 401),
+        ),
+      );
+      await expectLater(
+        denied.explain({'status': 'SUBMITTED', 'amount_tnd': 100}),
+        throwsA(
+          isA<AppException>().having(
+            (e) => e.message,
+            'message',
+            contains('refusé'),
+          ),
+        ),
+      );
+      missing.dispose();
+      denied.dispose();
+    },
+  );
+
+  test(
     'only status and amounts are sent, without identity, free text or clinical links',
     () async {
       final dossier = InsuranceDossier(
@@ -39,6 +150,7 @@ void main() {
       });
       expect(facts, {'status': 'WAITING_DOCUMENTS', 'amount_tnd': 100.0});
       final service = InsuranceExplanationService(
+        url: 'http://127.0.0.1:8787/explain',
         client: MockClient((request) async {
           expect(request.url.toString(), 'http://127.0.0.1:8787/explain');
           expect(jsonDecode(request.body), facts);
@@ -67,6 +179,7 @@ void main() {
     expect(sent, isFalse);
     service.dispose();
     final invalid = InsuranceExplanationService(
+      url: 'http://127.0.0.1:8787/explain',
       client: MockClient((_) async => http.Response('{}', 200)),
     );
     await expectLater(invalid.explain({}), throwsA(isA<AppException>()));
@@ -88,6 +201,7 @@ void main() {
     'relay failure is described without displaying provider response text',
     () async {
       final service = InsuranceExplanationService(
+        url: 'http://127.0.0.1:8787/explain',
         client: MockClient(
           (_) async => http.Response(
             jsonEncode({
@@ -144,6 +258,7 @@ void main() {
     final claim = await repo.claim(id);
     var calls = 0;
     final service = InsuranceExplanationService(
+      url: 'http://127.0.0.1:8787/explain',
       client: MockClient((request) async {
         calls++;
         expect(request.body, isNot(contains('PRIVATE')));

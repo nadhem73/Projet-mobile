@@ -362,6 +362,7 @@ void main() {
         home: InsuranceComparisonScreen(
           createService:
               () => InsuranceExplanationService(
+                url: 'http://127.0.0.1:8787/explain',
                 client: MockClient((request) async {
                   requests++;
                   expect(jsonDecode(request.body), {
@@ -411,6 +412,7 @@ void main() {
       await session.open(patient);
       var calls = 0;
       final service = InsuranceExplanationService(
+        url: 'http://127.0.0.1:8787/explain',
         client: MockClient((request) async {
           calls++;
           expect(jsonDecode(request.body), {
