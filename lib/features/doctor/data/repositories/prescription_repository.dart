@@ -6,6 +6,7 @@ import 'package:medilink/core/session/user_role.dart';
 import 'package:medilink/features/doctor/data/models/consultation.dart';
 import 'package:medilink/features/doctor/data/models/prescription.dart';
 import 'package:medilink/features/doctor/data/repositories/consultation_repository.dart';
+import 'package:medilink/features/user/data/repositories/medical_access_repository.dart';
 import 'package:medilink/features/user/data/repositories/medical_record_repository.dart';
 
 /// Ordonnances (cahier des charges §10.9 / §10.10).
@@ -17,11 +18,15 @@ import 'package:medilink/features/user/data/repositories/medical_record_reposito
 /// Les autres modules (pharmacie, assurance) lisent les ordonnances via
 /// [byId] et [forPatient].
 class PrescriptionRepository {
-  PrescriptionRepository(this._database, this._consultations, this._records);
+  PrescriptionRepository(this._database, this._consultations, this._records, {MedicalAccessRepository? access})
+    : _access = access;
 
   final AppDatabase _database;
   final ConsultationRepository _consultations;
   final MedicalRecordRepository _records;
+
+  /// Droit d'un médecin sur le dossier d'un patient (ordonnances d'autres médecins).
+  final MedicalAccessRepository? _access;
 
   static const String _select = '''
     SELECT pr.*,
@@ -94,15 +99,21 @@ class PrescriptionRepository {
   Future<List<Prescription>> forDoctor(int doctorId) => _list('WHERE pr.doctor_id = ?', [doctorId]);
 
   /// Ordonnance [id] telle que [user] a le droit de la voir : le patient ne
-  /// voit que les siennes (consultation clôturée), le médecin que celles qu'il
-  /// a rédigées. Pharmaciens et assureurs y ont accès pour les traiter.
+  /// voit que les siennes (consultation clôturée), le médecin celles qu'il a
+  /// rédigées et, une fois publiées, celles des patients dont il peut ouvrir le
+  /// dossier. Pharmaciens et assureurs y ont accès pour les traiter.
   Future<Prescription> viewableBy(int id, CurrentUser user) async {
     final prescription = await byId(id);
+    final published =
+        prescription.consultationId == null || (await _consultations.byId(prescription.consultationId!)).isClosed;
+    final access = _access;
     final allowed = switch (user.role) {
-      UserRole.patient =>
-        prescription.patientId == user.patientId &&
-            (prescription.consultationId == null || (await _consultations.byId(prescription.consultationId!)).isClosed),
-      UserRole.doctor => prescription.doctorId == user.doctorId,
+      UserRole.patient => prescription.patientId == user.patientId && published,
+      UserRole.doctor =>
+        prescription.doctorId == user.doctorId ||
+            (published &&
+                access != null &&
+                await access.canAccess(doctorId: user.doctorId!, patientId: prescription.patientId)),
       UserRole.pharmacist || UserRole.insurer => true,
       UserRole.admin => false,
     };

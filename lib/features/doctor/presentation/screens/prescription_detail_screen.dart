@@ -7,6 +7,7 @@ import 'package:medilink/core/theme/app_dimens.dart';
 import 'package:medilink/core/widgets/widgets.dart';
 import 'package:medilink/features/doctor/data/models/prescription.dart';
 import 'package:medilink/features/doctor/data/repositories/prescription_repository.dart';
+import 'package:medilink/features/pharmacy/presentation/widgets/prescription_dispatch_card.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 /// Détail d'une ordonnance (patient, médecin, pharmacien, assureur), avec un
@@ -113,6 +114,12 @@ class _PrescriptionDetailScreenState extends State<PrescriptionDetailScreen> {
           const SectionHeader(title: 'Note du médecin'),
           const SizedBox(height: AppSpacing.sm),
           MediCard(child: Text(p.note!)),
+        ],
+        if (getIt<SessionService>().currentUser?.isPatient ?? false) ...[
+          const SizedBox(height: AppSpacing.xl),
+          const SectionHeader(title: 'Pharmacie'),
+          const SizedBox(height: AppSpacing.sm),
+          PrescriptionDispatchCard(prescription: p),
         ],
         const SizedBox(height: AppSpacing.xl),
         Center(

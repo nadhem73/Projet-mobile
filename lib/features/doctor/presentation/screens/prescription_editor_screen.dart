@@ -42,7 +42,7 @@ class _PrescriptionEditorScreenState extends State<PrescriptionEditorScreen> {
     _debounce = Timer(const Duration(milliseconds: 350), () => _controller.search(value));
   }
 
-  Future<void> _add({Medicament? medicament, String? freeName}) async {
+  Future<void> _add(Medicament medicament) async {
     final item = await showModalBottomSheet<PrescriptionItem>(
       context: context,
       isScrollControlled: true,
@@ -50,13 +50,13 @@ class _PrescriptionEditorScreenState extends State<PrescriptionEditorScreen> {
       builder:
           (_) => _ItemSheet(
             initial: PrescriptionItem(
-              medicamentId: medicament?.id,
-              medicamentName: medicament?.name ?? freeName ?? '',
-              dosage: medicament?.dosage,
-              forme: medicament?.forme,
+              medicamentId: medicament.id,
+              medicamentName: medicament.name,
+              dosage: medicament.dosage,
+              forme: medicament.forme,
               voieAdministration: 'orale',
             ),
-            nameEditable: medicament == null,
+            nameEditable: false,
           ),
     );
     if (item == null) return;
@@ -165,14 +165,20 @@ class _PrescriptionEditorScreenState extends State<PrescriptionEditorScreen> {
           },
         ),
         if (_controller.isSearching) const LinearProgressIndicator(),
-        if (_controller.apiOffline && query.isNotEmpty)
+        if (_controller.catalogError && query.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: Text(
-              'Catalogue des médicaments indisponible : vous pouvez saisir le nom librement.',
+              'Catalogue des médicaments indisponible pour le moment.',
               style: theme.textTheme.bodySmall?.copyWith(color: AppColors.warning),
             ),
+          )
+        else if (query.length >= 2 && !_controller.isSearching && _controller.results.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Text('Aucun médicament du catalogue ne correspond à « $query ».', style: theme.textTheme.bodySmall),
           ),
+        // Seuls les médicaments enregistrés dans la base peuvent être prescrits.
         for (final m in _controller.results)
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -180,14 +186,7 @@ class _PrescriptionEditorScreenState extends State<PrescriptionEditorScreen> {
             title: Text(m.name),
             subtitle: m.details.isEmpty ? null : Text(m.details),
             trailing: const Icon(Icons.add_circle_outline_rounded),
-            onTap: () => _add(medicament: m),
-          ),
-        if (query.length >= 2 && !_controller.isSearching)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.edit_note_rounded),
-            title: Text('Ajouter « $query » manuellement'),
-            onTap: () => _add(freeName: query),
+            onTap: () => _add(m),
           ),
         const SizedBox(height: AppSpacing.lg),
         SectionHeader(title: 'Médicaments prescrits (${_controller.items.length})'),

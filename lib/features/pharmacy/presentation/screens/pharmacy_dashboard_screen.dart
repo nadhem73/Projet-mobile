@@ -10,11 +10,13 @@ import 'package:medilink/core/theme/app_dimens.dart';
 import 'package:medilink/core/widgets/widgets.dart';
 import 'package:medilink/features/pharmacy/pharmacy_module.dart';
 import 'package:medilink/features/pharmacy/data/repositories/medicine_repository.dart';
+import 'package:medilink/features/pharmacy/data/repositories/prescription_dispatch_repository.dart';
 import 'package:medilink/features/pharmacy/data/repositories/stock_repository.dart';
 import 'package:medilink/features/pharmacy/presentation/controllers/pharmacy_dashboard_controller.dart';
 import 'package:medilink/features/pharmacy/presentation/controllers/pharmacy_voice_assistant_controller.dart';
 import 'package:medilink/features/pharmacy/presentation/screens/medicine_catalog_screen.dart';
 import 'package:medilink/features/pharmacy/presentation/screens/pharmacy_profile_screen.dart';
+import 'package:medilink/features/pharmacy/presentation/screens/received_prescriptions_screen.dart';
 import 'package:medilink/features/pharmacy/presentation/widgets/pharmacy_voice_assistant_dialog.dart';
 import 'package:medilink/features/user/presentation/widgets/user_avatar.dart';
 
@@ -32,11 +34,14 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
   late PharmacyVoiceAssistantController _voiceController;
   int _navIndex = 0;
 
+  /// Ordonnances reçues encore à préparer (badge de l'onglet « Ordonnances »).
+  int _pendingRx = 0;
+
   @override
   void initState() {
     super.initState();
     _controller = GetIt.I<PharmacyDashboardController>();
-    _controller.load();
+    _controller.load().then((_) => _refreshPendingRx());
 
     // Instancier l'assistant vocal directement (pas dans GetIt: état local par screen)
     final session = GetIt.I<SessionService>();
@@ -98,6 +103,16 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
       _controller.refresh();
       if (mounted) setState(() => _navIndex = 0);
     } else if (index == 3) {
+      final pharmacyId = _controller.pharmacy?.pharmacyId;
+      if (pharmacyId != null) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ReceivedPrescriptionsScreen(pharmacyId: pharmacyId)),
+        );
+        await _refreshPendingRx();
+      }
+      if (mounted) setState(() => _navIndex = 0);
+    } else if (index == 4) {
       await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const PharmacyProfileScreen()),
@@ -105,6 +120,13 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
       _controller.refresh();
       if (mounted) setState(() => _navIndex = 0);
     }
+  }
+
+  Future<void> _refreshPendingRx() async {
+    final pharmacyId = _controller.pharmacy?.pharmacyId;
+    if (pharmacyId == null) return;
+    final count = await GetIt.I<PrescriptionDispatchRepository>().pendingCount(pharmacyId);
+    if (mounted) setState(() => _pendingRx = count);
   }
 
   @override
@@ -130,23 +152,32 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _navIndex,
         onDestinationSelected: _handleNavSelect,
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard_rounded),
             label: 'Officine',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.medication_outlined),
             selectedIcon: Icon(Icons.medication_rounded),
             label: 'Catalogue',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),
             selectedIcon: Icon(Icons.inventory_2_rounded),
             label: 'Stock',
           ),
           NavigationDestination(
+            icon: Badge(
+              isLabelVisible: _pendingRx > 0,
+              label: Text('$_pendingRx'),
+              child: const Icon(Icons.receipt_long_outlined),
+            ),
+            selectedIcon: const Icon(Icons.receipt_long_rounded),
+            label: 'Ordonnances',
+          ),
+          const NavigationDestination(
             icon: Icon(Icons.store_outlined),
             selectedIcon: Icon(Icons.store_rounded),
             label: 'Profil',

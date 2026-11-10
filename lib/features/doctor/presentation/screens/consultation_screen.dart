@@ -13,9 +13,11 @@ import 'package:medilink/core/theme/app_colors.dart';
 import 'package:medilink/core/theme/app_dimens.dart';
 import 'package:medilink/core/widgets/widgets.dart';
 import 'package:medilink/features/doctor/data/models/consultation.dart';
+import 'package:medilink/features/doctor/data/models/lab_request.dart';
 import 'package:medilink/features/doctor/data/models/prescription.dart';
 import 'package:medilink/features/doctor/doctor_module.dart';
 import 'package:medilink/features/doctor/presentation/controllers/consultation_controller.dart';
+import 'package:medilink/features/doctor/presentation/widgets/lab_request_tile.dart';
 import 'package:medilink/features/doctor/presentation/widgets/prescription_tile.dart';
 import 'package:medilink/features/user/user_module.dart';
 
@@ -191,6 +193,21 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
     error == null ? context.showSuccess('Consultation enregistrée') : context.showError(error);
   }
 
+  /// Ce que le patient recevra dans son dossier (onglet Documents) à la clôture.
+  String _closeSummary() {
+    final rx = _controller.prescriptions.length;
+    final labs = _controller.labRequests.length;
+    final parts = [
+      if (rx > 0) rx == 1 ? 'son ordonnance' : 'ses $rx ordonnances',
+      if (labs > 0) labs == 1 ? 'sa demande de bilan' : 'ses $labs demandes de bilan',
+    ];
+    final received =
+        parts.isEmpty
+            ? 'Aucune ordonnance ni demande de bilan n\'a été rédigée.'
+            : 'Le patient recevra ${parts.join(' et ')} dans son dossier médical.';
+    return '$received La consultation ne sera plus modifiable.';
+  }
+
   Future<void> _close() async {
     final vitals = _readVitals();
     if (vitals == null) return;
@@ -199,12 +216,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
       builder:
           (context) => AlertDialog(
             title: const Text('Clôturer la consultation ?'),
-            content: Text(
-              _controller.prescriptions.isEmpty
-                  ? 'Aucune ordonnance n\'a été rédigée. La consultation ne sera plus modifiable.'
-                  : 'Le patient recevra ${_controller.prescriptions.length == 1 ? 'son ordonnance' : 'ses ${_controller.prescriptions.length} ordonnances'}. '
-                      'La consultation ne sera plus modifiable.',
-            ),
+            content: Text(_closeSummary()),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
               FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Clôturer')),
@@ -259,6 +271,21 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
     final error = await _controller.deletePrescription(p);
     if (!mounted) return;
     error == null ? context.showSuccess('Ordonnance supprimée') : context.showError(error);
+  }
+
+  Future<void> _newLabRequest() async {
+    final result = await LabRequestSheet.show(context);
+    if (result == null || !mounted) return;
+    final (tests, note) = result;
+    final error = await _controller.addLabRequest(tests, note: note);
+    if (!mounted) return;
+    error == null ? context.showSuccess('Demande de bilan ajoutée') : context.showError(error);
+  }
+
+  Future<void> _deleteLabRequest(LabRequest r) async {
+    final error = await _controller.deleteLabRequest(r);
+    if (!mounted) return;
+    error == null ? context.showSuccess('Demande de bilan supprimée') : context.showError(error);
   }
 
   @override
@@ -360,6 +387,25 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                 showPatient: false,
                 onTap: () => context.push(DoctorRoutes.prescription(p.id)),
                 onDelete: editable ? () => _deletePrescription(p) : null,
+              ),
+            ),
+        const SizedBox(height: AppSpacing.xl),
+        SectionHeader(
+          title: 'Bilans demandés',
+          actionLabel: editable ? 'Demander' : null,
+          onAction: editable ? _newLabRequest : null,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (_controller.labRequests.isEmpty)
+          Text('Aucun bilan demandé.', style: theme.textTheme.bodyMedium)
+        else
+          for (final r in _controller.labRequests)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: LabRequestTile(
+                request: r,
+                onTap: () => context.push(DoctorRoutes.labRequest(r.id)),
+                onDelete: editable ? () => _deleteLabRequest(r) : null,
               ),
             ),
         const SizedBox(height: AppSpacing.xl),

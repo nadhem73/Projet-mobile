@@ -26,7 +26,7 @@ class AppDatabase {
   AppDatabase._(this.db);
 
   /// ⚠️ Incrémenter à chaque modification d'un fichier de schéma.
-  static const int version = 7;
+  static const int version = 8;
 
   /// Ordre important : les tables référencées doivent être créées avant.
   static const List<List<String>> _schemas = [

@@ -16,14 +16,14 @@ class MLDoctorBottomNavigationBarWidget extends StatefulWidget {
 
 class MLDoctorBottomNavigationBarWidgetState extends State<MLDoctorBottomNavigationBarWidget> {
   final List<IconData> _icons = [
-    Icons.dashboard_outlined,
+    Icons.home_rounded,
     Icons.calendar_month_outlined,
     Icons.medical_services_outlined,
     Icons.people_outlined,
     Icons.medication_outlined,
   ];
 
-  final List<String> _labels = ['Tableau de bord', 'Agenda', 'Consultations', 'Patients', 'Ordonnances'];
+  final List<String> _labels = ['Accueil', 'Agenda', 'Consultations', 'Patients', 'Ordonnances'];
 
   final List<int> _displayOrder = [1, 2, 0, 3, 4];
 

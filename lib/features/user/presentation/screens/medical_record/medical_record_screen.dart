@@ -9,6 +9,7 @@ import 'package:medilink/core/session/session_service.dart';
 import 'package:medilink/core/theme/app_colors.dart';
 import 'package:medilink/core/theme/app_dimens.dart';
 import 'package:medilink/core/widgets/widgets.dart';
+import 'package:medilink/features/doctor/presentation/widgets/consultation_documents_section.dart';
 import 'package:medilink/features/user/data/ai/document_analyzer.dart';
 import 'package:medilink/features/user/data/ai/document_classifier.dart';
 import 'package:medilink/features/user/data/ai/medical_safety_checker.dart';
@@ -208,7 +209,19 @@ class _MedicalRecordScreenState extends State<MedicalRecordScreen> with SingleTi
                   onDelete: _deleteVaccination,
                 ),
               ),
-              page(DocumentGrid(documents: controller.documents, onDelete: _deleteDocument)),
+              page(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Ordonnances et bilans demandés, publiés à la clôture des consultations.
+                    ConsultationDocumentsSection(patientId: controller.patientId, showPrescriptionHint: true),
+                    const SizedBox(height: AppSpacing.xl),
+                    const SectionHeader(title: 'Mes documents'),
+                    const SizedBox(height: AppSpacing.sm),
+                    DocumentGrid(documents: controller.documents, onDelete: _deleteDocument),
+                  ],
+                ),
+              ),
               page(AccessLogList(entries: controller.accessLog)),
             ],
           );
@@ -502,10 +515,7 @@ class _SuggestionBanner extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.moduleUser.withValues(alpha: 0.08),
-        borderRadius: AppRadius.card,
-      ),
+      decoration: BoxDecoration(color: AppColors.moduleUser.withValues(alpha: 0.08), borderRadius: AppRadius.card),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

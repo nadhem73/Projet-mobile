@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
 import 'package:medilink/core/modules/feature_module.dart';
 import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/theme/app_colors.dart';
 import 'package:medilink/features/doctor/data/repositories/blocked_slot_repository.dart';
 import 'package:medilink/features/doctor/data/repositories/consultation_repository.dart';
-import 'package:medilink/features/doctor/data/repositories/medicament_api.dart';
+import 'package:medilink/features/doctor/data/repositories/lab_request_repository.dart';
+import 'package:medilink/features/doctor/data/repositories/medicament_catalog.dart';
 import 'package:medilink/features/doctor/data/repositories/prescription_repository.dart';
 import 'package:medilink/features/doctor/presentation/controllers/consultation_controller.dart';
 import 'package:medilink/features/doctor/presentation/controllers/doctor_appointment_detail_controller.dart';
@@ -23,11 +23,14 @@ import 'package:medilink/features/doctor/presentation/screens/doctor_dashboard_s
 import 'package:medilink/features/doctor/presentation/screens/doctor_lab_results_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_list_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/doctor_patient_medical_record_screen.dart';
+import 'package:medilink/features/doctor/presentation/screens/lab_request_detail_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/patient_consultation_detail_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/patient_consultations_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/prescription_detail_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/prescription_editor_screen.dart';
 import 'package:medilink/features/doctor/presentation/screens/prescriptions_screen.dart';
+import 'package:medilink/features/pharmacy/data/repositories/medicine_repository.dart';
+import 'package:medilink/features/user/data/repositories/medical_access_repository.dart';
 
 /// Module MÉDECIN — Membre 5.
 /// Espace médecin : agenda, consultations, dossiers patients, ordonnances.
@@ -58,6 +61,9 @@ abstract final class DoctorRoutes {
 
   /// Détail d'une ordonnance (patient, médecin, pharmacien, assureur).
   static String prescription(Object id) => '/prescriptions/$id';
+
+  /// Détail d'une demande de bilan (patient, médecin).
+  static String labRequest(Object id) => '/lab-requests/$id';
 }
 
 class DoctorModule extends FeatureModule {
@@ -71,12 +77,17 @@ class DoctorModule extends FeatureModule {
     getIt
       // Repositories
       ..registerLazySingleton<ConsultationRepository>(() => ConsultationRepository(getIt(), getIt(), getIt()))
-      ..registerLazySingleton<PrescriptionRepository>(() => PrescriptionRepository(getIt(), getIt(), getIt()))
-      ..registerLazySingleton<MedicamentApi>(() => MedicamentApi(http.Client()))
+      ..registerLazySingleton<PrescriptionRepository>(
+        () => PrescriptionRepository(getIt(), getIt(), getIt(), access: getIt<MedicalAccessRepository>()),
+      )
+      ..registerLazySingleton<LabRequestRepository>(() => LabRequestRepository(getIt(), getIt(), getIt()))
+      ..registerLazySingleton<MedicamentCatalog>(() => MedicamentCatalog(getIt<MedicineRepository>()))
       ..registerLazySingleton<BlockedSlotRepository>(() => BlockedSlotRepository(getIt()))
       // Controllers (une instance par écran)
       ..registerFactory<ConsultationsController>(() => ConsultationsController(getIt(), getIt()))
-      ..registerFactory<ConsultationController>(() => ConsultationController(getIt(), getIt(), getIt(), getIt()))
+      ..registerFactory<ConsultationController>(
+        () => ConsultationController(getIt(), getIt(), getIt(), getIt(), getIt()),
+      )
       ..registerFactory<DoctorAppointmentDetailController>(
         () => DoctorAppointmentDetailController(getIt(), getIt(), getIt(), getIt()),
       )
@@ -128,6 +139,7 @@ class DoctorModule extends FeatureModule {
       builder: (_, _) => const PrescriptionsScreen(),
       routes: [GoRoute(path: ':id', builder: (_, state) => PrescriptionDetailScreen(prescriptionId: _id(state)))],
     ),
+    GoRoute(path: '/lab-requests/:id', builder: (_, state) => LabRequestDetailScreen(labRequestId: _id(state))),
   ];
 
   @override

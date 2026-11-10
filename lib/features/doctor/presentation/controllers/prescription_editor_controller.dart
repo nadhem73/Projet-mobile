@@ -5,7 +5,7 @@ import 'package:medilink/features/doctor/data/models/consultation.dart';
 import 'package:medilink/features/doctor/data/models/medicament.dart';
 import 'package:medilink/features/doctor/data/models/prescription.dart';
 import 'package:medilink/features/doctor/data/repositories/consultation_repository.dart';
-import 'package:medilink/features/doctor/data/repositories/medicament_api.dart';
+import 'package:medilink/features/doctor/data/repositories/medicament_catalog.dart';
 import 'package:medilink/features/doctor/data/repositories/prescription_repository.dart';
 
 /// Rédaction d'une ordonnance pour une consultation en cours.
@@ -14,7 +14,7 @@ class PrescriptionEditorController extends ChangeNotifier {
 
   final ConsultationRepository _consultations;
   final PrescriptionRepository _prescriptions;
-  final MedicamentApi _medicaments;
+  final MedicamentCatalog _medicaments;
   final SessionService _session;
 
   bool isLoading = false;
@@ -30,7 +30,9 @@ class PrescriptionEditorController extends ChangeNotifier {
 
   // Recherche de médicaments
   bool isSearching = false;
-  bool apiOffline = false;
+
+  /// Vrai si la lecture du catalogue local a échoué.
+  bool catalogError = false;
   List<Medicament> results = [];
   int _searchId = 0;
 
@@ -68,11 +70,11 @@ class PrescriptionEditorController extends ChangeNotifier {
       final found = await _medicaments.search(query);
       if (id != _searchId) return; // une recherche plus récente a été lancée
       results = found;
-      apiOffline = false;
+      catalogError = false;
     } on AppException {
       if (id != _searchId) return;
       results = [];
-      apiOffline = true;
+      catalogError = true;
     }
     isSearching = false;
     notifyListeners();

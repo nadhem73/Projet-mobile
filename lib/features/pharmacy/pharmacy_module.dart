@@ -6,9 +6,11 @@ import 'package:medilink/core/modules/feature_module.dart';
 import 'package:medilink/core/navigation/app_routes.dart';
 import 'package:medilink/core/session/session_service.dart';
 import 'package:medilink/core/theme/app_colors.dart';
+import 'package:medilink/features/doctor/data/repositories/prescription_repository.dart';
 import 'package:medilink/features/pharmacy/data/models/pharmacy.dart';
 import 'package:medilink/features/pharmacy/data/repositories/medicine_repository.dart';
 import 'package:medilink/features/pharmacy/data/repositories/pharmacy_finder_repository.dart';
+import 'package:medilink/features/pharmacy/data/repositories/prescription_dispatch_repository.dart';
 import 'package:medilink/features/pharmacy/data/repositories/pharmacy_repository.dart';
 import 'package:medilink/features/pharmacy/data/repositories/stock_repository.dart';
 import 'package:medilink/features/pharmacy/presentation/controllers/medicine_catalog_controller.dart';
@@ -51,6 +53,9 @@ class PharmacyModule extends FeatureModule {
     getIt.registerLazySingleton<MedicineRepository>(() => MedicineRepository(getIt<AppDatabase>()));
     getIt.registerLazySingleton<PharmacyRepository>(() => PharmacyRepository(getIt<AppDatabase>()));
     getIt.registerLazySingleton<StockRepository>(() => StockRepository(getIt<AppDatabase>()));
+    getIt.registerLazySingleton<PrescriptionDispatchRepository>(
+      () => PrescriptionDispatchRepository(getIt<AppDatabase>(), getIt<PrescriptionRepository>()),
+    );
     getIt.registerLazySingleton<PharmacyFinderRepository>(() => PharmacyFinderRepository(
       getIt<PharmacyRepository>(),
       getIt<MedicineRepository>(),

@@ -5,6 +5,9 @@ abstract final class PharmacyPharmacienTables {
   static const pharmacies = 'pharmacies';
   static const medicines = 'medicines';
   static const pharmacyStock = 'pharmacy_stock';
+
+  /// Ordonnances envoyées par les patients à une pharmacie.
+  static const prescriptionDispatches = 'prescription_dispatches';
 }
 
 const List<String> pharmacyPharmacienSchema = [
@@ -60,6 +63,20 @@ const List<String> pharmacyPharmacienSchema = [
     UNIQUE(pharmacy_id, medicine_id)  -- One stock entry per pharmacy per medicine
   )
   ''',
+  // Ordonnance envoyée par le patient à la pharmacie de son choix.
+  // Une seule pharmacie par ordonnance : tant qu'elle n'est pas prête, le patient peut en changer.
+  '''
+  CREATE TABLE prescription_dispatches (
+    dispatch_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    prescription_id INTEGER NOT NULL UNIQUE REFERENCES prescriptions(prescription_id) ON DELETE CASCADE,
+    pharmacy_id     INTEGER NOT NULL REFERENCES pharmacies(pharmacy_id) ON DELETE CASCADE,
+    patient_id      INTEGER NOT NULL REFERENCES patients(patient_id) ON DELETE CASCADE,
+    status          TEXT NOT NULL DEFAULT 'SENT' CHECK (status IN ('SENT','READY','DELIVERED')),
+    sent_at         TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+  )
+  ''',
+  'CREATE INDEX idx_dispatches_pharmacy ON prescription_dispatches(pharmacy_id, status)',
   // Indexes for fast search and lookups
   'CREATE INDEX idx_medicines_name ON medicines(name COLLATE NOCASE)',
   'CREATE INDEX idx_medicines_dci ON medicines(dci COLLATE NOCASE)',

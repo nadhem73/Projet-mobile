@@ -6,6 +6,9 @@ abstract final class DoctorTables {
   static const prescriptions = 'prescriptions';
   static const prescriptionItems = 'prescription_items';
 
+  /// Demandes de bilan (analyses à réaliser) rédigées pendant une consultation.
+  static const labRequests = 'lab_requests';
+
   /// Plages où le médecin n'est pas disponible (réunion, pause…) : aucun rendez-vous possible.
   static const blockedSlots = 'doctor_blocked_slots';
 }
@@ -47,8 +50,8 @@ const List<String> doctorSchema = [
     created_at      TEXT NOT NULL DEFAULT (datetime('now'))
   )
   ''',
-  // medicament_id référence la table Medicament de PostgreSQL (autre base) :
-  // pas de clé étrangère possible, on garde une copie du nom pour l'affichage.
+  // medicament_id référence medicines.medicine_id (catalogue du module Pharmacie).
+  // Pas de clé étrangère (tables de modules distincts) : on garde une copie du nom pour l'affichage.
   '''
   CREATE TABLE prescription_items (
     prescription_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,6 +64,19 @@ const List<String> doctorSchema = [
     instruction          TEXT,
     posologie            TEXT,
     voie_administration  TEXT
+  )
+  ''',
+  // Demande de bilan : liste des analyses à faire au laboratoire. Comme les
+  // ordonnances, elle n'est visible du patient qu'après la clôture de la consultation.
+  '''
+  CREATE TABLE lab_requests (
+    lab_request_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    consultation_id INTEGER REFERENCES consultations(consultation_id) ON DELETE SET NULL,
+    doctor_id       INTEGER NOT NULL REFERENCES doctors(doctor_id),
+    patient_id      INTEGER NOT NULL REFERENCES patients(patient_id) ON DELETE CASCADE,
+    tests           TEXT NOT NULL,   -- JSON : ["NFS","Glycémie à jeun"]
+    note            TEXT,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
   )
   ''',
   // Indisponibilités du médecin : les patients ne peuvent pas réserver sur ces plages.
@@ -80,4 +96,5 @@ const List<String> doctorSchema = [
   'CREATE INDEX idx_consultations_patient ON consultations(patient_id)',
   'CREATE INDEX idx_consultations_doctor ON consultations(doctor_id, status)',
   'CREATE INDEX idx_prescriptions_patient ON prescriptions(patient_id)',
+  'CREATE INDEX idx_lab_requests_patient ON lab_requests(patient_id)',
 ];

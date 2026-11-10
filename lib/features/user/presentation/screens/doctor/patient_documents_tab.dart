@@ -9,6 +9,7 @@ import 'package:medilink/features/ai/data/models/bilan_enums.dart';
 import 'package:medilink/features/ai/data/models/bilan_summary.dart';
 import 'package:medilink/features/ai/presentation/controllers/patient_record_bilans_controller.dart';
 import 'package:medilink/features/ai/presentation/widgets/result_status_style.dart';
+import 'package:medilink/features/doctor/presentation/widgets/consultation_documents_section.dart';
 import 'package:medilink/features/user/data/models/medical_file_models.dart';
 import 'package:medilink/features/user/presentation/widgets/medical_file_widgets.dart';
 
@@ -24,7 +25,7 @@ class PatientDocumentsTab extends StatefulWidget {
   State<PatientDocumentsTab> createState() => _PatientDocumentsTabState();
 }
 
-enum _Filter { all, bilans, documents }
+enum _Filter { all, prescriptions, bilans, documents }
 
 class _PatientDocumentsTabState extends State<PatientDocumentsTab> {
   late final _controller = getIt<PatientRecordBilansController>()..loadList(widget.patientId);
@@ -44,8 +45,9 @@ class _PatientDocumentsTabState extends State<PatientDocumentsTab> {
         final c = _controller;
         final bilans = c.bilans;
         final docs = widget.documents;
-        final showBilans = _filter != _Filter.documents;
-        final showDocs = _filter != _Filter.bilans;
+        final showRx = _filter == _Filter.all || _filter == _Filter.prescriptions;
+        final showBilans = _filter == _Filter.all || _filter == _Filter.bilans;
+        final showDocs = _filter == _Filter.all || _filter == _Filter.documents;
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
@@ -85,6 +87,11 @@ class _PatientDocumentsTabState extends State<PatientDocumentsTab> {
                 key: ValueKey(_filter),
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Ordonnances et bilans demandés lors des consultations clôturées.
+                  if (showRx) ...[
+                    ConsultationDocumentsSection(patientId: widget.patientId),
+                    if (showBilans || showDocs) const SizedBox(height: AppSpacing.lg),
+                  ],
                   if (showBilans) ...[
                     _SectionTitle(
                       icon: Icons.biotech_outlined,
@@ -333,6 +340,12 @@ class _FilterBar extends StatelessWidget {
             label: 'Tout',
             selected: value == _Filter.all,
             onTap: () => onChanged(_Filter.all),
+          ),
+          _FilterPill(
+            key: const ValueKey('documents-filter-prescriptions'),
+            label: 'Prescriptions',
+            selected: value == _Filter.prescriptions,
+            onTap: () => onChanged(_Filter.prescriptions),
           ),
           _FilterPill(
             key: const ValueKey('documents-filter-bilans'),
